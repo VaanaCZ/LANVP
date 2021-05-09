@@ -32,7 +32,7 @@ public:
 		bool	patchEnabled;
 		bool	fpsUnlock;
 		bool	aspectUnlock;
-		bool	fovRecalculation;
+		bool	fovCorrection;
 		float	fovMultiplier;
 		bool	forceBorderlessWindow;
 		int		forceResolutionWidth;
@@ -89,7 +89,7 @@ const char configTemplate[] =	"; L.A. Noire: V-Patch\r\n"
 								";\r\n"
 								"; 1 = enabled (default)\r\n"
 								"; 0 = disabled\r\n"
-								"fov_recalculation=1\r\n"
+								"fov_correction=1\r\n"
 								"\r\n"
 								"\r\n"
 								"[options]\r\n"
@@ -98,7 +98,7 @@ const char configTemplate[] =	"; L.A. Noire: V-Patch\r\n"
 								"; Allows the user to increase/decrease the fov, in case\r\n"
 								"; the game feels too zoomed in/out. It is recommended\r\n"
 								"; that this value does not exceed 2.0!\r\n"
-								"; fov_recalculation must be enabled for this to work!!!\r\n"
+								"; fov_correction must be enabled for this to work!!!\r\n"
 								";\r\n"
 								"; default: 1.0\r\n"
 								"fov_multiplier=1.0\r\n"

@@ -17,7 +17,7 @@ void Config::Init()
 	options.patchEnabled            = true;
 	options.fpsUnlock               = true;
 	options.aspectUnlock            = true;
-	options.fovRecalculation        = true;
+	options.fovCorrection        = true;
 	options.fovMultiplier           = 1.0f;
 	options.forceBorderlessWindow   = true;
 	options.forceResolutionWidth    = 0;
@@ -110,24 +110,24 @@ int Config::Handler(void* user, const char* section, const char* name, const cha
 	// 1 = enabled (default)
 	// 0 = disabled
 	//
-	else if (MATCH("patches", "fov_recalculation"))
+	else if (MATCH("patches", "fov_correction"))
 	{
-		int fovRecalculation = atoi(value);
+		int fovCorrection = atoi(value);
 
-		if (fovRecalculation < 0 || fovRecalculation > 1)
+		if (fovCorrection < 0 || fovCorrection > 1)
 		{
-			ERROR(L"fov_recalculation was set to an invalid value. Using defaults...");
+			ERROR(L"fov_correction was set to an invalid value. Using defaults...");
 			return 0;
 		}
 
-		pOptions->fovRecalculation = fovRecalculation;
+		pOptions->fovCorrection = fovCorrection;
 	}
 
 	//
 	// Allows the user to increase/decrease the fov, in case
 	// the game feels too zoomed in/out. It is recommended
 	// that this value does not exceed 2.0!
-	// fov_recalculation must be enabled for this to work!!!
+	// fov_correction must be enabled for this to work!!!
 	//
 	// default: 1.0
 	//

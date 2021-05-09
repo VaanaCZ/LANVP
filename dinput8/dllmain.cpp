@@ -34,7 +34,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID reserved)
 			if (Config::options.aspectUnlock)
 				Patcher::PatchViewportAspect();
 
-			if (Config::options.fovRecalculation)
+			if (Config::options.fovCorrection)
 				Patcher::PatchFieldOfView();
 			
 			// Options

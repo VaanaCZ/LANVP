@@ -47,8 +47,9 @@ bool Patcher::Init()
 	//
 	switch (linkTimestamp)
 	{
+	case LAN_TIMESTAMP_2617R:	lanVersion = LAN_VERSION_2617R;	 break;
 	case 0: // The old Steam version has a 0 timestamp, so we assume it's 2617
-	case LAN_TIMESTAMP_2617:	lanVersion = LAN_VERSION_2617;	 break;
+	case LAN_TIMESTAMP_2617S:	lanVersion = LAN_VERSION_2617S;	 break;
 	case LAN_TIMESTAMP_2663R:	lanVersion = LAN_VERSION_2663R;	 break;
 	case LAN_TIMESTAMP_2663S:	lanVersion = LAN_VERSION_2663S;	 break;
 
@@ -68,8 +69,6 @@ bool Patcher::Init()
 	wchar_t errMsg[MAX_PATH];														\
 	swprintf_s(errMsg, MAX_PATH, msg, addr);										\
 	MessageBoxW(NULL, errMsg, L"[V-Patch] Error while patching memory.", MB_OK);
-	
-
 
 bool Patcher::WriteMemory(Address address, void* in, unsigned long size, bool flushInstructionCache)
 {
@@ -303,11 +302,11 @@ void Patcher::PatchFramerate()
 	//
 	// Car handling adjustment
 	// 
-	// In the RLauncher version, mulsd was changed to fmul. 
+	// In the RLauncher version, mulsd was compiled as fmul. 
 	//
 	Address brakingConstantAddr = ResolveAddress(OFFSET_PATCH_CAR_BRAKE_CONSTANT);
 
-	if (lanVersion == LAN_VERSION_2663R)
+	if (lanVersion == LAN_VERSION_2663R || lanVersion == LAN_VERSION_2617R)
 	{
 		fmul carHandling = { 0xDC, 0x0D, (Address)&carBreaking };
 		PATCH_INSTRUCTION(brakingConstantAddr, carHandling);
@@ -328,7 +327,11 @@ NO_SECURITY_CHECKS char Patcher::HookFrame(int pointer)
 	// effectively implement delta timing, even
 	// thought the game doesn't support it.
 	//
-
+	// BEWARE! The argument pointer is passed through
+	// a register on some versions, which makes it
+	// unsafe to use.
+	//
+	
 	if (renderer != 0)
 	{	
 		LARGE_INTEGER currTime;
@@ -337,11 +340,10 @@ NO_SECURITY_CHECKS char Patcher::HookFrame(int pointer)
 		if (!firstFrame)
 		{
 			LONGLONG quadDiff = currTime.QuadPart - lastTime.QuadPart;
-			frameTime = quadDiff / (double)timeFrequency.QuadPart;
-						
-			if (frameTime > 0)
+			
+			if (quadDiff > 0)
 			{
-				double fps = 1.0 / frameTime;
+				double fps = timeFrequency.QuadPart / (double)quadDiff;
 
 				//
 				// The minimum allowed gamespeed is 29.97 FPS
@@ -491,10 +493,12 @@ NO_SECURITY_CHECKS void Patcher::Camera::UpdateFov(void* copyCamera)
 		// fovV = fovH * (9/16)
 		// fovH = fovV * aspect
 		//
-		float fovV = (*fovH * LAN_DEFAULT_ASPECT_INVERSE);
-		*fovH = fovV * viewAspect * fovMultiplier; // Allow fov modifications
+		if (fovH > 0)
+		{
+			float fovV = (*fovH * LAN_DEFAULT_ASPECT_INVERSE);
+			*fovH = fovV * viewAspect * fovMultiplier; // Allow fov modifications
+		}
 	}
-
 }
 
 //-------------------------------------------------------------

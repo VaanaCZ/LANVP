@@ -7,6 +7,7 @@
 // Copyright (c) 2021 Václav AKA Vaana
 //-----------------------------------------------------------------------------
 
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <stdio.h>
 
@@ -43,7 +44,6 @@ private:
 	// Framerate patch
 	static NO_SECURITY_CHECKS char HookFrame(int);
 
-	static inline double		frameTime;
 	static inline LARGE_INTEGER	lastTime, timeFrequency;
 	static inline bool			firstFrame = true;
 	static inline float*		rendererFps;

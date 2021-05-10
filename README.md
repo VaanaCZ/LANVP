@@ -34,9 +34,9 @@ Of course, the fix is not perfect, since some things in the game logic are still
 
 #### Fixed car braking
 
-Another drawback of using the 60 FPS patches was that cars would break a lot slower. If you tried to go even higher than 60, cars would stop breaking at all, effectively making the game unplayable.
+Another drawback of using the 60 FPS patches was that cars would brake a lot slower. If you tried to go even higher than 60, cars would stop braking at all, effectively making the game unplayable.
 
-This turned out to be a much easier fix that I had imagined, since it simply revolves around changing the braking modifier in the car dynamics logic, according to the framerate. Cars now break at the correct speed, which also has the side effect of making the case **"The Golden Butterfly"** beatable again.
+This turned out to be a much easier fix that I had imagined, since it simply revolves around changing the braking modifier in the car dynamics logic, according to the framerate. Cars now brake at the correct speed, which also has the side effect of making the case **"The Golden Butterfly"** beatable again.
 
 Here's a comparison of the braking speeds, 30 FPS vs uncapped:
 

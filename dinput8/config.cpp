@@ -3,6 +3,8 @@
 // 
 // Releases:
 //     1.0 - Initial release
+//     1.1 - "FPS Unlock" & "Aspect Correction" improvements, "Launcher Check",
+//           "Skip Logo&Legals" & "FPS Lock" added, "Force Resolution" bugfix.
 //
 // Copyright (c) 2021 Václav AKA Vaana
 //-----------------------------------------------------------------------------
@@ -14,17 +16,44 @@ void Config::Init()
 	//
 	// Load and parse ini
 	//
-	options.patchEnabled            = true;
-	options.fpsUnlock               = true;
-	options.aspectUnlock            = true;
-	options.fovCorrection        = true;
-	options.fovMultiplier           = 1.0f;
-	options.forceBorderlessWindow   = true;
-	options.forceResolutionWidth    = 0;
-	options.forceResolutionHeight   = 0;
-	options.forceResolutionRefresh  = 0;
+	options = new Options;
 
-	if (ini_parse(INI_FILE, Handler, &options) < 0 || generateNew)
+	options->patchEnabled			= true;
+	options->fpsUnlock				= true;
+	options->aspectCorrection		= true;
+	options->fpsLock				= 0;
+	options->fovMultiplier			= 1.0f;
+	options->skipLauncherCheck		= false;
+	options->skipLogos				= false;
+	options->forceBorderlessWindow	= true;
+	options->forceResolutionWidth	= 0;
+	options->forceResolutionHeight	= 0;
+
+	//
+	// Since version 2663, R* has removed 32-bit support, because
+	// the new launcher is 64-bit. However, the game itself is
+	// still 32-bit. Here we detect if an 32-bit OS	is running,
+	// and skip the launcher check if it is, to restore support.
+	//
+
+	typedef BOOL(WINAPI* IsWow64Process_t) (HANDLE, PBOOL);
+	IsWow64Process_t pIsWow64Process;
+	BOOL IsWow64 = FALSE;
+
+	// IsWow64Process must be loaded dynamically, since some older
+	// Windows versions don't have this function available.
+	pIsWow64Process = (IsWow64Process_t)GetProcAddress(GetModuleHandleW(L"kernel32"), "IsWow64Process");
+
+	if (pIsWow64Process == NULL ||
+		!pIsWow64Process(GetCurrentProcess(), &IsWow64) ||
+		!IsWow64)
+	{
+		options->skipLauncherCheck = true;
+	}
+
+	// todo: Detect if the user has an unsupported resolution
+
+	if (ini_parse(INI_FILE, Handler, options) < 0 || generateNew)
 	{
 		GenerateConfig();
 	}
@@ -84,50 +113,52 @@ int Config::Handler(void* user, const char* section, const char* name, const cha
 
 	//
 	// Removes black bars on aspect ratios slimmer than 16:9 
-	// (16:10, 4:3, 5:4) and allows playing the game in any
-	// aspect ratio.
+	// (16:10, 4:3, 5:4) and corrects the FOV value and
+	// interface size to match the current aspect ratio.
 	// 
 	// 1 = enabled (default)
 	// 0 = disabled
 	//
-	else if (MATCH("patches", "aspect_unlock"))
+	else if (MATCH("patches", "aspect_correction"))
 	{
-		int aspectUnlock = atoi(value);
+		int aspectCorrection = atoi(value);
 
-		if (aspectUnlock < 0 || aspectUnlock > 1)
+		if (aspectCorrection < 0 || aspectCorrection > 1)
 		{
-			ERROR(L"aspect_unlock was set to an invalid value. Using defaults...");
+			ERROR(L"aspect_correction was set to an invalid value. Using defaults...");
 			return 0;
 		}
 
-		pOptions->aspectUnlock = aspectUnlock;
+		pOptions->aspectCorrection = aspectCorrection;
 	}
 
 	//
-	// Corrects the FOV value to match the current aspect
-	// ratio. Primarily useful for ultrawide resolutions.
+	// Allows the user to set a custom FPS cap. Useful if
+	// your framerate fluctuates rapidly, making the game
+	// unplayable. This value should not be lower than 30!
+	// fps_unlock must be enabled for this to work!
 	//
-	// 1 = enabled (default)
-	// 0 = disabled
+	// 0 = disabled (default)
+	// example: fps_lock=30
 	//
-	else if (MATCH("patches", "fov_correction"))
+	else if (MATCH("options", "fps_lock"))
 	{
-		int fovCorrection = atoi(value);
+		int fpsLock = atoi(value);
 
-		if (fovCorrection < 0 || fovCorrection > 1)
+		if (fpsLock != 0 && fpsLock < 30)
 		{
-			ERROR(L"fov_correction was set to an invalid value. Using defaults...");
+			ERROR(L"fps_lock was set to an invalid value. Using defaults...");
 			return 0;
 		}
 
-		pOptions->fovCorrection = fovCorrection;
+		pOptions->fpsLock = fpsLock;
 	}
 
 	//
 	// Allows the user to increase/decrease the fov, in case
 	// the game feels too zoomed in/out. It is recommended
 	// that this value does not exceed 2.0!
-	// fov_correction must be enabled for this to work!!!
+	// fov_correction must be enabled for this to work!
 	//
 	// default: 1.0
 	//
@@ -142,6 +173,46 @@ int Config::Handler(void* user, const char* section, const char* name, const cha
 		}
 
 		pOptions->fovMultiplier = fovMultiplier;
+	}
+
+	//
+	// Skips the intro logos and legal screen which plays
+	// every time the game is launched. Useful for modding.
+	//
+	// 1 = enabled (default)
+	// 0 = disabled
+	//
+	else if (MATCH("options", "skip_launcher_check"))
+	{
+		int skipLauncherCheck = atoi(value);
+
+		if (skipLauncherCheck < 0 || skipLauncherCheck > 1)
+		{
+			ERROR(L"skip_launcher_check was set to an invalid value. Using defaults...");
+			return 0;
+		}
+
+		pOptions->skipLauncherCheck = skipLauncherCheck;
+	}
+
+	//
+	// Skips the intro logos and legal screen which plays
+	// every time the game is launched. Useful for modding.
+	//
+	// 1 = enabled (default)
+	// 0 = disabled
+	//
+	else if (MATCH("options", "skip_logos"))
+	{
+		int skipLogos = atoi(value);
+
+		if (skipLogos < 0 || skipLogos > 1)
+		{
+			ERROR(L"skip_logos was set to an invalid value. Using defaults...");
+			return 0;
+		}
+
+		pOptions->skipLogos = skipLogos;
 	}
 
 	//
@@ -172,7 +243,7 @@ int Config::Handler(void* user, const char* section, const char* name, const cha
 	// By default, this is set to your current resolution.
 	// Leave this option blank to disable it.
 	// 
-	// example: force_resolution=1920x1080x60
+	// example: force_resolution=1920x1080
 	//
 	else if (MATCH("options", "force_resolution"))
 	{
@@ -182,24 +253,21 @@ int Config::Handler(void* user, const char* section, const char* name, const cha
 			return 0;
 
 		int height = atoi(fx);
-		const char* sx = (char*)((int)strchr(fx, 'x') + 1);
-		if (sx == (char*)(NULL + 1))
-			return 0;
 
-		int refresh = atoi(sx);
-
-		if (width < 0 || height < 0 || refresh < 0)
+		if (width < 0 || height < 0)
 			return 0;
 
 		pOptions->forceResolutionWidth      = width;
 		pOptions->forceResolutionHeight     = height;
-		pOptions->forceResolutionRefresh    = refresh;
 	}
 
 	else
 	{
-		ERROR(L"Config is invalid. A new config will be generated.");
-		generateNew = true;
+		if (!generateNew)
+		{
+			ERROR(L"Config is invalid. A new config will be generated.");
+			generateNew = true;
+		}		
 
 		return 0;
 	}
@@ -211,7 +279,7 @@ bool Config::GenerateConfig()
 {
 	#define ERROR(msg)	MessageBoxW(NULL, msg, L"[V-Patch] Error while generating config.", MB_OK);
 
-	int width, height, refresh;
+	int width, height;
 
 	//
 	// Gather the necessary info to create a new config.
@@ -224,11 +292,10 @@ bool Config::GenerateConfig()
 	{
 		width	= devMode.dmPelsWidth;
 		height	= devMode.dmPelsHeight;
-		refresh = devMode.dmDisplayFrequency;
 	}
 	else
 	{
-		width = height = refresh = 0;
+		width = height = 0;
 	}
 
 	//
@@ -237,7 +304,7 @@ bool Config::GenerateConfig()
 	size_t configSize = sizeof(configTemplate) + 32;
 	char* config = new char[configSize];
 
-	size_t configBytesWritten = sprintf_s(config, configSize, configTemplate, width, height, refresh);
+	size_t configBytesWritten = sprintf_s(config, configSize, configTemplate, options->skipLauncherCheck, width, height);
 	if (configBytesWritten == -1 || configBytesWritten == 0)
 	{
 		ERROR(L"Failed to create a new config. sprintf_s didn't write any characters.");

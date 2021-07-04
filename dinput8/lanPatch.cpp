@@ -3,6 +3,8 @@
 // 
 // Releases:
 //     1.0 - Initial release
+//     1.1 - "FPS Unlock" & "Aspect Correction" improvements, "Launcher Check",
+//           "Skip Logo&Legals" & "FPS Lock" added, "Force Resolution" bugfix.
 //
 // Copyright (c) 2021 Václav AKA Vaana
 //-----------------------------------------------------------------------------
@@ -11,13 +13,13 @@
 
 bool Patcher::Init()
 {
-	#define ERROR(msg)	MessageBoxW(NULL, msg, L"[V-Patch] Error while initializing patch.", MB_OK);
+#define ERROR(msg)	MessageBoxW(NULL, msg, L"[V-Patch] Error while initializing patch.", MB_OK);
 
 	//
 	// Retrieve all needed handles and values
 	//
-	hProcess	= GetCurrentProcess();
-	hModule		= GetModuleHandleW(NULL);
+	hProcess = GetCurrentProcess();
+	hModule = GetModuleHandleW(NULL);
 
 	if (!hModule)
 	{
@@ -54,16 +56,96 @@ bool Patcher::Init()
 	case LAN_TIMESTAMP_2663S:	lanVersion = LAN_VERSION_2663S;	 break;
 
 	default:
+	{
+		//
+		// If the version check fails, we check the current build.
+		//
+		wchar_t moduleFilename[MAX_PATH];
+		if (GetModuleFileNameW(hModule, moduleFilename, MAX_PATH))
+		{
+			DWORD  verHandle = 0;
+			UINT   size = 0;
+			LPBYTE lpBuffer = NULL;
+			DWORD  verSize = GetFileVersionInfoSizeW(moduleFilename, &verHandle);
+
+			if (verSize != NULL)
+			{
+				LPSTR verData = new char[verSize];
+
+				if (GetFileVersionInfoW(moduleFilename, verHandle, verSize, verData) &&
+					VerQueryValueW(verData, L"\\", (VOID FAR * FAR*) & lpBuffer, &size) &&
+					size)
+				{
+					VS_FIXEDFILEINFO* verInfo = (VS_FIXEDFILEINFO*)lpBuffer;
+					if (verInfo->dwSignature == 0xFEEF04BD)
+					{
+						int buildNumber = (verInfo->dwFileVersionMS >> 16) & 0xffff;
+
+						wchar_t message[MAX_PATH];
+						if (buildNumber > LAN_LATEST_BUILD)
+						{
+							swprintf_s(message, MAX_PATH, L"Your version (%d) is not currently supported. Please contact the author as soon as possible, so that we can implement support for it!", buildNumber);
+						}
+						else
+						{
+							swprintf_s(message, MAX_PATH, L"Your version (%d) is not supported. Please make sure you are running a supported build!", buildNumber);
+						}
+
+						ERROR(message);
+						return false;
+					}
+				}
+				delete[] verData;
+			}
+		}
+
 		ERROR(L"Unrecognized L.A. Noire version, please make sure you are running a supported build. The fixes will not be applied!");
 		return false;
 	}
+	}
 
+	//
+	// Resolve addresses and do basic patching
+	//
 	renderer = (Address*)ResolveAddress(OFFSET_POINTER_RENDERER);
+	
+	//
+	// Add version text into menu
+	//
+	Address hookAddr = ResolveAddress(OFFSET_HOOK_VERSION);
+	call hook = { 0xE8, (Address)&HookVerQueryValue - hookAddr - 5 };
+	PATCH_INSTRUCTION(hookAddr, hook);
+
+	// todo: Force DX11 by default, if first time run.
 
 	return true;
 }
 
-//-------------------------------------------------------------
+NO_SECURITY_CHECKS BOOL Patcher::HookVerQueryValue(LPCVOID pBlock, LPCSTR lpSubBlock, LPVOID* lplpBuffer, PUINT puLen)
+{
+	BOOL result = VerQueryValueA(pBlock, lpSubBlock, lplpBuffer, puLen);
+	char* buffer = (char*)*lplpBuffer; // Memory leak! Shouldn't matter since it's called only once.
+
+	//
+	// Add V-Patch version info to build number
+	//
+	char printVal[] = "; V-Patch v" VPATCH_VERSION_MENU ", ";
+	unsigned int newBufferSize = *puLen + strlen(printVal);
+	char* newBuffer = new char[newBufferSize];
+
+	char* cPos = strstr(buffer, ",");
+	cPos[0] = '%';
+	cPos[1] = 's';
+
+	sprintf_s(newBuffer, newBufferSize, buffer, printVal); // This is a really ugly hack but it works
+
+	*lplpBuffer = newBuffer;
+	*puLen		= newBufferSize;
+
+	return result;
+}
+
+//-----------------------------------------------------------------------------
 
 #define ERROR_ADDRESS(msg, addr)													\
 	wchar_t errMsg[MAX_PATH];														\
@@ -300,6 +382,12 @@ void Patcher::PatchFramerate()
 	PATCH_INSTRUCTION(hookAddr, frameHook);
 
 	//
+	// Map mouse sensitivity adjustment
+	//
+	Address vTableAddr = ResolveAddress(OFFSET_HOOK_MAP_VTABLE);
+	ReplaceMemory(vTableAddr, &updateMapAddr, sizeof(updateMapAddr), (Address*)&originalMapAddr, false);
+
+	//
 	// Car handling adjustment
 	// 
 	// In the RLauncher version, mulsd was compiled as fmul. 
@@ -316,7 +404,6 @@ void Patcher::PatchFramerate()
 		mulsd carHandling = { 0xF2, 0x0F, 0x59, 0x05, (Address)&carBreaking };
 		PATCH_INSTRUCTION(brakingConstantAddr, carHandling);
 	}
-	
 }
 
 NO_SECURITY_CHECKS char Patcher::HookFrame(int pointer)
@@ -340,6 +427,19 @@ NO_SECURITY_CHECKS char Patcher::HookFrame(int pointer)
 		if (!firstFrame)
 		{
 			LONGLONG quadDiff = currTime.QuadPart - lastTime.QuadPart;
+
+			// Frame limiter
+			if (fpsLimit != 0 &&
+				quadDiff < minFrameTime)
+			{
+				while (quadDiff < minFrameTime)
+				{
+					Sleep(0);
+
+					QueryPerformanceCounter(&currTime);
+					quadDiff = currTime.QuadPart - lastTime.QuadPart;
+				}
+			}
 			
 			if (quadDiff > 0)
 			{
@@ -385,6 +485,12 @@ NO_SECURITY_CHECKS char Patcher::HookFrame(int pointer)
 			QueryPerformanceFrequency(&timeFrequency);
 			rendererFps	= (float*)(*renderer + 0xE8);
 			firstFrame	= false;
+
+			// Frame limiter
+			if (fpsLimit != 0)
+			{
+				minFrameTime = timeFrequency.QuadPart / fpsLimit;
+			}
 		}
 	
 		lastTime = currTime;
@@ -413,6 +519,14 @@ NO_SECURITY_CHECKS char Patcher::HookFrame(int pointer)
 	return 1;
 }
 
+NO_SECURITY_CHECKS char Patcher::UIFullMap::UpdateMap(float a2, int a3)
+{
+	//
+	// This just fixes the time delta to 1/60 of a second,
+	// which resolves the sensitivity issue.
+	//
+	return ((*this).*originalMapAddr)(LAN_ONE_OVER_FRAMERATE, a3);
+}
 
 //-------------------------------------------------------------
 
@@ -420,37 +534,50 @@ NO_SECURITY_CHECKS char Patcher::HookFrame(int pointer)
 // Aspect ratio patch
 // 
 // - Removes black bars for aspect ratios slimmer than 16:9 (16:10, 4:3, 5:4, etc.)
+// - Corrects FOV for unsupported aspect ratios (21:9, 16:10, 4:3, 5:4, etc.)
+// - Corrects the interface size for unsupported aspect rations
 //
 
-void Patcher::PatchViewportAspect()
+void Patcher::PatchAspect()
 {
+	//
+	// Allow any aspect ratio in resolution list
+	//
+	Address supportedResAddr = ResolveAddress(OFFSET_PATCH_ASPECT_FILTER);
+	NopInstruction(supportedResAddr, 6);
+
 	//
 	// Black bars removal
 	//
-	Address jmpAddr = ResolveAddress(OFFSET_PATCH_ASPECT_CHECK);
-	jmpByte jmpSkip = { 0xEB, 0x47 };
+	Address jmpAddr = ResolveAddress(OFFSET_PATCH_ASPECT_CROP);
+	Opcode jmpSkip = 0xEB;
 	PATCH_INSTRUCTION(jmpAddr, jmpSkip);
-}
 
-//-------------------------------------------------------------
-
-//
-// Field of view patch
-// 
-// - Corrects FOV for unsupported aspect ratios (21:9, 16:10, 4:3, 5:4, etc.)
-//
-
-void Patcher::PatchFieldOfView()
-{
 	//
 	// Fov recalculation
 	//
 	Address vTableAddr = ResolveAddress(OFFSET_HOOK_FIELD_OF_VIEW_VTABLE);
 	ReplaceMemory(vTableAddr, &updateFovAddr, sizeof(updateFovAddr), (Address*)&originalFovAddr, false);
+
+	//
+	// Interface size recalculation
+	//
+	Address hookAddr = ResolveAddress(OFFSET_HOOK_INTERFACE);
+	callPtr hook = { 0xFF, 0x15, (Address)&hookAtoiAddress };
+	PATCH_INSTRUCTION(hookAddr, hook);
+
+	interfaceWidthAddr	= ResolveAddress(OFFSET_VALUE_INTERFACE_WIDTH);
+	interfaceHeightAddr	= ResolveAddress(OFFSET_VALUE_INTERFACE_HEIGHT);
 }
 
-NO_SECURITY_CHECKS void Patcher::Camera::UpdateFov(void* copyCamera)
+NO_SECURITY_CHECKS void Patcher::CameraRelativeLookAtModifier::UpdateFov(void* copyCamera)
 {
+	//
+	// Call the original function first, to
+	// get the latest fov value.
+	//		
+	((*this).*originalFovAddr)(copyCamera);
+
 	//
 	// By default, the fov value stores the horizontal
 	// view angle without any kind of acknowledgement
@@ -459,46 +586,102 @@ NO_SECURITY_CHECKS void Patcher::Camera::UpdateFov(void* copyCamera)
 	// bottom parts of the viewport get cut off due to
 	// the smaller vertical angle. 
 	// 
-	// Here we correct for the fact by calculating the
-	// vertical value first (by assuming the screen is
-	// 16:9) and then multiplying it with the current
-	// aspect ratio to achieve the correct result.
+	// We correct for the fact by calculating the 
+	// difference between the current and default (16:9)
+	// aspect ratios, and then multiplying it with the
+	// current fov to achieve the right result.
 	//
 	// As a side-effect, the fov is a bit smaller on 
 	// 4:3, but its still perfectly playable.
 	//
 
-	if (renderer != 0)
+	float* fovH = (float*)(((Address)this) + 0x64);
+	*fovH *= aspectMultiplier * fovMultiplier;
+}
+
+NO_SECURITY_CHECKS int __cdecl Patcher::HookAtoi(const char* string)
+{
+	int* viewWidth	= (int*)(*renderer + 0x1D4);
+	int* viewHeight	= (int*)(*renderer + 0x1D8);
+
+	//
+	// Here the difference between the current and
+	// default (16:9) aspect ratios it calculated.
+	//
+	float viewAspect = (float)(*viewWidth) / (float)(*viewHeight);
+	aspectMultiplier = viewAspect / LAN_DEFAULT_ASPECT;
+
+	//
+	// In order to correct for different aspect ratio, we
+	// stretch the virtual viewport as needed, so that the
+	// proportions are always correct.
+	//
+	// If the aspect is smaller than 4:3, the height must
+	// be stretched instead of the width. Otherwise, there
+	// will be issues with the interface being too big.
+	//
+	if (aspectMultiplier > 1.0f)
 	{
-		//
-		// Call the original function first, to
-		// get the latest fov value.
-		//		
-		((*this).*originalFovAddr)(copyCamera);
-				
-		if (firstFovUpdate)
-		{
-			int* viewWidth = (int*)(*renderer + 0x1D4);
-			int* viewHeight = (int*)(*renderer + 0x1D8);
-			viewAspect = (float)(*viewWidth) / (float)(*viewHeight);
-
-			firstFovUpdate = false;
-		}
-
-		float* fovH = (float*)(((Address)this) + 0x64);
-
-		//
-		// Do the fov recalcuation.
-		// 
-		// fovV = fovH * (9/16)
-		// fovH = fovV * aspect
-		//
-		if (fovH > 0)
-		{
-			float fovV = (*fovH * LAN_DEFAULT_ASPECT_INVERSE);
-			*fovH = fovV * viewAspect * fovMultiplier; // Allow fov modifications
-		}
+		double interfaceWidth = 1280.0 * aspectMultiplier;
+		PATCH_MEMORY(interfaceWidthAddr, interfaceWidth);
 	}
+	else
+	{
+		double interfaceHeight = 720.0 / aspectMultiplier;
+		PATCH_MEMORY(interfaceHeightAddr, interfaceHeight);
+	}
+
+	//
+	// At the end, just return the expected result.
+	// Could just be replaced with a "return viewWidth;".
+	//
+	return atoi(string);
+}
+
+//-------------------------------------------------------------
+
+//
+// Skip launcher check
+// 
+// - Patches outh the launcher check to allow the game to start
+//   without being launched through the launcher.
+//
+
+void Patcher::SkipLauncherCheck()
+{
+	//
+	// Patch out the launcher check
+	//
+	Address jmpAddr = ResolveAddress(OFFSET_PATCH_LAUNCHER_CHECK);
+	Opcode jmpSkip = 0xEB;
+	PATCH_INSTRUCTION(jmpAddr, jmpSkip);
+
+	// todo: Make it work for R* Launcher builds
+}
+
+//-------------------------------------------------------------
+
+//
+// Skip logo and legal
+// 
+// - Skips the "MovieLogo" played on startup
+// - Skips the legal disclaimer screen
+//
+
+void Patcher::SkipLogoAndLegals()
+{
+	//
+	// Patch out MovieLogo
+	//
+	Address logoAddr = ResolveAddress(OFFSET_PATCH_MOVIE_LOGO);
+	NopInstruction(logoAddr, 14);
+
+	//
+	// Patch out the legals screen call
+	//
+	Address legalAddr = ResolveAddress(OFFSET_PATCH_LEGALS_SCREEN);
+	Opcode legalRet = 0xC3;
+	PATCH_INSTRUCTION(legalAddr, legalRet);
 }
 
 //-------------------------------------------------------------
@@ -509,36 +692,42 @@ NO_SECURITY_CHECKS void Patcher::Camera::UpdateFov(void* copyCamera)
 // - Forces a selected custom resolution and refresh rate
 //
 
-void Patcher::ForceResolution(int _width, int _height, int _refreshRate)
+void Patcher::ForceResolution(int _width, int _height)
 {
 	width		= _width;
 	height		= _height;
-	refreshRate	= _refreshRate;
 
 	//
-	// Replace atoi call
+	// Force -res argument
 	//
-	Address hookAddr = ResolveAddress(OFFSET_HOOK_RESOLUTION);
-	mov atoiHook = { 0x8B, 0x35, (Address)&hookAtoiAddress };
-	PATCH_INSTRUCTION(hookAddr, atoiHook);
+	Address nopAddr = ResolveAddress(OFFSET_PATCH_ARGS_RESOLUTION);
+	NopInstruction(nopAddr, 6);
+
+	//
+	// Strtol hook
+	//
+	Address callAddr = ResolveAddress(OFFSET_HOOK_RESOLUTION);
+	mov callStrol = { 0x8B, 0x35, (Address)&hookStrtolAddress };
+	PATCH_INSTRUCTION(callAddr, callStrol);
+
+	//
+	// Allow any resolution in the argument
+	//
+	Address checkAddr = ResolveAddress(OFFSET_PATCH_RESOLUTION_CHECK);
+	NopInstruction(checkAddr, 2);
 }
 
-NO_SECURITY_CHECKS int __cdecl Patcher::HookAtoi(const char* string)
+NO_SECURITY_CHECKS int __cdecl Patcher::HookStrtol(const char* String, char** EndPtr, int Radix)
 {
-	if (hookAtoiCallCount == 0)
+	if (strtolCalled)
 	{
-		hookAtoiCallCount++;
+		strtolCalled = false;
 		return width;
 	}
-	else if (hookAtoiCallCount == 1)
+	else
 	{
-		hookAtoiCallCount++;
+		strtolCalled = true;
 		return height;
-	}
-	else if (hookAtoiCallCount == 2)
-	{
-		hookAtoiCallCount = 0;
-		return refreshRate;
 	}
 }
 
@@ -563,7 +752,7 @@ void Patcher::ForceBorderless()
 	//
 	// Run in window
 	//
-	Address nopAddr = ResolveAddress(OFFSET_PATCH_WINDOWED);
+	Address nopAddr = ResolveAddress(OFFSET_PATCH_ARGS_WINDOWED);
 	NopInstruction(nopAddr, 9);
 }
 

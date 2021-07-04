@@ -116,7 +116,7 @@ Installing the patch is very simple:
 
 1. Get the latest release from [GitHub](https://github.com/VaanaCZ/LANVP/releases)
 2. Extract the archive.
-3. Place dinput8.dll inside the game folder (same location as LaNoire.exe)
+3. Place dinput8.dll into the game folder (same location as LaNoire.exe)
 
 Done. No special setup required. 
 
@@ -132,14 +132,26 @@ When first launched, V-Patch creates a configuration file inside the L.A. Noire 
 
 - Car steering is more sensitive than it should be.
 - Certain graphical menu transitions (e.g. when switching outfits) fade out/in slower.
-- The map and has a much lower mouse sensitivity on high framerates.
 - When force_resolution is enabled, changing the resolution via the in-game settings breaks the GUI. It is recommended not to change the resolution in-game or disable force_resolution in the config before doing so.
 
-## Planned features
+## To-do list
 
 - ASI loader to load other people's plugins.
 - Ability to increase/decrease the LOD or render distance.
-- Restore cut features (Trolley&Bus riding) as optional settings.
+- Look into restoring cut features (Trolley&Bus riding) as optional settings.
+- Fix problems with "The Quarter Moon Murders" and "The Set Up"
+- Look into R\* Cam and possible HUD-less option.
+
+## Changelog
+
+### v1.1 (July 4th, 2021)
+- Fixed mouse sensitivity in map menu.
+- Improved GUI scaling for different aspect ratios.
+- Fixed major issues with resolution enforcement.
+- Added option to skip the intro logos when the game is launched.
+- Added ability to set a custom FPS cap.
+- Previously "unsupported" resolutions should now appear in the game settings.
+- Added V-Patch version text into main menu.
 
 ## Credits
 
@@ -149,3 +161,4 @@ Thanks to the following people for taking the time to help with testing V-Patch:
 - Pastelblue
 - Comot
 - GaroK
+- BazookaDad

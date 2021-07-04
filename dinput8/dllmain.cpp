@@ -3,6 +3,8 @@
 // 
 // Releases:
 //     1.0 - Initial release
+//     1.1 - "FPS Unlock" & "Aspect Correction" improvements, "Launcher Check",
+//           "Skip Logo&Legals" & "FPS Lock" added, "Force Resolution" bugfix.
 //
 // Copyright (c) 2021 Václav AKA Vaana
 //-----------------------------------------------------------------------------
@@ -24,31 +26,36 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID reserved)
 
 		Config::Init();
 
-		if (Config::options.patchEnabled &&
+		if (Config::options->patchEnabled &&
 			Patcher::Init())
 		{
 			// Patches
-			if (Config::options.fpsUnlock)
+			if (Config::options->fpsUnlock)
 				Patcher::PatchFramerate();
 
-			if (Config::options.aspectUnlock)
-				Patcher::PatchViewportAspect();
-
-			if (Config::options.fovCorrection)
-				Patcher::PatchFieldOfView();
-			
+			if (Config::options->aspectCorrection)
+				Patcher::PatchAspect();
+						
 			// Options
-			Patcher::SetFOVMultiplier(Config::options.fovMultiplier);
+			Patcher::SetFOVMultiplier(Config::options->fovMultiplier);
+			Patcher::SetFPSLock(Config::options->fpsLock);
 
-			int width	= Config::options.forceResolutionWidth;
-			int height	= Config::options.forceResolutionHeight;
-			int refresh	= Config::options.forceResolutionRefresh;
-			if (width != 0 && height != 0 && refresh != 0)
-				Patcher::ForceResolution(width, height, refresh);
+			int width	= Config::options->forceResolutionWidth;
+			int height	= Config::options->forceResolutionHeight;
+			if (width != 0 && height != 0)
+				Patcher::ForceResolution(width, height);
 
-			if (Config::options.forceBorderlessWindow)
+			if (Config::options->forceBorderlessWindow)
 				Patcher::ForceBorderless();
+
+			if (Config::options->skipLogos)
+				Patcher::SkipLogoAndLegals();
+
+			if (Config::options->skipLauncherCheck)
+				Patcher::SkipLauncherCheck();
 		}
+
+		Config::Destroy();
 
 		break;
 	}     

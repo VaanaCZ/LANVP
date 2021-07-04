@@ -3,6 +3,8 @@
 // 
 // Releases:
 //     1.0 - Initial release
+//     1.1 - "FPS Unlock" & "Aspect Correction" improvements, "Launcher Check",
+//           "Skip Logo&Legals" & "FPS Lock" added, "Force Resolution" bugfix.
 //
 // Copyright (c) 2021 Václav AKA Vaana
 //-----------------------------------------------------------------------------
@@ -10,6 +12,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "lanConstants.h"
 
@@ -20,6 +23,7 @@
 //
 
 #define PATCH_INSTRUCTION(address, instruction) Patcher::WriteMemory(address, &instruction, sizeof(instruction), true);
+#define PATCH_MEMORY(address, memory)			Patcher::WriteMemory(address, &memory, sizeof(memory), false);
 
 class Patcher
 {
@@ -28,18 +32,23 @@ public:
 	static bool			Init();
 
 	static void			PatchFramerate();				// Total FPS unlock
-	static void			PatchViewportAspect();			// Aspect & FOV fix
-	static void			PatchFieldOfView();				// Aspect & FOV fix
+	static void			PatchAspect();					// Aspect & FOV fix
 
-	static inline void	SetFOVMultiplier(float multiplier) { fovMultiplier = multiplier; }
-	static void			ForceResolution(int, int, int); // Forces a custom resolution
+	static void			SkipLauncherCheck();			// Allows the game to start without LanLauncher
+	static void			SkipLogoAndLegals();			// Skip logos and legal
+	static void			ForceResolution(int, int);		// Forces a custom resolution
 	static void			ForceBorderless();				// Borderless window
 
+	static inline void	SetFPSLock(int limit)				{ fpsLimit = limit; }
+	static inline void	SetFOVMultiplier(float multiplier)	{ fovMultiplier = multiplier; }
 
 private:
 
 	// Patching methods/constants
 	static inline Address*			renderer = nullptr;
+
+	static NO_SECURITY_CHECKS BOOL APIENTRY HookVerQueryValue(LPCVOID, LPCSTR, LPVOID*, PUINT);
+	static inline Address hookVerQueryValueAddress = (Address)&HookVerQueryValue;
 
 	// Framerate patch
 	static NO_SECURITY_CHECKS char HookFrame(int);
@@ -49,30 +58,46 @@ private:
 	static inline float*		rendererFps;
 	static inline double		carBreaking = LAN_DEFAULT_BRAKING_CONSTANT;
 
-	// Field of view patch
-	class Camera
+	static inline int			fpsLimit		= 0;
+	static inline LONGLONG		minFrameTime	= 0;
+
+	class UIFullMap
+	{
+	public:
+		NO_SECURITY_CHECKS char UpdateMap(float, int);
+		typedef char (UIFullMap::* UpdateMap_t)(float, int);
+	};
+
+	static inline UIFullMap::UpdateMap_t updateMapAddr = &UIFullMap::UpdateMap;
+	static inline UIFullMap::UpdateMap_t originalMapAddr;
+
+	// Aspect patch
+	class CameraRelativeLookAtModifier
 	{
 	public:
 		NO_SECURITY_CHECKS void UpdateFov(void*);
-		typedef void (Camera::*UpdateFov_t)(void*);
+		typedef void (CameraRelativeLookAtModifier::*UpdateFov_t)(void*);
 	};
 
-	static inline Camera::UpdateFov_t updateFovAddr = &Camera::UpdateFov;
-	static inline Camera::UpdateFov_t originalFovAddr;
+	static inline CameraRelativeLookAtModifier::UpdateFov_t updateFovAddr = &CameraRelativeLookAtModifier::UpdateFov;
+	static inline CameraRelativeLookAtModifier::UpdateFov_t originalFovAddr;
 
-	static inline bool		firstFovUpdate = true;
-	static inline float		viewAspect;
-	static inline float		fovMultiplier = 1.0f;
+	static NO_SECURITY_CHECKS int __cdecl HookAtoi(const char*);
+	static inline Address	hookAtoiAddress = (Address)&HookAtoi;
+
+	static inline Address	interfaceWidthAddr;
+	static inline Address	interfaceHeightAddr;
+
+	static inline float		aspectMultiplier	= 1.0f;
+	static inline float		fovMultiplier		= 1.0f;
 
 	// Force resolution
-	static NO_SECURITY_CHECKS int __cdecl HookAtoi(const char*);
-	static inline Address hookAtoiAddress = (Address)&HookAtoi;
-
-	static inline int	hookAtoiCallCount = 0;
+	static NO_SECURITY_CHECKS int __cdecl HookStrtol(const char*, char**, int);
+	static inline Address	hookStrtolAddress = (Address)&HookStrtol;
+	static inline bool		strtolCalled = false;
 
 	static inline int	width;
 	static inline int	height;
-	static inline int	refreshRate;
 
 	// Force borderless	
 	static NO_SECURITY_CHECKS HWND WINAPI HookCreateWindow(DWORD, LPCSTR, LPCSTR, DWORD, int, int, int, int, HWND, HMENU, HINSTANCE, LPVOID);

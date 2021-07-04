@@ -3,6 +3,8 @@
 // 
 // Releases:
 //     1.0 - Initial release
+//     1.1 - "FPS Unlock" & "Aspect Correction" improvements, "Launcher Check",
+//           "Skip Logo&Legals" & "FPS Lock" added, "Force Resolution" bugfix.
 //
 // Copyright (c) 2021 Václav AKA Vaana
 //-----------------------------------------------------------------------------

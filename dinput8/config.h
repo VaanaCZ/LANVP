@@ -2,9 +2,10 @@
 // config.h
 // 
 // Releases:
-//     1.0 - Initial release
-//     1.1 - "FPS Unlock" & "Aspect Correction" improvements, "Launcher Check",
-//           "Skip Logo&Legals" & "FPS Lock" added, "Force Resolution" bugfix.
+//     1.0  - Initial release
+//     1.1  - "FPS Unlock" & "Aspect Correction" improvements, "Launcher Check",
+//            "Skip Logo&Legals" & "FPS Lock" added, "Force Resolution" bugfix.
+//     1.1a - Added "Force DX11" option, fixed a bug with force resolution.
 //
 // Copyright (c) 2021 Václav AKA Vaana
 //-----------------------------------------------------------------------------
@@ -26,6 +27,11 @@ class Config
 public:
 
 	static void Init();
+
+	static bool IsD3D11Supported();
+	static bool IsSystem32Bit();
+	static bool GetScreenSize(int&, int&);
+
 	static int	Handler(void*, const char*, const char*, const char*);
 	static void Destroy() { delete options; }
 
@@ -40,6 +46,7 @@ public:
 		float	fovMultiplier;
 		bool	skipLauncherCheck;
 		bool	skipLogos;
+		bool	forceDx11;
 		bool	forceBorderlessWindow;
 		int		forceResolutionWidth;
 		int		forceResolutionHeight;
@@ -61,7 +68,7 @@ const char configTemplate[] =	"; L.A. Noire: V-Patch\r\n"
 								";\r\n"
 								"; 1 = enabled (default)\r\n"
 								"; 0 = disabled\r\n"
-								"patch_enabled=1\r\n"
+								"patch_enabled=%d\r\n"
 								"\r\n"
 								"\r\n"
 								"[patches]\r\n"
@@ -75,7 +82,7 @@ const char configTemplate[] =	"; L.A. Noire: V-Patch\r\n"
 								"; \r\n"
 								"; 1 = enabled (default)\r\n"
 								"; 0 = disabled\r\n"
-								"fps_unlock=1\r\n"
+								"fps_unlock=%d\r\n"
 								"\r\n"
 								"\r\n"
 								";\r\n"
@@ -85,7 +92,7 @@ const char configTemplate[] =	"; L.A. Noire: V-Patch\r\n"
 								"; \r\n"
 								"; 1 = enabled (default)\r\n"
 								"; 0 = disabled\r\n"
-								"aspect_correction=1\r\n"
+								"aspect_correction=%d\r\n"
 								"\r\n"
 								"\r\n"
 								"[options]\r\n"
@@ -98,7 +105,7 @@ const char configTemplate[] =	"; L.A. Noire: V-Patch\r\n"
 								";\r\n"
 								"; 0 = disabled (default)\r\n"
 								"; example: fps_lock=30\r\n"
-								"fps_lock=0\r\n"
+								"fps_lock=%d\r\n"
 								"\r\n"
 								"\r\n"
 								";\r\n"
@@ -108,7 +115,7 @@ const char configTemplate[] =	"; L.A. Noire: V-Patch\r\n"
 								"; aspect_correction must be enabled for this to work!\r\n"
 								";\r\n"
 								"; default: 1.0\r\n"
-								"fov_multiplier=1.0\r\n"
+								"fov_multiplier=%3.3f\r\n"
 								"\r\n"
 								"\r\n"
 								";\r\n"
@@ -126,7 +133,17 @@ const char configTemplate[] =	"; L.A. Noire: V-Patch\r\n"
 								";\r\n"
 								"; 1 = enabled\r\n"
 								"; 0 = disabled (default)\r\n"
-								"skip_logos=0\r\n"
+								"skip_logos=%d\r\n"
+								"\r\n"
+								"\r\n"
+								";\r\n"
+								"; Enforces DirectX 11 mode for better performance.\r\n"
+								"; Only enabled if the users PC has a Direct3D 11\r\n"
+								"; capable graphics card.\r\n"
+								";\r\n"
+								"; 1 = enabled\r\n"
+								"; 0 = disabled\r\n"
+								"force_dx11=%d\r\n"
 								"\r\n"
 								"\r\n"
 								";\r\n"
@@ -135,7 +152,7 @@ const char configTemplate[] =	"; L.A. Noire: V-Patch\r\n"
 								";\r\n"
 								"; 1 = enabled (default)\r\n"
 								"; 0 = disabled\r\n"
-								"force_borderless_window=1\r\n"
+								"force_borderless_window=%d\r\n"
 								"\r\n"
 								"\r\n"
 								";\r\n"

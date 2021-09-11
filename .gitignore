@@ -630,3 +630,8 @@ MigrationBackup/
 # End of https://www.toptal.com/developers/gitignore/api/windows,c,c++,visualstudio,idapro,python,notepadpp,linux
 
 res/
+
+### Custom ###
+
+VTune Profiler Results/
+*.vtuneproj

@@ -153,6 +153,10 @@ When first launched, V-Patch creates a configuration file inside the L.A. Noire 
 - Previously "unsupported" resolutions should now appear in the game settings.
 - Added V-Patch version text into main menu.
 
+### v1.1a (September 11th, 2021)
+- Added option to enforce DirectX 11. Set to true by default if the user has a D3D11 capable GPU.
+- Fixed bug where resolution wouldn't be enforced if the config was not yet generated.
+
 ## Credits
 
 Thanks to the following people for taking the time to help with testing V-Patch:

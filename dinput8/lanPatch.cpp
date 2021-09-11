@@ -2,9 +2,10 @@
 // lanPatch.cpp
 // 
 // Releases:
-//     1.0 - Initial release
-//     1.1 - "FPS Unlock" & "Aspect Correction" improvements, "Launcher Check",
-//           "Skip Logo&Legals" & "FPS Lock" added, "Force Resolution" bugfix.
+//     1.0  - Initial release
+//     1.1  - "FPS Unlock" & "Aspect Correction" improvements, "Launcher Check",
+//            "Skip Logo&Legals" & "FPS Lock" added, "Force Resolution" bugfix.
+//     1.1a - Added "Force DX11" option, fixed a bug with force resolution.
 //
 // Copyright (c) 2021 Václav AKA Vaana
 //-----------------------------------------------------------------------------
@@ -687,6 +688,24 @@ void Patcher::SkipLogoAndLegals()
 //-------------------------------------------------------------
 
 //
+// Force DX11
+// 
+// - Forces DirectX 11 mode regardless of the game settings.
+//
+
+void Patcher::ForceDX11()
+{
+	//
+	// Skip the config check
+	//
+	Address jmpAddr = ResolveAddress(OFFSET_PATCH_DX11);
+	Opcode jmpSkip = 0xEB;
+	PATCH_INSTRUCTION(jmpAddr, jmpSkip);
+}
+
+//-------------------------------------------------------------
+
+//
 // Force resolution
 // 
 // - Forces a selected custom resolution and refresh rate
@@ -780,4 +799,3 @@ NO_SECURITY_CHECKS HWND WINAPI Patcher::HookCreateWindow(DWORD dwExStyle, LPCSTR
 						   0, 0, width, height, hWndParent, hMenu,
 						   hInstance, lpParam);
 }
-

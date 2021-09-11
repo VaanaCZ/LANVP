@@ -2,9 +2,10 @@
 // lanConstants.h
 // 
 // Releases:
-//     1.0 - Initial release
-//     1.1 - "FPS Unlock" & "Aspect Correction" improvements, "Launcher Check",
-//           "Skip Logo&Legals" & "FPS Lock" added, "Force Resolution" bugfix.
+//     1.0  - Initial release
+//     1.1  - "FPS Unlock" & "Aspect Correction" improvements, "Launcher Check",
+//            "Skip Logo&Legals" & "FPS Lock" added, "Force Resolution" bugfix.
+//     1.1a - Added "Force DX11" option, fixed a bug with force resolution.
 //
 // Copyright (c) 2021 Václav AKA Vaana
 //-----------------------------------------------------------------------------
@@ -12,7 +13,7 @@
 #pragma once
 
 #define VPATCH_VERSION_MAJOR "1"
-#define VPATCH_VERSION_MINOR "1"
+#define VPATCH_VERSION_MINOR "1a"
 #define VPATCH_VERSION_PATCH ""
 
 #define VPATCH_VERSION		VPATCH_VERSION_MAJOR "." VPATCH_VERSION_MINOR VPATCH_VERSION_PATCH
@@ -51,7 +52,7 @@ enum LAN_VERSION
 
 //
 // Constants
-//009CF41E
+//
 
 #define LAN_DEFAULT_WIDTH				1280
 #define LAN_DEFAULT_HEIGHT				720
@@ -82,6 +83,7 @@ enum
 	OFFSET_PATCH_LAUNCHER_CHECK,		// Condition checking whether the game was launched through the launcher.
 	OFFSET_PATCH_MOVIE_LOGO,			// Call of function to load and play the intro logo.
 	OFFSET_PATCH_LEGALS_SCREEN,			// Call of function to show the legals screen.
+	OFFSET_PATCH_DX11,					// Condition checking if -dx11 is set.
 	OFFSET_PATCH_ARGS_RESOLUTION,		// Condition checking if -res is set.
 	OFFSET_HOOK_RESOLUTION,				// Call of strtol to parse the resolution argument.
 	OFFSET_PATCH_RESOLUTION_CHECK,		// Condition checking if the resolution is in the resolution list.
@@ -109,6 +111,7 @@ const Address addresses[LAN_NUM_VERSIONS][NUM_OFFSETS] =
 		/* 0x00A7797E */ 0x0067797E, // OFFSET_PATCH_LAUNCHER_CHECK
 		/* 0x00A7B48C */ 0x0067B48C, // OFFSET_PATCH_MOVIE_LOGO
 		/* 0x0103AC70 */ 0x00C3AC70, // OFFSET_PATCH_LEGALS_SCREEN
+		/* 0x00A77BBC */ 0x00677BBC, // OFFSET_PATCH_DX11
 		/* 0x00A7869A */ 0x0067869A, // OFFSET_PATCH_ARGS_RESOLUTION
 		/* 0x00A786E1 */ 0x006786E1, // OFFSET_HOOK_RESOLUTION
 		/* 0x00B04EEF */ 0x00704EEF, // OFFSET_PATCH_RESOLUTION_CHECK
@@ -132,6 +135,7 @@ const Address addresses[LAN_NUM_VERSIONS][NUM_OFFSETS] =
 		/* 0x00A88E1E */ 0x00688E1E, // OFFSET_PATCH_LAUNCHER_CHECK
 		/* 0x00A8C93E */ 0x0068C93E, // OFFSET_PATCH_MOVIE_LOGO
 		/* 0x0106ADC0 */ 0x00C6ADC0, // OFFSET_PATCH_LEGALS_SCREEN
+		/* 0x00A890B6 */ 0x006890B6, // OFFSET_PATCH_DX11
 		/* 0x00A89B28 */ 0x00689B28, // OFFSET_PATCH_ARGS_RESOLUTION
 		/* 0x00A89B6F */ 0x00689B6F, // OFFSET_HOOK_RESOLUTION
 		/* 0x00B17D3F */ 0x00717D3F, // OFFSET_PATCH_RESOLUTION_CHECK
@@ -155,6 +159,7 @@ const Address addresses[LAN_NUM_VERSIONS][NUM_OFFSETS] =
 		/* 0x009D666C */ 0x005D666C, // OFFSET_PATCH_LAUNCHER_CHECK
 		/* 0x009DA0F6 */ 0x005DA0F6, // OFFSET_PATCH_MOVIE_LOGO
 		/* 0x01066B30 */ 0x00C66B30, // OFFSET_PATCH_LEGALS_SCREEN
+		/* 0x009D686D */ 0x005D686D, // OFFSET_PATCH_DX11
 		/* 0x009D72C1 */ 0x005D72C1, // OFFSET_PATCH_ARGS_RESOLUTION
 		/* 0x009D7308 */ 0x005D7308, // OFFSET_HOOK_RESOLUTION
 		/* 0x00A6408F */ 0x0066408F, // OFFSET_PATCH_RESOLUTION_CHECK
@@ -178,6 +183,7 @@ const Address addresses[LAN_NUM_VERSIONS][NUM_OFFSETS] =
 		/* 0x009E7DCC */ 0x005E7DCC, // OFFSET_PATCH_LAUNCHER_CHECK
 		/* 0x009EB8B6 */ 0x005EB8B6, // OFFSET_PATCH_MOVIE_LOGO
 		/* 0x0109DED0 */ 0x00C9DED0, // OFFSET_PATCH_LEGALS_SCREEN
+		/* 0x009E8025 */ 0x005E8025, // OFFSET_PATCH_DX11
 		/* 0x009E8A81 */ 0x005E8A81, // OFFSET_PATCH_ARGS_RESOLUTION
 		/* 0x009E8AC8 */ 0x005E8AC8, // OFFSET_HOOK_RESOLUTION
 		/* 0x00A775FF */ 0x006775FF, // OFFSET_PATCH_RESOLUTION_CHECK

@@ -2,9 +2,10 @@
 // config.cpp
 // 
 // Releases:
-//     1.0 - Initial release
-//     1.1 - "FPS Unlock" & "Aspect Correction" improvements, "Launcher Check",
-//           "Skip Logo&Legals" & "FPS Lock" added, "Force Resolution" bugfix.
+//     1.0  - Initial release
+//     1.1  - "FPS Unlock" & "Aspect Correction" improvements, "Launcher Check",
+//            "Skip Logo&Legals" & "FPS Lock" added, "Force Resolution" bugfix.
+//     1.1a - Added "Force DX11" option, fixed a bug with force resolution.
 //
 // Copyright (c) 2021 Václav AKA Vaana
 //-----------------------------------------------------------------------------
@@ -36,6 +37,90 @@ void Config::Init()
 	// and skip the launcher check if it is, to restore support.
 	//
 
+	// Note: doesn't work as intended
+	options->skipLauncherCheck = !IsSystem32Bit(); 
+	
+	//
+	// By default, the game launches in DirectX 9 mode, which offers
+	// worse performance to DirectX 11. This is a problem, especially
+	// since the old launcher was removed, people don't bother 
+	// switching to DirectX 11 manually.
+	// The solution is to enforce DX11. First we check if the user
+	// has a Direct3D 11 capable GPU, and if so, we force the game
+	// to use DX11 all the time.
+	//
+
+	options->forceDx11 = IsD3D11Supported();
+
+	// todo: Detect if the user has an unsupported resolution
+
+	int width, height;
+
+	if (GetScreenSize(width, height))
+	{
+		options->forceResolutionWidth	= width;
+		options->forceResolutionHeight	= height;
+	}
+
+
+	if (ini_parse(INI_FILE, Handler, options) < 0 || generateNew)
+	{
+		GenerateConfig();
+	}
+}
+
+bool Config::IsD3D11Supported()
+{
+	HMODULE d3d11Lib = LoadLibraryW(L"d3d11");
+
+	if (d3d11Lib != NULL)
+	{
+		typedef HRESULT(WINAPI* D3D11CreateDevice_t) (void*, int, HMODULE, UINT, const void*, UINT, UINT, void**, void*, void**);
+		D3D11CreateDevice_t pD3D11CreateDevice;
+
+		// D3D11CreateDevice must be loaded dynamically, since d3d11.dll
+		// might not exist if the API is not supported.
+		pD3D11CreateDevice = (D3D11CreateDevice_t)GetProcAddress(d3d11Lib, "D3D11CreateDevice");
+
+		// HRESULT hr = E_FAIL;
+		// 
+		// if (pD3D11CreateDevice != NULL)
+		// {
+		// 	int featureLevels[] =
+		// 	{  				
+		// 		0xb000, // D3D_FEATURE_LEVEL_11_0
+		// 		0xa100, // D3D_FEATURE_LEVEL_10_1
+		// 		0xa000  // D3D_FEATURE_LEVEL_10_0
+		// 	};
+		// 
+		// 	int featureLevel = 0xb000;
+		// 
+		// 	hr = pD3D11CreateDevice(NULL,				// pAdapter
+		// 							1,					// D3D_DRIVER_TYPE_SOFTWARE
+		// 							NULL,				// 0
+		// 							2,					// 0
+		// 							&featureLevels,		// &pFeatureLevels
+		// 							3,					// 3u
+		// 							7,					// 7u
+		// 							NULL,				// &ppDevice,
+		// 							&featureLevel,		// &pFeatureLevel
+		// 							NULL);				// &ppImmediateContext
+		// }
+
+		FreeLibrary(d3d11Lib);
+
+		// if (SUCCEEDED(hr))
+		if (pD3D11CreateDevice != NULL)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool Config::IsSystem32Bit()
+{
 	typedef BOOL(WINAPI* IsWow64Process_t) (HANDLE, PBOOL);
 	IsWow64Process_t pIsWow64Process;
 	BOOL IsWow64 = FALSE;
@@ -48,18 +133,31 @@ void Config::Init()
 		!pIsWow64Process(GetCurrentProcess(), &IsWow64) ||
 		!IsWow64)
 	{
-		options->skipLauncherCheck = true;
+		return false;
 	}
 
-	// todo: Detect if the user has an unsupported resolution
-
-	if (ini_parse(INI_FILE, Handler, options) < 0 || generateNew)
-	{
-		GenerateConfig();
-	}
+	return true;
 }
 
+bool Config::GetScreenSize(int& width, int& height)
+{
+	//
+	// Gather the necessary info to create a new config.
+	//
+	DEVMODEW devMode = { };
+	devMode.dmSize = sizeof(DEVMODE);
+	devMode.dmDriverExtra = 0;
 
+	if (EnumDisplaySettingsW(NULL, ENUM_CURRENT_SETTINGS, &devMode))
+	{
+		width	= devMode.dmPelsWidth;
+		height	= devMode.dmPelsHeight;
+
+		return true;
+	}
+
+	return false;
+}
 
 int Config::Handler(void* user, const char* section, const char* name, const char* value)
 {
@@ -216,9 +314,29 @@ int Config::Handler(void* user, const char* section, const char* name, const cha
 	}
 
 	//
-	// Starts the game in borderless window mode. Also has
-	// benefit of removing v-sync. Recommended for faster
-	// switching between applications.
+	// Enforces DirectX 11 mode for better performance.
+	// Only enabled if the users PC has a Direct3D 11
+	// capable graphics card.
+	//
+	// 1 = enabled
+	// 0 = disabled
+	//
+	else if (MATCH("options", "force_dx11"))
+	{
+		int forceDx11 = atoi(value);
+
+		if (forceDx11 < 0 || forceDx11 > 1)
+		{
+			ERROR(L"force_dx11 was set to an invalid value. Using defaults...");
+			return 0;
+		}
+
+		pOptions->forceDx11 = forceDx11;
+	}
+
+	//
+	// Starts the game in borderless window mode. Recommended 
+	// for faster switching between applications.
 	//
 	// 1 = enabled (default)
 	// 0 = disabled
@@ -279,33 +397,26 @@ bool Config::GenerateConfig()
 {
 	#define ERROR(msg)	MessageBoxW(NULL, msg, L"[V-Patch] Error while generating config.", MB_OK);
 
-	int width, height;
-
-	//
-	// Gather the necessary info to create a new config.
-	//
-	DEVMODEW devMode = { };
-	devMode.dmSize = sizeof(DEVMODE);
-	devMode.dmDriverExtra = 0;
-
-	if (EnumDisplaySettingsW(NULL, ENUM_CURRENT_SETTINGS, &devMode))
-	{
-		width	= devMode.dmPelsWidth;
-		height	= devMode.dmPelsHeight;
-	}
-	else
-	{
-		width = height = 0;
-	}
-
 	//
 	// Fill out template and write to disk.
 	//
 	size_t configSize = sizeof(configTemplate) + 32;
 	char* config = new char[configSize];
 
-	size_t configBytesWritten = sprintf_s(config, configSize, configTemplate, options->skipLauncherCheck, width, height);
-	if (configBytesWritten == -1 || configBytesWritten == 0)
+	size_t bytesWritten = sprintf_s(config, configSize, configTemplate,
+									options->patchEnabled,				// patch_enabled
+									options->fpsUnlock,					// fps_unlock
+									options->aspectCorrection,			// aspect_correction
+									options->fpsLock,					// fps_lock
+									options->fovMultiplier,				// fov_multiplier
+									options->skipLauncherCheck,			// skip_launcher_check
+									options->skipLogos,					// skip_logos
+									options->forceDx11,					// force_dx11
+									options->forceBorderlessWindow,		// force_borderless_window
+									options->forceResolutionWidth,		// force_resolution width
+									options->forceResolutionHeight);	// force_resolution heigth
+
+	if (bytesWritten == -1 || bytesWritten == 0)
 	{
 		ERROR(L"Failed to create a new config. sprintf_s didn't write any characters.");
 		return false;
@@ -321,7 +432,7 @@ bool Config::GenerateConfig()
 	}
 
 	DWORD fileBytesWritten;
-	if (!WriteFile(file, config, configBytesWritten, &fileBytesWritten, nullptr) ||
+	if (!WriteFile(file, config, bytesWritten, &fileBytesWritten, nullptr) ||
 		fileBytesWritten == 0)
 	{
 		ERROR(L"Failed to create a new config. No bytes written.");

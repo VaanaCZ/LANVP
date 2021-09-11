@@ -2,9 +2,10 @@
 // dllmain.cpp
 // 
 // Releases:
-//     1.0 - Initial release
-//     1.1 - "FPS Unlock" & "Aspect Correction" improvements, "Launcher Check",
-//           "Skip Logo&Legals" & "FPS Lock" added, "Force Resolution" bugfix.
+//     1.0  - Initial release
+//     1.1  - "FPS Unlock" & "Aspect Correction" improvements, "Launcher Check",
+//            "Skip Logo&Legals" & "FPS Lock" added, "Force Resolution" bugfix.
+//     1.1a - Added "Force DX11" option, fixed a bug with force resolution.
 //
 // Copyright (c) 2021 Václav AKA Vaana
 //-----------------------------------------------------------------------------
@@ -53,6 +54,9 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID reserved)
 
 			if (Config::options->skipLauncherCheck)
 				Patcher::SkipLauncherCheck();
+
+			if (Config::options->forceDx11)
+				Patcher::ForceDX11();
 		}
 
 		Config::Destroy();

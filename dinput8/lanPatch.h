@@ -2,9 +2,10 @@
 // lanPatch.h
 // 
 // Releases:
-//     1.0 - Initial release
-//     1.1 - "FPS Unlock" & "Aspect Correction" improvements, "Launcher Check",
-//           "Skip Logo&Legals" & "FPS Lock" added, "Force Resolution" bugfix.
+//     1.0  - Initial release
+//     1.1  - "FPS Unlock" & "Aspect Correction" improvements, "Launcher Check",
+//            "Skip Logo&Legals" & "FPS Lock" added, "Force Resolution" bugfix.
+//     1.1a - Added "Force DX11" option, fixed a bug with force resolution.
 //
 // Copyright (c) 2021 Václav AKA Vaana
 //-----------------------------------------------------------------------------
@@ -36,6 +37,7 @@ public:
 
 	static void			SkipLauncherCheck();			// Allows the game to start without LanLauncher
 	static void			SkipLogoAndLegals();			// Skip logos and legal
+	static void			ForceDX11();					// Forces DirectX 11 mode
 	static void			ForceResolution(int, int);		// Forces a custom resolution
 	static void			ForceBorderless();				// Borderless window
 

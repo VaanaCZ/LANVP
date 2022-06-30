@@ -110,7 +110,7 @@ A common issue with non-standard monitor sizes (for the year 2011 :) ) is that t
 
 By default, this is now set to your current monitor's resolution, which prevents these sorts of issues in the first place.
 
-## Installation
+## Windows Installation
 
 Installing the patch is very simple:
 
@@ -118,7 +118,20 @@ Installing the patch is very simple:
 2. Extract the archive.
 3. Place dinput8.dll into the game folder (same location as LaNoire.exe)
 
-Done. No special setup required. 
+Done. No special setup required.
+
+## Linux (Lutris & Steam Proton) Installation
+
+Same as above except requires winecfg to override/accept the dinput8 dll. 
+
+1. Copy the extracted dinput8.dll into your game's folder (same as above, where LaNoire.exe is located).
+2. If you are using Lutris => (I assume you have L.A. Noire setup in Lutris already), click on the Wine icon -> Winetricks. Proceed with Step 5.
+3. If you are using Steam  => Run `protontricks --gui` in a terminal (you may have to install protontricks from your distro's repo. Consult your package manager.
+4. Select 'L.A. Noire 110800' and wait until a window pops-up (As long as the terminal says 'Executing mkdir' wait. It may show an error regarding 64-bit/32-Bit Prefix, but it'll take a while. Just click on 'Ok'. 
+5. Select 'Run winecfg' (if you don't see that option, open 'Install an application' and cancel out. Now winecfg should be visible.
+6. Select the 'Libraries' tab and add 'dinput8.dll' from the 'New override for library' dropdown menu.
+
+If 'dinput8(native, builtin)' is visible in the list, then you've successfully installed the patch on Linux.
 
 ## Supported versions
 

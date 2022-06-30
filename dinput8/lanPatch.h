@@ -75,6 +75,66 @@ private:
 	static inline UIFullMap::UpdateMap_t updateMapAddr = &UIFullMap::UpdateMap;
 	static inline UIFullMap::UpdateMap_t originalMapAddr;
 
+
+	// temp
+
+	class Actor_ObjectInspection
+	{
+	public:
+		NO_SECURITY_CHECKS char Inspect1(float);
+		typedef char (Actor_ObjectInspection::* Inspect1_t)(float);
+
+		NO_SECURITY_CHECKS char Inspect2(float);
+		typedef char (Actor_ObjectInspection::* Inspect2_t)(float);
+	};
+
+	static inline Actor_ObjectInspection::Inspect1_t inspect1Addr = &Actor_ObjectInspection::Inspect1;
+	static inline Actor_ObjectInspection::Inspect1_t originalInspect1Addr;
+
+	static inline Actor_ObjectInspection::Inspect2_t inspect2Addr = &Actor_ObjectInspection::Inspect2;
+	static inline Actor_ObjectInspection::Inspect2_t originalInspect2Addr;
+
+	
+	class CarDynamicsInstance
+	{
+	public:
+		NO_SECURITY_CHECKS int E576A0(float);
+		NO_SECURITY_CHECKS int E4A020(float);
+		NO_SECURITY_CHECKS int E4AFE0(float);
+		NO_SECURITY_CHECKS void E4C2F0(float);
+		NO_SECURITY_CHECKS void E490B0(float);
+		NO_SECURITY_CHECKS int E4F3A0(float);
+		NO_SECURITY_CHECKS int E524B0(float, char, char);
+		NO_SECURITY_CHECKS void E49830(float, float*);
+
+		typedef int (CarDynamicsInstance::* sub1_t)(float);
+		typedef void (CarDynamicsInstance::* sub2_t)(float);
+		typedef int (CarDynamicsInstance::* sub3_t)(float, char, char);
+		typedef void (CarDynamicsInstance::* sub4_t)(float, float*);
+	};
+
+	static inline CarDynamicsInstance::sub1_t addressE576A0 = &CarDynamicsInstance::E576A0;
+	static inline CarDynamicsInstance::sub1_t addressE4A020 = &CarDynamicsInstance::E4A020;
+	static inline CarDynamicsInstance::sub1_t addressE4AFE0 = &CarDynamicsInstance::E4AFE0;
+	static inline CarDynamicsInstance::sub2_t addressE4C2F0 = &CarDynamicsInstance::E4C2F0;
+	static inline CarDynamicsInstance::sub2_t addressE490B0 = &CarDynamicsInstance::E490B0;
+	static inline CarDynamicsInstance::sub1_t addressE4F3A0 = &CarDynamicsInstance::E4F3A0;
+	static inline CarDynamicsInstance::sub3_t addressE524B0 = &CarDynamicsInstance::E524B0;
+	static inline CarDynamicsInstance::sub4_t addressE49830 = &CarDynamicsInstance::E49830;
+
+	static inline CarDynamicsInstance::sub1_t originalAddressE576A0;
+	static inline CarDynamicsInstance::sub1_t originalAddressE4A020;
+	static inline CarDynamicsInstance::sub1_t originalAddressE4AFE0;
+	static inline CarDynamicsInstance::sub2_t originalAddressE4C2F0;
+	static inline CarDynamicsInstance::sub2_t originalAddressE490B0;
+	static inline CarDynamicsInstance::sub1_t originalAddressE4F3A0;
+	static inline CarDynamicsInstance::sub3_t originalAddressE524B0;
+	static inline CarDynamicsInstance::sub4_t originalAddressE49830;
+
+		
+	// end temp
+
+
 	// Aspect patch
 	class CameraRelativeLookAtModifier
 	{

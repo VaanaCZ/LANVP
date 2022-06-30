@@ -413,7 +413,84 @@ void Patcher::PatchFramerate()
 		mulsd carHandling = { 0xF2, 0x0F, 0x59, 0x05, (Address)&carBraking };
 		PATCH_INSTRUCTION(brakingConstantAddr, carHandling);
 	}
+
+
+	Address vTableAddr1 = 0x01135C1C;
+	ReplaceMemory(vTableAddr1, &inspect1Addr, sizeof(inspect1Addr), (Address*)&originalInspect1Addr, false);
+
+	Address vTableAddr2 = 0x01135C20;
+	ReplaceMemory(vTableAddr2, &inspect2Addr, sizeof(inspect2Addr), (Address*)&originalInspect2Addr, false);
+
+	//
+	// DirectX 11 60 FPS cap removal
+	//
+	/*Address numeratorAddr = 0x00D80F9D;
+	int newNumerator = 0;
+	PATCH_MEMORY(numeratorAddr, newNumerator);
+
+	Address denominatorAddr = 0x00D80F7A;
+	int newDenominator = 0;
+	PATCH_MEMORY(denominatorAddr, newDenominator);*/
+
+
+	Address tempAddr;
+
+	#define TEMP_PATCH(addr, func)	\
+		tempAddr = addr;			\
+		ReplaceMemory(tempAddr, &address##func, sizeof(address##func), (Address*)&originalAddress##func, false)
+
+	//TEMP_PATCH(0x01259AB0, E576A0);
+	//TEMP_PATCH(0x01259AB4, E4A020);
+	TEMP_PATCH(0x01259AC4, E4AFE0); // fixes turning somewhat
+	//TEMP_PATCH(0x01259AC8, E4C2F0);
+	//TEMP_PATCH(0x01259ACC, E490B0); // braking
+	//TEMP_PATCH(0x01259AD0, E4F3A0);
+	//TEMP_PATCH(0x01259AD4, E524B0);
+	//TEMP_PATCH(0x01259AE8, E49830);
+
 }
+
+NO_SECURITY_CHECKS int Patcher::CarDynamicsInstance::E576A0(float a2)
+{
+	return ((*this).*originalAddressE576A0)(LAN_FRAMETIME_GAME);
+}
+
+NO_SECURITY_CHECKS int Patcher::CarDynamicsInstance::E4A020(float a2)
+{
+	return ((*this).*originalAddressE4A020)(LAN_FRAMETIME_GAME);
+}
+
+NO_SECURITY_CHECKS int Patcher::CarDynamicsInstance::E4AFE0(float a2)
+{
+	return ((*this).*originalAddressE4AFE0)(LAN_FRAMETIME_GAME);
+}
+
+NO_SECURITY_CHECKS void Patcher::CarDynamicsInstance::E4C2F0(float a2)
+{
+
+	return ((*this).*originalAddressE4C2F0)(LAN_FRAMETIME_GAME);
+}
+
+NO_SECURITY_CHECKS void Patcher::CarDynamicsInstance::E490B0(float a2)
+{
+	return ((*this).*originalAddressE490B0)(LAN_FRAMETIME_GAME);
+}
+
+NO_SECURITY_CHECKS int Patcher::CarDynamicsInstance::E4F3A0(float a2)
+{
+	return ((*this).*originalAddressE4F3A0)(LAN_FRAMETIME_GAME);
+}
+
+NO_SECURITY_CHECKS int Patcher::CarDynamicsInstance::E524B0(float a2, char a3, char a4)
+{
+	return ((*this).*originalAddressE524B0)(LAN_FRAMETIME_GAME, a3, a4);
+}
+
+NO_SECURITY_CHECKS void Patcher::CarDynamicsInstance::E49830(float a2, float* a3)
+{
+	return ((*this).*originalAddressE49830)(LAN_FRAMETIME_GAME, a3);
+}
+
 
 NO_SECURITY_CHECKS char Patcher::HookFrame(int pointer)
 {
@@ -535,6 +612,16 @@ NO_SECURITY_CHECKS char Patcher::UIFullMap::UpdateMap(float a2, int a3)
 	// which resolves the sensitivity issue.
 	//
 	return ((*this).*originalMapAddr)(LAN_FRAMETIME_MENU, a3);
+}
+
+NO_SECURITY_CHECKS char Patcher::Actor_ObjectInspection::Inspect1(float a1)
+{
+	return ((*this).*originalInspect1Addr)(LAN_FRAMETIME_GAME);
+}
+
+NO_SECURITY_CHECKS char Patcher::Actor_ObjectInspection::Inspect2(float a1)
+{
+	return ((*this).*originalInspect2Addr)(LAN_FRAMETIME_GAME);
 }
 
 //-------------------------------------------------------------

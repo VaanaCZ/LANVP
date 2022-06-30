@@ -6,11 +6,18 @@
 //     1.1  - "FPS Unlock" & "Aspect Correction" improvements, "Launcher Check",
 //            "Skip Logo&Legals" & "FPS Lock" added, "Force Resolution" bugfix.
 //     1.1a - Added "Force DX11" option, fixed a bug with force resolution.
-//
-// Copyright (c) 2021 Václav AKA Vaana
+//     1.1b - Added support for 2675, fixed dinput8.dll not found on 32-bit
+//            systems, made WinAPI error messages more verbose.
+// 
+// Copyright (c) 2021-2022 Václav AKA Vaana
 //-----------------------------------------------------------------------------
 
 #include "config.h"
+
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <windows.h>
 
 void Config::Init()
 {
@@ -61,7 +68,6 @@ void Config::Init()
 		options->forceResolutionWidth	= width;
 		options->forceResolutionHeight	= height;
 	}
-
 
 	if (ini_parse(INI_FILE, Handler, options) < 0 || generateNew)
 	{
@@ -427,7 +433,10 @@ bool Config::GenerateConfig()
 
 	if (file == INVALID_HANDLE_VALUE)
 	{
-		ERROR(L"Failed to create a new config. File handle invalid.");
+		std::wstring errorMessage = L"Failed to create a new config. File handle invalid.\n";
+		errorMessage += GetErrorString(GetLastError());
+		ERROR(errorMessage.c_str());
+
 		return false;
 	}
 
@@ -435,7 +444,10 @@ bool Config::GenerateConfig()
 	if (!WriteFile(file, config, bytesWritten, &fileBytesWritten, nullptr) ||
 		fileBytesWritten == 0)
 	{
-		ERROR(L"Failed to create a new config. No bytes written.");
+		std::wstring errorMessage = L"Failed to create a new config. No bytes written.\n";
+		errorMessage += GetErrorString(GetLastError());
+		ERROR(errorMessage.c_str());
+
 		return false;
 	}
 
@@ -443,4 +455,24 @@ bool Config::GenerateConfig()
 	CloseHandle(file);
 
 	return true;
+}
+
+std::wstring Config::GetErrorString(unsigned long error)
+{
+	if (error == 0)
+	{
+		return std::wstring();
+	}
+
+	LPWSTR message;
+
+	size_t size = FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+								 NULL, error, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)&message, 0, NULL);
+
+	if (size == -1 || size == 0)
+	{
+		return std::wstring();
+	}
+
+	return std::wstring(message, size);
 }

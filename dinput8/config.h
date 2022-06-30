@@ -6,21 +6,19 @@
 //     1.1  - "FPS Unlock" & "Aspect Correction" improvements, "Launcher Check",
 //            "Skip Logo&Legals" & "FPS Lock" added, "Force Resolution" bugfix.
 //     1.1a - Added "Force DX11" option, fixed a bug with force resolution.
-//
-// Copyright (c) 2021 Václav AKA Vaana
+//     1.1b - Added support for 2675, fixed dinput8.dll not found on 32-bit
+//            systems, made WinAPI error messages more verbose.
+// 
+// Copyright (c) 2021-2022 Václav AKA Vaana
 //-----------------------------------------------------------------------------
 
 #pragma once
 
 #define INI_FILE "lanvp.ini"
 
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <windows.h>
-
 #include "inih\ini.h"
 #include "lanConstants.h"
+#include <string>
 
 class Config
 {
@@ -55,6 +53,10 @@ public:
 	inline static bool		generateNew = false;
 	inline static Options*	options;
 
+private:
+
+	static std::wstring GetErrorString(unsigned long);
+	
 };
 
 const char configTemplate[] =	"; L.A. Noire: V-Patch\r\n"

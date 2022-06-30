@@ -6,8 +6,10 @@
 //     1.1  - "FPS Unlock" & "Aspect Correction" improvements, "Launcher Check",
 //            "Skip Logo&Legals" & "FPS Lock" added, "Force Resolution" bugfix.
 //     1.1a - Added "Force DX11" option, fixed a bug with force resolution.
-//
-// Copyright (c) 2021 Václav AKA Vaana
+//     1.1b - Added support for 2675, fixed dinput8.dll not found on 32-bit
+//            systems, made WinAPI error messages more verbose.
+// 
+// Copyright (c) 2021-2022 Václav AKA Vaana
 //-----------------------------------------------------------------------------
 
 #define WIN32_LEAN_AND_MEAN
@@ -58,7 +60,7 @@ private:
 	static inline LARGE_INTEGER	lastTime, timeFrequency;
 	static inline bool			firstFrame = true;
 	static inline float*		rendererFps;
-	static inline double		carBreaking = LAN_DEFAULT_BRAKING_CONSTANT;
+	static inline double		carBraking = LAN_DEFAULT_BRAKING_CONSTANT;
 
 	static inline int			fpsLimit		= 0;
 	static inline LONGLONG		minFrameTime	= 0;

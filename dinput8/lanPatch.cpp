@@ -6,11 +6,16 @@
 //     1.1  - "FPS Unlock" & "Aspect Correction" improvements, "Launcher Check",
 //            "Skip Logo&Legals" & "FPS Lock" added, "Force Resolution" bugfix.
 //     1.1a - Added "Force DX11" option, fixed a bug with force resolution.
-//
-// Copyright (c) 2021 Václav AKA Vaana
+//     1.1b - Added support for 2675, fixed dinput8.dll not found on 32-bit
+//            systems, made WinAPI error messages more verbose.
+// 
+// Copyright (c) 2021-2022 Václav AKA Vaana
 //-----------------------------------------------------------------------------
 
 #include "lanPatch.h"
+
+// todo: Check for high uptime related issues: https://github.com/CookiePLMonster/UptimeFaker
+// todo: Check for problems with WinAPI: https://docs.microsoft.com/en-us/windows-hardware/drivers/devtest/application-verifier
 
 bool Patcher::Init()
 {
@@ -55,6 +60,8 @@ bool Patcher::Init()
 	case LAN_TIMESTAMP_2617S:	lanVersion = LAN_VERSION_2617S;	 break;
 	case LAN_TIMESTAMP_2663R:	lanVersion = LAN_VERSION_2663R;	 break;
 	case LAN_TIMESTAMP_2663S:	lanVersion = LAN_VERSION_2663S;	 break;
+	case LAN_TIMESTAMP_2675S:	lanVersion = LAN_VERSION_2675S;	 break;
+	case LAN_TIMESTAMP_2675R:	lanVersion = LAN_VERSION_2675R;	 break;
 
 	default:
 	{
@@ -89,7 +96,7 @@ bool Patcher::Init()
 						}
 						else
 						{
-							swprintf_s(message, MAX_PATH, L"Your version (%d) is not supported. Please make sure you are running a supported build!", buildNumber);
+							swprintf_s(message, MAX_PATH, L"Your version (%d) is not supported. Please make sure you are running the latest Steam or Rockstar Launcher version!", buildNumber);
 						}
 
 						ERROR(message);
@@ -381,13 +388,13 @@ void Patcher::PatchFramerate()
 	Address hookAddr = ResolveAddress(OFFSET_HOOK_FRAME);
 	call frameHook = { 0xE8, (Address)&HookFrame - hookAddr - 5 };
 	PATCH_INSTRUCTION(hookAddr, frameHook);
-
+	
 	//
 	// Map mouse sensitivity adjustment
 	//
 	Address vTableAddr = ResolveAddress(OFFSET_HOOK_MAP_VTABLE);
 	ReplaceMemory(vTableAddr, &updateMapAddr, sizeof(updateMapAddr), (Address*)&originalMapAddr, false);
-
+	
 	//
 	// Car handling adjustment
 	// 
@@ -395,14 +402,15 @@ void Patcher::PatchFramerate()
 	//
 	Address brakingConstantAddr = ResolveAddress(OFFSET_PATCH_CAR_BRAKE_CONSTANT);
 
-	if (lanVersion == LAN_VERSION_2663R || lanVersion == LAN_VERSION_2617R)
+	if (lanVersion == LAN_VERSION_2663R || lanVersion == LAN_VERSION_2617R ||
+		lanVersion == LAN_VERSION_2675R)
 	{
-		fmul carHandling = { 0xDC, 0x0D, (Address)&carBreaking };
+		fmul carHandling = { 0xDC, 0x0D, (Address)&carBraking };
 		PATCH_INSTRUCTION(brakingConstantAddr, carHandling);
 	}
 	else
 	{
-		mulsd carHandling = { 0xF2, 0x0F, 0x59, 0x05, (Address)&carBreaking };
+		mulsd carHandling = { 0xF2, 0x0F, 0x59, 0x05, (Address)&carBraking };
 		PATCH_INSTRUCTION(brakingConstantAddr, carHandling);
 	}
 }
@@ -470,7 +478,7 @@ NO_SECURITY_CHECKS char Patcher::HookFrame(int pointer)
 				// meaning we only need to set it to the current
 				// framerate to resolve the issue.
 				//
-				carBreaking = max(fps, LAN_DEFAULT_BRAKING_CONSTANT);
+				carBraking = max(fps, LAN_DEFAULT_BRAKING_CONSTANT);
 
 				//
 				// Even with corrected braking, steering is very
@@ -526,7 +534,7 @@ NO_SECURITY_CHECKS char Patcher::UIFullMap::UpdateMap(float a2, int a3)
 	// This just fixes the time delta to 1/60 of a second,
 	// which resolves the sensitivity issue.
 	//
-	return ((*this).*originalMapAddr)(LAN_ONE_OVER_FRAMERATE, a3);
+	return ((*this).*originalMapAddr)(LAN_FRAMETIME_MENU, a3);
 }
 
 //-------------------------------------------------------------

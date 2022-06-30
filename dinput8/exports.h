@@ -6,8 +6,10 @@
 //     1.1  - "FPS Unlock" & "Aspect Correction" improvements, "Launcher Check",
 //            "Skip Logo&Legals" & "FPS Lock" added, "Force Resolution" bugfix.
 //     1.1a - Added "Force DX11" option, fixed a bug with force resolution.
-//
-// Copyright (c) 2021 Václav AKA Vaana
+//     1.1b - Added support for 2675, fixed dinput8.dll not found on 32-bit
+//            systems, made WinAPI error messages more verbose.
+// 
+// Copyright (c) 2021-2022 Václav AKA Vaana
 //-----------------------------------------------------------------------------
 
 #include <windows.h>
@@ -97,11 +99,21 @@ HINSTANCE hDinput8;
 
 void LoadDinput8()
 {
-	hDinput8 = LoadLibrary(TEXT("C:\\Windows\\SysWOW64\\dinput8.dll"));
+	// Get the path to the library
+	wchar_t libPath[MAX_PATH];
+	if (GetSystemDirectoryW(libPath, MAX_PATH) == 0)
+	{
+		wcscpy_s(libPath, L"C:\\Windows\\System32");
+	}
+
+	wcscat_s(libPath, L"\\dinput8.dll");
+
+	// Load the actual library
+	hDinput8 = LoadLibraryW(libPath);
 
 	if (hDinput8 == NULL)
 	{
-		MessageBox(NULL, TEXT("C:\\Windows\\SysWOW64\\dinput8.dll"), L"LoadLibrary failed!", MB_OK);
+		MessageBox(NULL, libPath, L"LoadLibrary failed!", MB_OK);
 		return;
 	}
 

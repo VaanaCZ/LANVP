@@ -135,7 +135,7 @@ If 'dinput8(native, builtin)' is visible in the list, then you've successfully i
 
 ## Supported versions
 
-V-Patch has been developed and tested on L.A Noire builds **2617** and **2663** (current version), including both Steam & R* Launcher releases.
+V-Patch has been developed and tested on L.A Noire builds **2617**, **2663** and **2675** (current version), including both Steam & R* Launcher releases.
 
 ## Configuration
 

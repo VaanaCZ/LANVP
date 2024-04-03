@@ -29,9 +29,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="exports.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
     <ClInclude Include="lanPatch.h">
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
@@ -44,10 +41,5 @@
     <ClInclude Include="inih\ini.h">
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="exports.def">
-      <Filter>Zdrojové soubory</Filter>
-    </None>
   </ItemGroup>
 </Project>

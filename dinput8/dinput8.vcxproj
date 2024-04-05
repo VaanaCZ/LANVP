@@ -178,11 +178,13 @@
   <ItemGroup>
     <ClCompile Include="config.cpp" />
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="signature.cpp" />
     <ClCompile Include="inih\ini.c" />
     <ClCompile Include="lanPatch.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="config.h" />
+    <ClInclude Include="signature.h" />
     <ClInclude Include="inih\ini.h" />
     <ClInclude Include="lanConstants.h" />
     <ClInclude Include="lanPatch.h" />

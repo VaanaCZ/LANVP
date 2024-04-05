@@ -18,6 +18,8 @@
 #include "lanPatch.h"
 #include "config.h"
 
+#include "signature.h"
+
 /*BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID reserved)
 {
 	switch (reason)
@@ -27,8 +29,36 @@
 		// Enable DirectInput proxy
 		LoadDinput8();*/
 
+
+void f(Patch* patch)
+{
+	size_t a = 0;
+}
+
+
 extern "C" __declspec(dllexport) BOOL InitializeASI()
 {
+
+	byte m[]  = { 0xC1, 0x04, 0x8B, 0x15, 0x18, 0xAE, 0x51, 0x01, 0x50, 0x52, 0xE8, 0x21, 0x06, 0xFA, 0xFF, 0x8B };
+
+	Patch p;
+	wcscpy_s(p.name, TEXT("Superduper patch"));
+	p.signatures[0].mask = m;
+	p.signatures[0].maskLength = sizeof(m);
+	p.signatures[0].maskingByte = 0xFF;
+	p.func = f;
+	p.numSignatures++;
+
+
+	RegisterPatch(p);
+
+
+
+	DoPatches();
+
+
+
+
 
 	Config::Init();
 

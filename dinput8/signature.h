@@ -5,6 +5,12 @@
 #define MAX_SIGNATURES	5
 #define MAX_PATCHES	10
 
+#define REGISTER_MASK(p, m, b, o)	\
+	p.mask = m;						\
+	p.maskLength = sizeof(m);		\
+	p.maskingByte = b;				\
+	p.maskOffset = o
+
 typedef unsigned char byte;
 
 struct Patch;
@@ -27,6 +33,19 @@ struct Patch
 	Signature signatures[MAX_SIGNATURES];
 	unsigned int numSignatures = 0;
 	HookFunc func = nullptr;
+
+	bool RegisterSignature(Signature signature)
+	{
+		if (numSignatures >= MAX_PATCHES)
+		{
+			return false;
+		}
+
+		signatures[numSignatures] = signature;
+		numSignatures++;
+
+		return true;
+	};
 };
 
 static unsigned int numPatches = 0;

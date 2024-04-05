@@ -19,6 +19,7 @@
 #include "config.h"
 
 #include "signature.h"
+#include "fix_fps.h"
 
 /*BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID reserved)
 {
@@ -38,7 +39,7 @@ void f(Patch* patch)
 
 extern "C" __declspec(dllexport) BOOL InitializeASI()
 {
-
+	/*
 	byte m[]  = { 0xC1, 0x04, 0x8B, 0x15, 0x18, 0xAE, 0x51, 0x01, 0x50, 0x52, 0xE8, 0x21, 0x06, 0xFA, 0xFF, 0x8B };
 
 	Patch p;
@@ -53,6 +54,10 @@ extern "C" __declspec(dllexport) BOOL InitializeASI()
 	RegisterPatch(p);
 
 
+	*/
+
+	RegisterPatch_Framerate();
+
 
 	DoPatches();
 
@@ -66,8 +71,8 @@ extern "C" __declspec(dllexport) BOOL InitializeASI()
 		Patcher::Init())
 	{
 		// Patches
-		if (Config::options->fpsUnlock)
-			Patcher::PatchFramerate();
+		//if (Config::options->fpsUnlock)
+		//	Patcher::PatchFramerate();
 
 		if (Config::options->aspectCorrection)
 			Patcher::PatchAspect();

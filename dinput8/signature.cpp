@@ -17,6 +17,8 @@ bool RegisterPatch(Patch patch)
 
 	patches[numPatches] = patch;
 	numPatches++;
+
+	return true;
 }
 
 void DoPatches()
@@ -82,22 +84,22 @@ void DoPatches()
 
 				for (size_t j = 0; j < patch.numSignatures; j++)
 				{
-					Signature& hook = patch.signatures[j];
+					Signature& signature = patch.signatures[j];
 
 					bool signatureValid = true;
 
-					if (regionPtr + hook.maskLength > regionEnd)
+					if (regionPtr + signature.maskLength > regionEnd)
 					{
-						break; // Current hook cannot be located within current region
+						break; // Signature cannot be located within current region
 					}
 
 					// Signature matching
-					for (size_t i = 0; i < hook.maskLength; i++)
+					for (size_t i = 0; i < signature.maskLength; i++)
 					{
 						BYTE l = *(regionPtr + i);
-						BYTE r = hook.mask[i];
+						BYTE r = signature.mask[i];
 
-						if (r == hook.maskingByte)
+						if (r == signature.maskingByte)
 						{
 							continue;
 						}
@@ -111,8 +113,8 @@ void DoPatches()
 
 					if (signatureValid)
 					{
-						hook.numOccurrences++;
-						hook.lastOccurence = regionPtr + hook.maskOffset;
+						signature.numOccurrences++;
+						signature.lastOccurence = regionPtr + signature.maskOffset;
 					}
 				}
 			}
@@ -148,14 +150,14 @@ void DoPatches()
 		ua_tcscpy_s(msgPtr, msgEnd - msgPtr, TEXT("Failed to apply the following patches:"));
 		msgPtr += 38;
 
-		bool allHooksFound = true;
+		bool allSignaturesFound = true;
 		for (size_t j = 0; j < patch.numSignatures; j++)
 		{
-			bool hookFound = (patch.signatures[j].numOccurrences == 1);
+			bool signatureFound = (patch.signatures[j].numOccurrences == 1);
 
-			allHooksFound &= hookFound;
+			allSignaturesFound &= signatureFound;
 
-			if (!hookFound)
+			if (!signatureFound)
 			{
 				ua_tcscpy_s(msgPtr, msgEnd - msgPtr, TEXT("\n\t"));
 				msgPtr += 2;
@@ -165,7 +167,7 @@ void DoPatches()
 			}
 		}
 
-		if (allHooksFound)
+		if (allSignaturesFound)
 		{
 			// Success! Patch can be applied!
 			assert(patch.func);
@@ -174,6 +176,7 @@ void DoPatches()
 		else
 		{
 			MessageBox(NULL, errorMsg, TEXT("[ERROR]"), MB_OK);
+			DebugBreak();
 		}
 	}
 }

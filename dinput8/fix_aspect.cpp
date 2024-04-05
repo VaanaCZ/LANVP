@@ -1,0 +1,79 @@
+#include "fix_aspect.h"
+
+#include "patching.h"
+#include "shared.h"
+#include <cassert>
+
+#define MASK 0xFF
+
+byte aspectSignature[] =
+{
+	0x8B, 0xC8,
+	0x83, 0xC4, 0x04,
+	0x8B, 0xC6,
+	0xE8, MASK, MASK, MASK, MASK,
+	0x84, 0xC0,
+	0x0F, 0x84, MASK, MASK, MASK, MASK
+};
+
+byte barsSignature[] =
+{
+	0xDF, 0xF1,
+	0xDD, 0xD8,
+	0x76, MASK,
+	0x89, 0x4C, 0x24, 0x24,
+	0xDB, 0x44, 0x24, 0x24,
+};
+
+byte barsResizeSignature[] =
+{
+	0xDF, 0xF1,
+	0xDD, 0xD8,
+	0x76, MASK,
+	0x8B, 0xD7,
+	0x89, 0x54, 0x24, 0x2C,
+	0xDB, 0x44, 0x24, 0x2C
+};
+
+void RegisterPatch_Aspect()
+{
+	Patch patch;
+
+	Signature signature;
+	REGISTER_MASK(signature, aspectSignature, MASK, 14);
+	patch.RegisterSignature(signature);
+
+	Signature signature2;
+	REGISTER_MASK(signature2, barsSignature, MASK, 4);
+	patch.RegisterSignature(signature2);
+
+	Signature signature3;
+	REGISTER_MASK(signature3, barsResizeSignature, MASK, 4);
+	patch.RegisterSignature(signature3);
+
+	ua_tcscpy_s(patch.name, TEXT("Aspect-ratio fix"));
+	patch.func = ApplyPatch_Aspect;
+
+	RegisterPatch(patch);
+}
+
+bool ApplyPatch_Aspect(Patch* patch)
+{
+
+	assert(patch->numSignatures == 3);
+	Signature& signature = patch->signatures[0];
+	Signature& signature2 = patch->signatures[1];
+	Signature& signature3 = patch->signatures[2];
+
+	// Allows all resolutions
+	byte nop[] = { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 };
+	WriteProcessMemory(GetCurrentProcess(), signature.lastOccurence, nop, sizeof(nop), nullptr);  // "Resolution:1280x1440x120"
+
+	// Removes black bars
+	byte jmp = 0xEB;
+	WriteProcessMemory(GetCurrentProcess(), signature2.lastOccurence, &jmp, sizeof(jmp), nullptr);
+
+	WriteProcessMemory(GetCurrentProcess(), signature3.lastOccurence, &jmp, sizeof(jmp), nullptr);
+
+	return true;
+}

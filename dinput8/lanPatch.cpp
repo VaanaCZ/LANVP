@@ -552,15 +552,15 @@ void Patcher::PatchAspect()
 	//
 	// Allow any aspect ratio in resolution list
 	//
-	Address supportedResAddr = ResolveAddress(OFFSET_PATCH_ASPECT_FILTER);
-	NopInstruction(supportedResAddr, 6);
+	//Address supportedResAddr = ResolveAddress(OFFSET_PATCH_ASPECT_FILTER);
+	//NopInstruction(supportedResAddr, 6);
 
 	//
 	// Black bars removal
 	//
-	Address jmpAddr = ResolveAddress(OFFSET_PATCH_ASPECT_CROP);
-	Opcode jmpSkip = 0xEB;
-	PATCH_INSTRUCTION(jmpAddr, jmpSkip);
+	//Address jmpAddr = ResolveAddress(OFFSET_PATCH_ASPECT_CROP);
+	//Opcode jmpSkip = 0xEB;
+	//PATCH_INSTRUCTION(jmpAddr, jmpSkip);
 
 	//
 	// Fov recalculation

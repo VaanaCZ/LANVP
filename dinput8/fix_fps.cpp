@@ -1,6 +1,8 @@
 #include "fix_fps.h"
 
-#include "signature.h"
+#include <cassert>
+#include "patching.h"
+#include "shared.h"
 
 #define MASK 0xFF
 
@@ -38,64 +40,58 @@ void RegisterPatch_Framerate()
 	REGISTER_MASK(signature2, rendererDestructorSignature, MASK, 19);
 	patch.RegisterSignature(signature2);
 
-	patch.func = DoPatch_Framerate;
+	ua_tcscpy_s(patch.name, TEXT("Framerate Unlock"));
+	patch.func = ApplyPatch_Framerate;
 
 	RegisterPatch(patch);
 }
 
-#pragma pack(push, 1)
-class I3DEngine
+static I3DEngine** ppEngine;
+static LARGE_INTEGER lastTime, timeFrequency;
+
+bool ApplyPatch_Framerate(Patch* patch)
 {
-public:
-	byte padding[0xE8];
-	float framerate;
-};
-#pragma pack(pop)
+	assert(patch->numSignatures == 2);
+	Signature& signature = patch->signatures[0];
+	Signature& signature2 = patch->signatures[1];
 
-
-static I3DEngine** enginePtr;
-
-void DoPatch_Framerate(Patch* patch)
-{
-	DWORD hookAddress = (DWORD)&DoHook_Framerate;
-	hookAddress -= (DWORD)patch->signatures[0].lastOccurence;
+	// Patching
+	DWORD hookAddress = (DWORD)&Hook_Framerate;
+	hookAddress -= (DWORD)signature.lastOccurence;
 	hookAddress -= 4;
 
-	WriteProcessMemory(GetCurrentProcess(), patch->signatures[0].lastOccurence, &hookAddress, sizeof(hookAddress), 0);
+	WriteProcessMemory(GetCurrentProcess(), signature.lastOccurence, &hookAddress, sizeof(hookAddress), 0);
 
-	ReadProcessMemory(GetCurrentProcess(), patch->signatures[1].lastOccurence, &enginePtr, sizeof(enginePtr), 0);
+	ReadProcessMemory(GetCurrentProcess(), signature2.lastOccurence, &ppEngine, sizeof(ppEngine), 0);
+
+	// Prepare vars
+	QueryPerformanceCounter(&lastTime);
+	QueryPerformanceFrequency(&timeFrequency);
+
+	return true;
 }
 
-
-static LARGE_INTEGER	lastTime, timeFrequency;
-static bool			firstFrame = true;
-
-char DoHook_Framerate(int pointer)
+char Hook_Framerate(int pointer)
 {
-	if ((*enginePtr) != 0)
+	I3DEngine* engine = *ppEngine; 
+	assert(engine);
+
+	LARGE_INTEGER currTime;
+	QueryPerformanceCounter(&currTime);
+
+	LONGLONG quadDiff = currTime.QuadPart - lastTime.QuadPart;
+
+	if (quadDiff > 0)
 	{
-		LARGE_INTEGER currTime;
-		QueryPerformanceCounter(&currTime);
+		double fps = timeFrequency.QuadPart / (double)quadDiff;
 
-		if (!firstFrame)
+		if (engine)
 		{
-			LONGLONG quadDiff = currTime.QuadPart - lastTime.QuadPart;
-
-			if (quadDiff > 0)
-			{
-				double fps = timeFrequency.QuadPart / (double)quadDiff;
-
-				(*enginePtr)->framerate = max(fps, 30) * 2.0;
-			}
+			engine->framerate = max(fps, 25) * 2.0;
 		}
-		else
-		{
-			QueryPerformanceFrequency(&timeFrequency);
-			firstFrame = false;
-		}
-
-		lastTime = currTime;
 	}
+
+	lastTime = currTime;
 
 	return 1;
 }

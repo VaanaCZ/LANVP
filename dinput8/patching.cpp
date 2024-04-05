@@ -1,4 +1,4 @@
-#include "signature.h"
+#include "patching.h"
 
 #include <windows.h>
 #include <tlhelp32.h>
@@ -138,14 +138,16 @@ void DoPatches()
 	// Result
 	//
 
+	bool allPatchesApplied = true;
+
+	const size_t msgSize = 1000;
+	TCHAR errorMsg[msgSize];
+	TCHAR* msgPtr = errorMsg;
+	TCHAR* msgEnd = errorMsg + msgSize;
+
 	for (size_t i = 0; i < numPatches; i++)
 	{
 		Patch& patch = patches[i];
-
-		const size_t msgSize = 1000;
-		TCHAR errorMsg[msgSize];
-		TCHAR* msgPtr = errorMsg;
-		TCHAR* msgEnd = errorMsg + msgSize;
 
 		ua_tcscpy_s(msgPtr, msgEnd - msgPtr, TEXT("Failed to apply the following patches:"));
 		msgPtr += 38;
@@ -155,15 +157,10 @@ void DoPatches()
 		{
 			bool signatureFound = (patch.signatures[j].numOccurrences == 1);
 
-			allSignaturesFound &= signatureFound;
-
 			if (!signatureFound)
 			{
-				ua_tcscpy_s(msgPtr, msgEnd - msgPtr, TEXT("\n\t"));
-				msgPtr += 2;
-				ua_tcscpy_s(msgPtr, msgEnd - msgPtr, patch.name);
-				msgPtr += ua_lstrlen(patch.name);
-				// text
+				allSignaturesFound = false;
+				break;
 			}
 		}
 
@@ -171,12 +168,22 @@ void DoPatches()
 		{
 			// Success! Patch can be applied!
 			assert(patch.func);
-			patch.func(&patch);
+			allSignaturesFound = patch.func(&patch);
 		}
-		else
+
+		if (!allSignaturesFound)
 		{
-			MessageBox(NULL, errorMsg, TEXT("[ERROR]"), MB_OK);
-			DebugBreak();
+			ua_tcscpy_s(msgPtr, msgEnd - msgPtr, TEXT("\n\t"));
+			msgPtr += 2;
+			ua_tcscpy_s(msgPtr, msgEnd - msgPtr, patch.name);
+			msgPtr += ua_lstrlen(patch.name);
 		}
+
+		allPatchesApplied &= allSignaturesFound;
+	}
+
+	if (!allPatchesApplied)
+	{
+		MessageBox(NULL, errorMsg, TEXT("[ERROR]"), MB_OK);
 	}
 }

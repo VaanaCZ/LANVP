@@ -18,8 +18,9 @@
 #include "lanPatch.h"
 #include "config.h"
 
-#include "signature.h"
+#include "patching.h"
 #include "fix_fps.h"
+#include "fix_aspect.h"
 
 /*BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID reserved)
 {
@@ -57,7 +58,7 @@ extern "C" __declspec(dllexport) BOOL InitializeASI()
 	*/
 
 	RegisterPatch_Framerate();
-
+	RegisterPatch_Aspect();
 
 	DoPatches();
 
@@ -81,10 +82,10 @@ extern "C" __declspec(dllexport) BOOL InitializeASI()
 		Patcher::SetFOVMultiplier(Config::options->fovMultiplier);
 		Patcher::SetFPSLock(Config::options->fpsLock);
 
-		int width = Config::options->forceResolutionWidth;
-		int height = Config::options->forceResolutionHeight;
-		if (width != 0 && height != 0)
-			Patcher::ForceResolution(width, height);
+		//int width = Config::options->forceResolutionWidth;
+		//int height = Config::options->forceResolutionHeight;
+		//if (width != 0 && height != 0)
+		//	Patcher::ForceResolution(width, height);
 
 		if (Config::options->forceBorderlessWindow)
 			Patcher::ForceBorderless();

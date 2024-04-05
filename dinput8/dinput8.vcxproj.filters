@@ -30,10 +30,13 @@
     <ClCompile Include="inih\ini.c">
       <Filter>Zdrojové soubory</Filter>
     </ClCompile>
-    <ClCompile Include="signature.cpp">
+    <ClCompile Include="patching.cpp">
       <Filter>Patch</Filter>
     </ClCompile>
     <ClCompile Include="fix_fps.cpp">
+      <Filter>Patch</Filter>
+    </ClCompile>
+    <ClCompile Include="fix_aspect.cpp">
       <Filter>Patch</Filter>
     </ClCompile>
   </ItemGroup>
@@ -50,10 +53,16 @@
     <ClInclude Include="inih\ini.h">
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
-    <ClInclude Include="signature.h">
+    <ClInclude Include="patching.h">
       <Filter>Patch</Filter>
     </ClInclude>
     <ClInclude Include="fix_fps.h">
+      <Filter>Patch</Filter>
+    </ClInclude>
+    <ClInclude Include="shared.h">
+      <Filter>Patch</Filter>
+    </ClInclude>
+    <ClInclude Include="fix_aspect.h">
       <Filter>Patch</Filter>
     </ClInclude>
   </ItemGroup>

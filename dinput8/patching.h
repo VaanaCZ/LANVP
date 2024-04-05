@@ -15,7 +15,7 @@ typedef unsigned char byte;
 
 struct Patch;
 
-typedef void (*HookFunc)(Patch*);
+typedef bool (*ApplyFunc)(Patch*);
 
 struct Signature
 {
@@ -32,7 +32,7 @@ struct Patch
 	TCHAR name[50];
 	Signature signatures[MAX_SIGNATURES];
 	unsigned int numSignatures = 0;
-	HookFunc func = nullptr;
+	ApplyFunc func = nullptr;
 
 	bool RegisterSignature(Signature signature)
 	{

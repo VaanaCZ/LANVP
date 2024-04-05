@@ -178,18 +178,21 @@
   <ItemGroup>
     <ClCompile Include="config.cpp" />
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="fix_aspect.cpp" />
     <ClCompile Include="fix_fps.cpp" />
-    <ClCompile Include="signature.cpp" />
+    <ClCompile Include="patching.cpp" />
     <ClCompile Include="inih\ini.c" />
     <ClCompile Include="lanPatch.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="config.h" />
+    <ClInclude Include="fix_aspect.h" />
     <ClInclude Include="fix_fps.h" />
-    <ClInclude Include="signature.h" />
+    <ClInclude Include="patching.h" />
     <ClInclude Include="inih\ini.h" />
     <ClInclude Include="lanConstants.h" />
     <ClInclude Include="lanPatch.h" />
+    <ClInclude Include="shared.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

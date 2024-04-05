@@ -3,6 +3,6 @@
 struct Patch;
 
 void RegisterPatch_Framerate();
-void DoPatch_Framerate(Patch* patch);
+bool ApplyPatch_Framerate(Patch* patch);
 
-char DoHook_Framerate(int pointer);
+char Hook_Framerate(int pointer);

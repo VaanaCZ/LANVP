@@ -1,12 +1,16 @@
+// ----------------------------------------------------------------------------
+// fix_aspect.cpp
+//
+// Copyright (c) 2021-2024 Vaana
+// ----------------------------------------------------------------------------
+
 #include "fix_aspect.h"
 
 #include "patching.h"
 #include "shared.h"
 #include <cassert>
 
-#define MASK 0xFF
-
-byte barsSignature[] =
+byte sigBlackBars[] =
 {
 	0xDF, 0xF1,
 	0xDD, 0xD8,
@@ -15,7 +19,7 @@ byte barsSignature[] =
 	0xDB, 0x44, 0x24, 0x24,
 };
 
-byte barsResizeSignature[] =
+byte sigBlackBarsOnResize[] =
 {
 	0xDF, 0xF1,
 	0xDD, 0xD8,
@@ -29,13 +33,8 @@ void RegisterPatch_Aspect()
 {
 	Patch patch;
 
-	Signature signature2;
-	REGISTER_MASK(signature2, barsSignature, MASK, 4);
-	patch.RegisterSignature(signature2);
-
-	Signature signature3;
-	REGISTER_MASK(signature3, barsResizeSignature, MASK, 4);
-	patch.RegisterSignature(signature3);
+	REGISTER_MASK(patch, sigBlackBars, MASK, 4);
+	REGISTER_MASK(patch, sigBlackBarsOnResize, MASK, 4);
 
 	ua_tcscpy_s(patch.name, TEXT("Aspect-ratio fix"));
 	patch.func = ApplyPatch_Aspect;
@@ -43,17 +42,30 @@ void RegisterPatch_Aspect()
 	RegisterPatch(patch);
 }
 
+static int uiWidth = 1280.0f;
+static int uiHeight = 720.0f;
+
 bool ApplyPatch_Aspect(Patch* patch)
 {
 	assert(patch->numSignatures == 2);
-	Signature& signature2 = patch->signatures[0];
-	Signature& signature3 = patch->signatures[1];
+	Signature& blackBars			= patch->signatures[0];
+	Signature& blackBarsOnResize	= patch->signatures[1];
 
-	// Removes black bars
+	// Remove black bars
 	byte jmp = 0xEB;
-	WriteProcessMemory(GetCurrentProcess(), signature2.lastOccurence, &jmp, sizeof(jmp), nullptr);
+	MemWrite(blackBars.foundPtr,			&jmp, sizeof(jmp));
+	MemWrite(blackBarsOnResize.foundPtr,	&jmp, sizeof(jmp));
 
-	WriteProcessMemory(GetCurrentProcess(), signature3.lastOccurence, &jmp, sizeof(jmp), nullptr);
+	// Fix UI scaling
+
+
+	// Correct FoV
+
 
 	return true;
+}
+
+int __cdecl Hook_Atoi(const char* string)
+{
+	return atoi(string);
 }

@@ -1,10 +1,14 @@
+// ----------------------------------------------------------------------------
+// fix_fps.cpp
+//
+// Copyright (c) 2021-2024 Vaana
+// ----------------------------------------------------------------------------
+
 #include "fix_fps.h"
 
-#include <cassert>
 #include "patching.h"
 #include "shared.h"
-
-#define MASK 0xFF
+#include <cassert>
 
 byte framerateSignature[] =
 {
@@ -15,30 +19,12 @@ byte framerateSignature[] =
 	0x84, 0xC0
 };
 
-byte rendererDestructorSignature[] =
-{
-	0x8B, 0x96, 0x9C, 0x00, 0x00, 0x00,
-	0x83, 0xE1, 0xF8,
-	0x8B, 0x01,
-	0x8B, 0x40, 0x0C,
-	0x52,
-	0xFF, 0xD0,
-	0xC7, 0x05, MASK, MASK, MASK, MASK, 0x00, 0x00, 0x00, 0x00,
-	0x8B, 0x4C, 0x24, 0x10,
-	0x64, 0x89, 0x0D, 0x00, 0x00, 0x00, 0x00
-};
-
 void RegisterPatch_Framerate()
 {
 	Patch patch;
-	
-	Signature signature;
-	REGISTER_MASK(signature, framerateSignature, MASK, 8);
-	patch.RegisterSignature(signature);
 
-	Signature signature2;
-	REGISTER_MASK(signature2, rendererDestructorSignature, MASK, 19);
-	patch.RegisterSignature(signature2);
+	REGISTER_ENGINE_MASK(patch);
+	REGISTER_MASK(patch, framerateSignature, MASK, 7);
 
 	ua_tcscpy_s(patch.name, TEXT("Framerate Unlock"));
 	patch.func = ApplyPatch_Framerate;
@@ -54,27 +40,34 @@ static float frm = 0.033333f;
 bool ApplyPatch_Framerate(Patch* patch)
 {
 	assert(patch->numSignatures == 2);
-	Signature& signature = patch->signatures[0];
-	Signature& signature2 = patch->signatures[1];
+	Signature& enginePtr = patch->signatures[0];
+	Signature& signature = patch->signatures[1];
+
+	// Find the engine pointer
+	MemRead(enginePtr.foundPtr, &ppEngine, sizeof(ppEngine));
 
 	// Patching
-	DWORD hookAddress = (DWORD)&Hook_Framerate;
-	hookAddress -= (DWORD)signature.lastOccurence;
-	hookAddress -= 4;
+	//MemWriteHookCall(signature.foundPtr, &Hook_Framerate);
 
-	WriteProcessMemory(GetCurrentProcess(), signature.lastOccurence, &hookAddress, sizeof(hookAddress), 0);
+	byte b = 0x1;
 
-	ReadProcessMemory(GetCurrentProcess(), signature2.lastOccurence, &ppEngine, sizeof(ppEngine), 0);
+	void* pa = (void*)0x00A8EC0C;
+	MemWrite(pa, &b, sizeof(b));
 
-	// Prepare vars
+	void* pb = (void*)0x00DF4922;
+	MemWrite(pb, &b, sizeof(b));
+
+	void* pc = (void*)0x00A8E9BF;
+	MemWriteNop(pc, 6);
+
+	// Prepare required variables
 	QueryPerformanceCounter(&lastTime);
 	QueryPerformanceFrequency(&timeFrequency);
 
 
-
 	void* p = (void*)0x00E56E3D;
 	DWORD a = (DWORD)&frm;
-	WriteProcessMemory(GetCurrentProcess(), p, &a, sizeof(a), 0);
+	MemWrite(p, &a, sizeof(a));
 
 	return true;
 }

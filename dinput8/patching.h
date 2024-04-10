@@ -3,13 +3,17 @@
 #include <Windows.h>
 
 #define MAX_SIGNATURES	5
-#define MAX_PATCHES	10
+#define MAX_PATCHES		10
 
 #define REGISTER_MASK(p, m, b, o)	\
-	p.mask = m;						\
-	p.maskLength = sizeof(m);		\
-	p.maskingByte = b;				\
-	p.maskOffset = o
+{									\
+	Signature s;					\
+	s.signature = m;				\
+	s.sigLength = sizeof(m);		\
+	s.maskingByte = b;				\
+	s.sigOffset = o;				\
+	p.RegisterSignature(s);			\
+}
 
 typedef unsigned char byte;
 
@@ -19,20 +23,22 @@ typedef bool (*ApplyFunc)(Patch*);
 
 struct Signature
 {
-	byte* mask = nullptr;
-	size_t maskLength = 0;
-	byte maskingByte = 0xFF;
-	size_t maskOffset = 0; // Offset into mask which will be used for occurence pointer
-	unsigned int numOccurrences = 0;
-	void* lastOccurence = nullptr;
+	byte*			signature		= nullptr;	// Byte array used as search signature
+	size_t			sigLength		= 0;		// Length of array
+	byte			maskingByte		= 0xFF;		// Byte use for masking
+	size_t			sigOffset		= 0;		// Offset into signature which will be used for foundPtr pointer
+	bool			optional		= false;	// Specifies whether this signature is required for a successful patch
+
+	unsigned int	numOccurrences	= 0;		// Number of occurences
+	void*			foundPtr		= nullptr;	// Pointer to the last occurence
 };
 
 struct Patch
 {
-	TCHAR name[50];
-	Signature signatures[MAX_SIGNATURES];
-	unsigned int numSignatures = 0;
-	ApplyFunc func = nullptr;
+	TCHAR			name[50];					// Name which will be displayed if patch fails
+	Signature		signatures[MAX_SIGNATURES];	// Registered signatures to be searched
+	unsigned int	numSignatures	= 0;		// Number of signatures
+	ApplyFunc		func			= nullptr;	// Callback to be called if all signatures are found
 
 	bool RegisterSignature(Signature signature)
 	{
@@ -48,8 +54,16 @@ struct Patch
 	};
 };
 
-static unsigned int numPatches = 0;
-static Patch patches[MAX_PATCHES] = { };
+extern unsigned int numPatches;
+extern Patch patches[MAX_PATCHES];
+extern HANDLE process;
 
 bool RegisterPatch(Patch patch);
+
 void DoPatches();
+
+bool MemWrite(void* ptr, void* data, size_t dataLength);
+bool MemWriteNop(void* ptr, size_t nopLength);
+bool MemWriteHookCall(void* ptr, void* hook);
+bool MemWriteHookCallPtr(void* ptr, void** hook);
+bool MemRead(void* ptr, void* data, size_t dataLength);

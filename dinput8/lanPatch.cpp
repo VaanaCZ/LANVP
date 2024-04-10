@@ -565,8 +565,8 @@ void Patcher::PatchAspect()
 	//
 	// Fov recalculation
 	//
-	Address vTableAddr = ResolveAddress(OFFSET_HOOK_FIELD_OF_VIEW_VTABLE);
-	ReplaceMemory(vTableAddr, &updateFovAddr, sizeof(updateFovAddr), (Address*)&originalFovAddr, false);
+	//Address vTableAddr = ResolveAddress(OFFSET_HOOK_FIELD_OF_VIEW_VTABLE);
+	//ReplaceMemory(vTableAddr, &updateFovAddr, sizeof(updateFovAddr), (Address*)&originalFovAddr, false);
 
 	//
 	// Interface size recalculation
@@ -575,8 +575,8 @@ void Patcher::PatchAspect()
 	callPtr hook = { 0xFF, 0x15, (Address)&hookAtoiAddress };
 	PATCH_INSTRUCTION(hookAddr, hook);
 
-	interfaceWidthAddr	= ResolveAddress(OFFSET_VALUE_INTERFACE_WIDTH);
-	interfaceHeightAddr	= ResolveAddress(OFFSET_VALUE_INTERFACE_HEIGHT);
+	//interfaceWidthAddr	= ResolveAddress(OFFSET_VALUE_INTERFACE_WIDTH);
+	//interfaceHeightAddr	= ResolveAddress(OFFSET_VALUE_INTERFACE_HEIGHT);
 }
 
 NO_SECURITY_CHECKS void Patcher::CameraRelativeLookAtModifier::UpdateFov(void* copyCamera)
@@ -629,7 +629,7 @@ NO_SECURITY_CHECKS int __cdecl Patcher::HookAtoi(const char* string)
 	// be stretched instead of the width. Otherwise, there
 	// will be issues with the interface being too big.
 	//
-	if (aspectMultiplier > 1.0f)
+	/*if (aspectMultiplier > 1.0f)
 	{
 		double interfaceWidth = 1280.0 * aspectMultiplier;
 		PATCH_MEMORY(interfaceWidthAddr, interfaceWidth);
@@ -638,7 +638,9 @@ NO_SECURITY_CHECKS int __cdecl Patcher::HookAtoi(const char* string)
 	{
 		double interfaceHeight = 720.0 / aspectMultiplier;
 		PATCH_MEMORY(interfaceHeightAddr, interfaceHeight);
-	}
+	}*/
+
+	// fixme: both values should be updated, even if one changes
 
 	//
 	// At the end, just return the expected result.
@@ -740,8 +742,8 @@ void Patcher::ForceResolution(int _width, int _height)
 	//
 	// Allow any resolution in the argument
 	//
-	Address checkAddr = ResolveAddress(OFFSET_PATCH_RESOLUTION_CHECK);
-	NopInstruction(checkAddr, 2);
+	//Address checkAddr = ResolveAddress(OFFSET_PATCH_RESOLUTION_CHECK);
+	//NopInstruction(checkAddr, 2);
 }
 
 NO_SECURITY_CHECKS int __cdecl Patcher::HookStrtol(const char* String, char** EndPtr, int Radix)

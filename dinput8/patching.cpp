@@ -7,6 +7,9 @@
 #include <iostream>
 #include <cassert>
 
+unsigned int numPatches = 0;
+Patch patches[MAX_PATCHES] = { };
+HANDLE process = 0;
 
 bool RegisterPatch(Patch patch)
 {
@@ -28,7 +31,7 @@ void DoPatches()
 	//
 
 	// Get info about the main module
-	HANDLE process = GetCurrentProcess();
+	process = GetCurrentProcess();
 	HMODULE module = GetModuleHandle(NULL);
 
 	if (!module)
@@ -88,16 +91,16 @@ void DoPatches()
 
 					bool signatureValid = true;
 
-					if (regionPtr + signature.maskLength > regionEnd)
+					if (regionPtr + signature.sigLength > regionEnd)
 					{
 						break; // Signature cannot be located within current region
 					}
 
 					// Signature matching
-					for (size_t i = 0; i < signature.maskLength; i++)
+					for (size_t i = 0; i < signature.sigLength; i++)
 					{
 						BYTE l = *(regionPtr + i);
-						BYTE r = signature.mask[i];
+						BYTE r = signature.signature[i];
 
 						if (r == signature.maskingByte)
 						{
@@ -114,7 +117,7 @@ void DoPatches()
 					if (signatureValid)
 					{
 						signature.numOccurrences++;
-						signature.lastOccurence = regionPtr + signature.maskOffset;
+						signature.foundPtr = regionPtr + signature.sigOffset;
 					}
 				}
 			}
@@ -155,9 +158,8 @@ void DoPatches()
 		bool allSignaturesFound = true;
 		for (size_t j = 0; j < patch.numSignatures; j++)
 		{
-			bool signatureFound = (patch.signatures[j].numOccurrences == 1);
-
-			if (!signatureFound)
+			Signature& signature = patch.signatures[j];
+			if (signature.numOccurrences != 1 && !signature.optional)
 			{
 				allSignaturesFound = false;
 				break;
@@ -186,4 +188,152 @@ void DoPatches()
 	{
 		MessageBox(NULL, errorMsg, TEXT("[ERROR]"), MB_OK);
 	}
+}
+
+bool MemWrite(void* ptr, void* data, size_t dataLength)
+{
+	MEMORY_BASIC_INFORMATION memoryInfo;
+	if (!VirtualQueryEx(process, ptr, &memoryInfo, sizeof(memoryInfo)))
+	{
+		assert(false);
+	}
+
+	// Unlock the area for writes
+	DWORD oldProtection;
+	bool wasProtected = false;
+
+	if (!(memoryInfo.Protect & PAGE_EXECUTE_READWRITE))
+	{
+		wasProtected = true;
+
+		if (!VirtualProtectEx(process, memoryInfo.BaseAddress, memoryInfo.RegionSize, PAGE_EXECUTE_READWRITE, &oldProtection))
+		{
+			assert(false);
+		}
+	}
+
+	// Perform write
+	memcpy(ptr, data, dataLength);
+
+	// Restore protection
+	if (wasProtected)
+	{
+		if (!VirtualProtectEx(process, memoryInfo.BaseAddress, memoryInfo.RegionSize, oldProtection, &oldProtection))
+		{
+			assert(false);
+		}
+
+		if (!FlushInstructionCache(process, ptr, dataLength))
+		{
+			assert(false);
+		}
+	}
+
+	return true;
+}
+
+bool MemWriteNop(void* ptr, size_t nopLength)
+{
+	MEMORY_BASIC_INFORMATION memoryInfo;
+	if (!VirtualQueryEx(process, ptr, &memoryInfo, sizeof(memoryInfo)))
+	{
+		assert(false);
+	}
+
+	// Unlock the area for writes
+	DWORD oldProtection;
+	bool wasProtected = false;
+
+	if (!(memoryInfo.Protect & PAGE_EXECUTE_READWRITE))
+	{
+		wasProtected = true;
+
+		if (!VirtualProtectEx(process, memoryInfo.BaseAddress, memoryInfo.RegionSize, PAGE_EXECUTE_READWRITE, &oldProtection))
+		{
+			assert(false);
+		}
+	}
+
+	// Perform write
+	memset(ptr, 0x90, nopLength);
+
+	// Restore protection
+	if (wasProtected)
+	{
+		if (!VirtualProtectEx(process, memoryInfo.BaseAddress, memoryInfo.RegionSize, oldProtection, &oldProtection))
+		{
+			assert(false);
+		}
+
+		if (!FlushInstructionCache(process, ptr, nopLength))
+		{
+			assert(false);
+		}
+	}
+
+	return true;
+}
+
+#pragma pack(push, 1)
+struct call
+{
+	BYTE	opcode;  // E8
+	DWORD	address;
+};
+
+struct callPtr
+{
+	BYTE	opcode;  // FF
+	BYTE	reg;     // 15
+	DWORD	address;
+};
+#pragma pack(pop)
+
+bool MemWriteHookCall(void* ptr, void* hook)
+{
+	call c = { 0xE8, (DWORD)hook - (DWORD)ptr - sizeof(call)};
+	return MemWrite(ptr, &c, sizeof(c));
+}
+
+bool MemWriteHookCallPtr(void* ptr, void** hook)
+{
+	callPtr c = { 0xFF, 0x15, (DWORD)hook };
+	return MemWrite(ptr, &c, sizeof(c));
+}
+
+bool MemRead(void* ptr, void* data, size_t dataLength)
+{
+	MEMORY_BASIC_INFORMATION memoryInfo;
+	if (!VirtualQueryEx(process, ptr, &memoryInfo, sizeof(memoryInfo)))
+	{
+		assert(false);
+	}
+
+	// Unlock the area for reads
+	DWORD oldProtection;
+	bool wasProtected = false;
+
+	if (!(memoryInfo.Protect & PAGE_EXECUTE_READ))
+	{
+		wasProtected = true;
+
+		if (!VirtualProtectEx(process, memoryInfo.BaseAddress, memoryInfo.RegionSize, PAGE_EXECUTE_READ, &oldProtection))
+		{
+			assert(false);
+		}
+	}
+
+	// Perform read
+	memcpy(data, ptr, dataLength);
+
+	// Restore protection
+	if (wasProtected)
+	{
+		if (!VirtualProtectEx(process, memoryInfo.BaseAddress, memoryInfo.RegionSize, oldProtection, &oldProtection))
+		{
+			assert(false);
+		}
+	}
+
+	return true;
 }

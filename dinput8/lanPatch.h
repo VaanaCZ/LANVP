@@ -118,7 +118,9 @@ private:
 	{
 		char* nop = new char[nopSize];
 		memset(nop, 0x90, nopSize);
-		return WriteMemory(addr, nop, nopSize, true);
+		bool b = WriteMemory(addr, nop, nopSize, true);
+		delete[] nop;
+		return b;
 	}
 
 	static inline HANDLE		hProcess;

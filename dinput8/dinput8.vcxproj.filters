@@ -39,6 +39,9 @@
     <ClCompile Include="fix_aspect.cpp">
       <Filter>Patch</Filter>
     </ClCompile>
+    <ClCompile Include="fix_resolution.cpp">
+      <Filter>Patch</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="lanPatch.h">
@@ -63,6 +66,9 @@
       <Filter>Patch</Filter>
     </ClInclude>
     <ClInclude Include="fix_aspect.h">
+      <Filter>Patch</Filter>
+    </ClInclude>
+    <ClInclude Include="fix_resolution.h">
       <Filter>Patch</Filter>
     </ClInclude>
   </ItemGroup>

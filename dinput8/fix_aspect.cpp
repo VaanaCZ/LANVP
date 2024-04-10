@@ -6,16 +6,6 @@
 
 #define MASK 0xFF
 
-byte aspectSignature[] =
-{
-	0x8B, 0xC8,
-	0x83, 0xC4, 0x04,
-	0x8B, 0xC6,
-	0xE8, MASK, MASK, MASK, MASK,
-	0x84, 0xC0,
-	0x0F, 0x84, MASK, MASK, MASK, MASK
-};
-
 byte barsSignature[] =
 {
 	0xDF, 0xF1,
@@ -39,10 +29,6 @@ void RegisterPatch_Aspect()
 {
 	Patch patch;
 
-	Signature signature;
-	REGISTER_MASK(signature, aspectSignature, MASK, 14);
-	patch.RegisterSignature(signature);
-
 	Signature signature2;
 	REGISTER_MASK(signature2, barsSignature, MASK, 4);
 	patch.RegisterSignature(signature2);
@@ -59,15 +45,9 @@ void RegisterPatch_Aspect()
 
 bool ApplyPatch_Aspect(Patch* patch)
 {
-
-	assert(patch->numSignatures == 3);
-	Signature& signature = patch->signatures[0];
-	Signature& signature2 = patch->signatures[1];
-	Signature& signature3 = patch->signatures[2];
-
-	// Allows all resolutions
-	byte nop[] = { 0x90, 0x90, 0x90, 0x90, 0x90, 0x90 };
-	WriteProcessMemory(GetCurrentProcess(), signature.lastOccurence, nop, sizeof(nop), nullptr);  // "Resolution:1280x1440x120"
+	assert(patch->numSignatures == 2);
+	Signature& signature2 = patch->signatures[0];
+	Signature& signature3 = patch->signatures[1];
 
 	// Removes black bars
 	byte jmp = 0xEB;

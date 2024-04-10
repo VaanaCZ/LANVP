@@ -49,6 +49,8 @@ void RegisterPatch_Framerate()
 static I3DEngine** ppEngine;
 static LARGE_INTEGER lastTime, timeFrequency;
 
+static float frm = 0.033333f;
+
 bool ApplyPatch_Framerate(Patch* patch)
 {
 	assert(patch->numSignatures == 2);
@@ -68,6 +70,12 @@ bool ApplyPatch_Framerate(Patch* patch)
 	QueryPerformanceCounter(&lastTime);
 	QueryPerformanceFrequency(&timeFrequency);
 
+
+
+	void* p = (void*)0x00E56E3D;
+	DWORD a = (DWORD)&frm;
+	WriteProcessMemory(GetCurrentProcess(), p, &a, sizeof(a), 0);
+
 	return true;
 }
 
@@ -84,6 +92,9 @@ char Hook_Framerate(int pointer)
 	if (quadDiff > 0)
 	{
 		double fps = timeFrequency.QuadPart / (double)quadDiff;
+
+
+		frm = 1 / fps;
 
 		if (engine)
 		{

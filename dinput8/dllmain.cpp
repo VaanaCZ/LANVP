@@ -20,6 +20,7 @@
 
 #include "patching.h"
 #include "fix_fps.h"
+#include "fix_resolution.h"
 #include "fix_aspect.h"
 
 /*BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID reserved)
@@ -36,6 +37,15 @@ void f(Patch* patch)
 {
 	size_t a = 0;
 }
+
+
+/*
+
+todo: introspection?
+0x00D1AB60
+
+*/
+
 
 
 extern "C" __declspec(dllexport) BOOL InitializeASI()
@@ -58,6 +68,7 @@ extern "C" __declspec(dllexport) BOOL InitializeASI()
 	*/
 
 	RegisterPatch_Framerate();
+	RegisterPatch_Resolution();
 	RegisterPatch_Aspect();
 
 	DoPatches();
@@ -84,8 +95,12 @@ extern "C" __declspec(dllexport) BOOL InitializeASI()
 
 		//int width = Config::options->forceResolutionWidth;
 		//int height = Config::options->forceResolutionHeight;
-		//if (width != 0 && height != 0)
-		//	Patcher::ForceResolution(width, height);
+		//int width = 1280;
+		//int height = 1024;
+		/*int width = 2560;
+		int height = 720;
+		if (width != 0 && height != 0)
+			Patcher::ForceResolution(width, height);*/
 
 		if (Config::options->forceBorderlessWindow)
 			Patcher::ForceBorderless();

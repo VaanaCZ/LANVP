@@ -40,6 +40,16 @@ byte sigWaitAndHook[] =
 	0xD9, 0x7C, 0x24, 0x0C
 };
 
+byte sigBraking[] =
+{
+	0x0F, 0xC6, 0xC0, 0x00,
+	0x0F, 0x59, 0xC1,
+	0xE8, MASK, MASK, MASK, MASK,
+	0xF3, 0x0F, 0x10, 0x45, 0x08,
+	0x0F, 0x28, 0x4C, 0x24, 0x40,
+	0x0F, 0x5A, 0xC0
+};
+
 void RegisterPatch_Framerate()
 {
 	Patch patch;
@@ -48,6 +58,7 @@ void RegisterPatch_Framerate()
 	REGISTER_MASK(patch, sigFramerateDividerConstructor, MASK, 21);
 	REGISTER_MASK(patch, sigFramerateDividerGameplay, MSK1, 17);
 	REGISTER_MASK(patch, sigWaitAndHook, MASK, 8);
+	REGISTER_MASK(patch, sigBraking, MASK, 12);
 
 	ua_tcscpy_s(patch.name, TEXT("Framerate Unlock"));
 	patch.func = ApplyPatch_Framerate;
@@ -60,13 +71,16 @@ static LARGE_INTEGER lastTime, timeFrequency;
 
 static float frm = 0.033333f;
 
+static DWORD fixedFrametime = 0x3D088889; // 0.03333333507
+
 bool ApplyPatch_Framerate(Patch* patch)
 {
-	assert(patch->numSignatures == 4);
-	Signature& enginePtr = patch->signatures[0];
-	Signature& framerateDividerConstructor = patch->signatures[1];
-	Signature& framerateDividerGameplay = patch->signatures[2];
-	Signature& waitAndHook = patch->signatures[3];
+	assert(patch->numSignatures == 5);
+	Signature& enginePtr					= patch->signatures[0];
+	Signature& framerateDividerConstructor	= patch->signatures[1];
+	Signature& framerateDividerGameplay		= patch->signatures[2];
+	Signature& waitAndHook					= patch->signatures[3];
+	Signature& braking						= patch->signatures[4];
 
 	// Find the engine pointer
 	MemRead(enginePtr.foundPtr, &ppEngine, sizeof(ppEngine));
@@ -84,14 +98,43 @@ bool ApplyPatch_Framerate(Patch* patch)
 	jmp.offset -= 5;
 	MemWrite((BYTE*)waitAndHook.foundPtr + 5, &jmp, sizeof(jmp));
 
+	// Fix braking force
+	static byte brakeHook[] =
+	{
+		0xF3, 0x0F, 0x10, 0x05, MASK, MASK, MASK, MASK,
+		0xE9, MASK, MASK, MASK, MASK
+	};
+
+	byte* pBrakeHook = (byte*)ExecCopy(brakeHook, sizeof(brakeHook));
+
+	DWORD* i1 = (DWORD*)&pBrakeHook[4];
+	DWORD* i2 = (DWORD*)&pBrakeHook[9];
+
+	*i1 = (DWORD)&fixedFrametime;
+	*i2 = (DWORD)braking.foundPtr - (DWORD)i2 + 1;
+
+	MemWriteHookJmp(braking.foundPtr, pBrakeHook);
+
 	// Prepare required variables
 	QueryPerformanceCounter(&lastTime);
 	QueryPerformanceFrequency(&timeFrequency);
 
 
-	void* p = (void*)0x00E56E3D;
-	DWORD a = (DWORD)&frm;
-	MemWrite(p, &a, sizeof(a));
+	//void* p = (void*)0x00E56E3D;
+	//DWORD a = (DWORD)&frm;
+	//MemWrite(p, &a, sizeof(a));
+
+
+	/*
+	
+LaNoire.exe+A4936E - F3 0F10 05 709D2501   - movss xmm0,[LaNoire.exe+E59D70] { (0.00) }
+LaNoire.exe+A49376 - E9 856C1BFF           - jmp 00000000
+
+	
+	
+	*/
+
+
 
 	return true;
 }
@@ -114,6 +157,7 @@ void Hook_Frame()
 		{
 			engine->framerate = max(fps, 25);
 		}
+
 	}
 
 	lastTime = currTime;

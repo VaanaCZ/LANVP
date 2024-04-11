@@ -58,6 +58,10 @@ extern unsigned int numPatches;
 extern Patch patches[MAX_PATCHES];
 extern HANDLE process;
 
+extern void* execMem;
+extern void* execEnd;
+extern void* execPtr;
+
 bool RegisterPatch(Patch patch);
 
 void DoPatches();
@@ -87,5 +91,8 @@ bool MemWrite(void* ptr, void* data, size_t dataLength);
 bool MemWriteNop(void* ptr, size_t nopLength);
 bool MemWriteHookCall(void* ptr, void* hook);
 bool MemWriteHookCallPtr(void* ptr, void** hook);
+bool MemWriteHookJmp(void* ptr, void* hook);
 bool MemRead(void* ptr, void* data, size_t dataLength);
 bool MemReplace(void* ptr, void* data, size_t dataLength);
+
+void* ExecCopy(void* data, size_t dataLength);

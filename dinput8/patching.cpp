@@ -10,6 +10,9 @@
 unsigned int numPatches = 0;
 Patch patches[MAX_PATCHES] = { };
 HANDLE process = 0;
+void* execMem = nullptr;
+void* execEnd = nullptr;
+void* execPtr = nullptr;
 
 bool RegisterPatch(Patch patch)
 {
@@ -138,6 +141,19 @@ void DoPatches()
 	}
 
 	//
+	// Prepare execute memory for patches
+	//
+
+	SYSTEM_INFO systemInfo;
+	GetSystemInfo(&systemInfo);
+
+	execMem = VirtualAlloc(nullptr, systemInfo.dwPageSize, MEM_COMMIT, PAGE_READWRITE);
+	execPtr = execMem;
+	execEnd = (byte*)execMem + systemInfo.dwPageSize;
+
+	assert(execMem);
+
+	//
 	// Result
 	//
 
@@ -188,6 +204,13 @@ void DoPatches()
 	{
 		MessageBox(NULL, errorMsg, TEXT("[ERROR]"), MB_OK);
 	}
+
+	//
+	// Finish up
+	//
+	DWORD oldProtect;
+	VirtualProtect(execMem, systemInfo.dwPageSize, PAGE_EXECUTE_READ, &oldProtect);
+
 }
 
 bool MemWrite(void* ptr, void* data, size_t dataLength)
@@ -286,6 +309,12 @@ bool MemWriteHookCallPtr(void* ptr, void** hook)
 	return MemWrite(ptr, &c, sizeof(c));
 }
 
+bool MemWriteHookJmp(void* ptr, void* hook)
+{
+	call c = { 0xE9, (DWORD)hook - (DWORD)ptr - sizeof(call) };
+	return MemWrite(ptr, &c, sizeof(c));
+}
+
 bool MemRead(void* ptr, void* data, size_t dataLength)
 {
 	MEMORY_BASIC_INFORMATION memoryInfo;
@@ -372,4 +401,20 @@ bool MemReplace(void* ptr, void* data, size_t dataLength)
 	}
 
 	return true;
+}
+
+void* ExecCopy(void* data, size_t dataLength)
+{
+	if ((byte*)execPtr + dataLength > execEnd)
+	{
+		assert(false);
+		return nullptr;
+	}
+
+	memcpy(execPtr, data, dataLength);
+
+	void* result = execPtr;
+	execPtr = (byte*)execPtr + dataLength;
+
+	return result;
 }

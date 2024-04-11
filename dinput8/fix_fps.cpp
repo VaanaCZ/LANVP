@@ -10,13 +10,43 @@
 #include "shared.h"
 #include <cassert>
 
-byte framerateSignature[] =
+//byte framerateSignature[] =
+//{
+//	0x8B, 0xFB,
+//	0xC6, 0x44, 0x24, 0x48, 0x01,
+//	0xE8, MASK, MASK, MASK, MASK,
+//	0x88, 0x44, 0x24, 0x1B,
+//	0x84, 0xC0
+//};
+
+byte sigWait[] =
 {
-	0x8B, 0xFB,
-	0xC6, 0x44, 0x24, 0x48, 0x01,
-	0xE8, MASK, MASK, MASK, MASK,
-	0x88, 0x44, 0x24, 0x1B,
-	0x84, 0xC0
+	0x0F, 0x57, 0xC0,
+	0x0F, 0x2F, 0x44, 0x24, 0x0C,
+	0x76, MASK,
+	0xD9, 0x44, 0x24, 0x0C,
+	0xDC, 0x0D, MASK, MASK, MASK, MASK,
+	0xD9, 0x7C, 0x24, 0x0C
+};
+
+byte sigFramerateDividerConstructor[] =
+{
+	0x89, 0x5C, 0x24, 0x18,
+	0x64, 0x8B, 0x15, 0x2C, 0x00, 0x00, 0x00,
+	0xF3, 0x0F, 0x10, 0x05, MASK, MASK, MASK, MASK,
+	0xC7, 0x00, 0x02, 0x00, 0x00, 0x00,
+	0x8B, 0x02,
+	0xC7, 0x06, MASK, MASK, MASK, MASK
+};
+
+byte sigFramerateDividerGameplay[] =
+{
+	0xFE, 0x0D, MSK1, MSK1, MSK1, MSK1,
+	0xFF, 0xD2,
+	0x8B, 0x0D, MSK1, MSK1, MSK1, MSK1,
+	0xC7, 0x46, 0x04, 0x02, 0x00, 0x00, 0x00,
+	0x8B, 0x01,
+	0x8B, 0x50, 0x40
 };
 
 void RegisterPatch_Framerate()
@@ -24,7 +54,10 @@ void RegisterPatch_Framerate()
 	Patch patch;
 
 	REGISTER_ENGINE_MASK(patch);
-	REGISTER_MASK(patch, framerateSignature, MASK, 7);
+	REGISTER_MASK(patch, sigFramerateDividerConstructor, MASK, 21);
+	REGISTER_MASK(patch, sigFramerateDividerGameplay, MSK1, 17);
+	REGISTER_MASK(patch, sigWait, MASK, 8);
+	//REGISTER_MASK(patch, framerateSignature, MASK, 7);
 
 	ua_tcscpy_s(patch.name, TEXT("Framerate Unlock"));
 	patch.func = ApplyPatch_Framerate;
@@ -39,26 +72,39 @@ static float frm = 0.033333f;
 
 bool ApplyPatch_Framerate(Patch* patch)
 {
-	assert(patch->numSignatures == 2);
+	assert(patch->numSignatures == 4);
 	Signature& enginePtr = patch->signatures[0];
-	Signature& signature = patch->signatures[1];
+	Signature& framerateDividerConstructor = patch->signatures[1];
+	Signature& framerateDividerGameplay = patch->signatures[2];
+	Signature& wait = patch->signatures[3];
 
 	// Find the engine pointer
 	MemRead(enginePtr.foundPtr, &ppEngine, sizeof(ppEngine));
 
+	// Remove framerate divider
+	static unsigned int newFramerateDivider = 1;
+	MemWrite(framerateDividerConstructor.foundPtr, &newFramerateDivider, sizeof(newFramerateDivider));
+	MemWrite(framerateDividerGameplay.foundPtr, &newFramerateDivider, sizeof(newFramerateDivider));
+
+	// Remove waiting logic
+	byte jmp = 0xEB;
+	MemWrite(wait.foundPtr, &jmp, sizeof(jmp));
+
 	// Patching
 	//MemWriteHookCall(signature.foundPtr, &Hook_Framerate);
 
-	byte b = 0x1;
 
-	void* pa = (void*)0x00A8EC0C;
-	MemWrite(pa, &b, sizeof(b));
+	//void* ppp = (void*)(0x001957C8 + 0xb8);
+	//DWORD paa;
+	//VirtualProtect(ppp, 4, PAGE_NOACCESS, &paa);
 
-	void* pb = (void*)0x00DF4922;
-	MemWrite(pb, &b, sizeof(b));
 
-	void* pc = (void*)0x00A8E9BF;
-	MemWriteNop(pc, 6);
+
+
+
+
+	//void* pc = (void*)0x00A8E9BF;
+	//MemWriteNop(pc, 6);
 
 	// Prepare required variables
 	QueryPerformanceCounter(&lastTime);

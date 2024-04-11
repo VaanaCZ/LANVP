@@ -274,21 +274,6 @@ bool MemWriteNop(void* ptr, size_t nopLength)
 	return true;
 }
 
-#pragma pack(push, 1)
-struct call
-{
-	BYTE	opcode;  // E8
-	DWORD	address;
-};
-
-struct callPtr
-{
-	BYTE	opcode;  // FF
-	BYTE	reg;     // 15
-	DWORD	address;
-};
-#pragma pack(pop)
-
 bool MemWriteHookCall(void* ptr, void* hook)
 {
 	call c = { 0xE8, (DWORD)hook - (DWORD)ptr - sizeof(call)};
@@ -330,6 +315,57 @@ bool MemRead(void* ptr, void* data, size_t dataLength)
 	if (wasProtected)
 	{
 		if (!VirtualProtectEx(process, memoryInfo.BaseAddress, memoryInfo.RegionSize, oldProtection, &oldProtection))
+		{
+			assert(false);
+		}
+	}
+
+	return true;
+}
+
+bool MemReplace(void* ptr, void* data, size_t dataLength)
+{
+	MEMORY_BASIC_INFORMATION memoryInfo;
+	if (!VirtualQueryEx(process, ptr, &memoryInfo, sizeof(memoryInfo)))
+	{
+		assert(false);
+	}
+
+	// Unlock the area for writes
+	DWORD oldProtection;
+	bool wasProtected = false;
+
+	if (!(memoryInfo.Protect & PAGE_EXECUTE_READWRITE))
+	{
+		wasProtected = true;
+
+		if (!VirtualProtectEx(process, memoryInfo.BaseAddress, memoryInfo.RegionSize, PAGE_EXECUTE_READWRITE, &oldProtection))
+		{
+			assert(false);
+		}
+	}
+
+	// Perform write
+	byte* cPtr = (byte*)ptr;
+	byte* cData = (byte*)data;
+
+	byte tmp;
+	for (size_t i = 0; i < dataLength; i++)
+	{
+		tmp = cPtr[i];
+		cPtr[i] = cData[i];
+		cData[i] = tmp;
+	}
+
+	// Restore protection
+	if (wasProtected)
+	{
+		if (!VirtualProtectEx(process, memoryInfo.BaseAddress, memoryInfo.RegionSize, oldProtection, &oldProtection))
+		{
+			assert(false);
+		}
+
+		if (!FlushInstructionCache(process, ptr, dataLength))
 		{
 			assert(false);
 		}

@@ -121,7 +121,7 @@ bool Patcher::Init()
 	// Add version text into menu
 	//
 	Address hookAddr = ResolveAddress(OFFSET_HOOK_VERSION);
-	call hook = { 0xE8, (Address)&HookVerQueryValue - hookAddr - 5 };
+	callOld hook = { 0xE8, (Address)&HookVerQueryValue - hookAddr - 5 };
 	PATCH_INSTRUCTION(hookAddr, hook);
 
 	// todo: Force DX11 by default, if first time run.
@@ -386,7 +386,7 @@ void Patcher::PatchFramerate()
 	// Framerate sync removal
 	//
 	Address hookAddr = ResolveAddress(OFFSET_HOOK_FRAME);
-	call frameHook = { 0xE8, (Address)&HookFrame - hookAddr - 5 };
+	callOld frameHook = { 0xE8, (Address)&HookFrame - hookAddr - 5 };
 	PATCH_INSTRUCTION(hookAddr, frameHook);
 	
 	//
@@ -572,7 +572,7 @@ void Patcher::PatchAspect()
 	// Interface size recalculation
 	//
 	Address hookAddr = ResolveAddress(OFFSET_HOOK_INTERFACE);
-	callPtr hook = { 0xFF, 0x15, (Address)&hookAtoiAddress };
+	callPtrOld hook = { 0xFF, 0x15, (Address)&hookAtoiAddress };
 	PATCH_INSTRUCTION(hookAddr, hook);
 
 	//interfaceWidthAddr	= ResolveAddress(OFFSET_VALUE_INTERFACE_WIDTH);
@@ -775,7 +775,7 @@ void Patcher::ForceBorderless()
 	// CreateWindow hook
 	//
 	Address hookAddr = ResolveAddress(OFFSET_HOOK_CREATE_WINDOW);
-	callPtr wndHook = { 0xFF, 0x15, (Address)&hookCreateWindowAddress };
+	callPtrOld wndHook = { 0xFF, 0x15, (Address)&hookCreateWindowAddress };
 	PATCH_INSTRUCTION(hookAddr, wndHook);
 
 	//

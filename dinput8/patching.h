@@ -62,8 +62,30 @@ bool RegisterPatch(Patch patch);
 
 void DoPatches();
 
+#pragma pack(push, 1)
+struct call
+{
+	BYTE	opcode;  // E8
+	DWORD	address;
+};
+
+struct callPtr
+{
+	BYTE	opcode;  // FF
+	BYTE	reg;     // 15
+	DWORD	address;
+};
+
+struct jmp
+{
+	BYTE	opcode;  // EB
+	BYTE	offset;
+};
+#pragma pack(pop)
+
 bool MemWrite(void* ptr, void* data, size_t dataLength);
 bool MemWriteNop(void* ptr, size_t nopLength);
 bool MemWriteHookCall(void* ptr, void* hook);
 bool MemWriteHookCallPtr(void* ptr, void** hook);
 bool MemRead(void* ptr, void* data, size_t dataLength);
+bool MemReplace(void* ptr, void* data, size_t dataLength);

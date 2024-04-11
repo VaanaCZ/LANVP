@@ -293,13 +293,13 @@ struct fdiv
 	Address address;
 };
 
-struct call
+struct callOld
 {
 	Opcode opcode;
 	Address address;
 };
 
-struct callPtr
+struct callPtrOld
 {
 	Opcode opcode;
 	unsigned char type;

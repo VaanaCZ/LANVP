@@ -10,7 +10,7 @@
 #include "shared.h"
 #include <cassert>
 
-byte sigBlackBars[] =
+DWORD sigBlackBars[] =
 {
 	0xDF, 0xF1,
 	0xDD, 0xD8,
@@ -19,7 +19,7 @@ byte sigBlackBars[] =
 	0xDB, 0x44, 0x24, 0x24,
 };
 
-byte sigBlackBarsOnResize[] =
+DWORD sigBlackBarsOnResize[] =
 {
 	0xDF, 0xF1,
 	0xDD, 0xD8,
@@ -33,8 +33,8 @@ void RegisterPatch_Aspect()
 {
 	Patch patch;
 
-	REGISTER_MASK(patch, sigBlackBars, MASK, 4);
-	REGISTER_MASK(patch, sigBlackBarsOnResize, MASK, 4);
+	REGISTER_MASK(patch, sigBlackBars, 4);
+	REGISTER_MASK(patch, sigBlackBarsOnResize, 4);
 
 	ua_tcscpy_s(patch.name, TEXT("Aspect-ratio fix"));
 	patch.func = ApplyPatch_Aspect;
@@ -52,7 +52,7 @@ bool ApplyPatch_Aspect(Patch* patch)
 	Signature& blackBarsOnResize	= patch->signatures[1];
 
 	// Remove black bars
-	byte jmp = 0xEB;
+	BYTE jmp = 0xEB;
 	MemWrite(blackBars.foundPtr,			&jmp, sizeof(jmp));
 	MemWrite(blackBarsOnResize.foundPtr,	&jmp, sizeof(jmp));
 
@@ -60,6 +60,12 @@ bool ApplyPatch_Aspect(Patch* patch)
 
 
 	// Correct FoV
+
+	/*
+	
+	01259AF8
+	
+	*/
 
 
 	return true;

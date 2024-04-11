@@ -10,7 +10,7 @@
 #include "shared.h"
 #include <cassert>
 
-byte sigAspectCheck[] =
+DWORD sigAspectCheck[] =
 {
 	0x8B, 0xC8,
 	0x83, 0xC4, 0x04,
@@ -20,7 +20,7 @@ byte sigAspectCheck[] =
 	0x0F, 0x84, MASK, MASK, MASK, MASK
 };
 
-byte sigOptResCheck[] =
+DWORD sigOptResCheck[] =
 {
 	0x57,
 	0x8B, 0xF0,
@@ -34,8 +34,8 @@ void RegisterPatch_Resolution()
 {
 	Patch patch;
 
-	REGISTER_MASK(patch, sigAspectCheck, MASK, 14);
-	REGISTER_MASK(patch, sigOptResCheck, MASK, 10);
+	REGISTER_MASK(patch, sigAspectCheck, 14);
+	REGISTER_MASK(patch, sigOptResCheck, 10);
 
 	ua_tcscpy_s(patch.name, TEXT("Unlock resolutions"));
 	patch.func = ApplyPatch_Resolution;

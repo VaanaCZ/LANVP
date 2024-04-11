@@ -10,7 +10,7 @@
 #include "shared.h"
 #include <cassert>
 
-byte sigFramerateDividerConstructor[] =
+DWORD sigFramerateDividerConstructor[] =
 {
 	0x89, 0x5C, 0x24, 0x18,
 	0x64, 0x8B, 0x15, 0x2C, 0x00, 0x00, 0x00,
@@ -20,17 +20,17 @@ byte sigFramerateDividerConstructor[] =
 	0xC7, 0x06, MASK, MASK, MASK, MASK
 };
 
-byte sigFramerateDividerGameplay[] =
+DWORD sigFramerateDividerGameplay[] =
 {
-	0xFE, 0x0D, MSK1, MSK1, MSK1, MSK1,
+	0xFE, 0x0D, MASK, MASK, MASK, MASK,
 	0xFF, 0xD2,
-	0x8B, 0x0D, MSK1, MSK1, MSK1, MSK1,
+	0x8B, 0x0D, MASK, MASK, MASK, MASK,
 	0xC7, 0x46, 0x04, 0x02, 0x00, 0x00, 0x00,
 	0x8B, 0x01,
 	0x8B, 0x50, 0x40
 };
 
-byte sigWaitAndHook[] =
+DWORD sigWaitAndHook[] =
 {
 	0x0F, 0x57, 0xC0,
 	0x0F, 0x2F, 0x44, 0x24, 0x0C,
@@ -40,7 +40,7 @@ byte sigWaitAndHook[] =
 	0xD9, 0x7C, 0x24, 0x0C
 };
 
-byte sigBraking[] =
+DWORD sigBraking[] =
 {
 	0x0F, 0xC6, 0xC0, 0x00,
 	0x0F, 0x59, 0xC1,
@@ -55,10 +55,10 @@ void RegisterPatch_Framerate()
 	Patch patch;
 
 	REGISTER_ENGINE_MASK(patch);
-	REGISTER_MASK(patch, sigFramerateDividerConstructor, MASK, 21);
-	REGISTER_MASK(patch, sigFramerateDividerGameplay, MSK1, 17);
-	REGISTER_MASK(patch, sigWaitAndHook, MASK, 8);
-	REGISTER_MASK(patch, sigBraking, MASK, 12);
+	REGISTER_MASK(patch, sigFramerateDividerConstructor, 21);
+	REGISTER_MASK(patch, sigFramerateDividerGameplay, 17);
+	REGISTER_MASK(patch, sigWaitAndHook, 8);
+	REGISTER_MASK(patch, sigBraking, 12);
 
 	ua_tcscpy_s(patch.name, TEXT("Framerate Unlock"));
 	patch.func = ApplyPatch_Framerate;
@@ -99,7 +99,7 @@ bool ApplyPatch_Framerate(Patch* patch)
 	MemWrite((BYTE*)waitAndHook.foundPtr + 5, &jmp, sizeof(jmp));
 
 	// Fix braking force
-	static byte brakeHook[] =
+	static BYTE brakeHook[] =
 	{
 		0xF3, 0x0F, 0x10, 0x05, MASK, MASK, MASK, MASK,
 		0xE9, MASK, MASK, MASK, MASK

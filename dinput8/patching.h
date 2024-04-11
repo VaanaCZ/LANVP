@@ -2,20 +2,19 @@
 #pragma once
 #include <Windows.h>
 
-#define MAX_SIGNATURES	5
+#define MAX_SIGNATURES	10
 #define MAX_PATCHES		10
 
-#define REGISTER_MASK(p, m, b, o)	\
-{									\
-	Signature s;					\
-	s.signature = m;				\
-	s.sigLength = sizeof(m);		\
-	s.maskingByte = b;				\
-	s.sigOffset = o;				\
-	p.RegisterSignature(s);			\
-}
+#define MASK 0xFFFFFFFF
 
-typedef unsigned char byte;
+#define REGISTER_MASK(p, m, o)				\
+{											\
+	Signature s;							\
+	s.signature = m;						\
+	s.sigLength = sizeof(m) / sizeof(m[0]);	\
+	s.sigOffset = o;						\
+	p.RegisterSignature(s);					\
+}
 
 struct Patch;
 
@@ -23,9 +22,8 @@ typedef bool (*ApplyFunc)(Patch*);
 
 struct Signature
 {
-	byte*			signature		= nullptr;	// Byte array used as search signature
+	DWORD*			signature		= nullptr;	// Byte array used as search signature
 	size_t			sigLength		= 0;		// Length of array
-	byte			maskingByte		= 0xFF;		// Byte use for masking
 	size_t			sigOffset		= 0;		// Offset into signature which will be used for foundPtr pointer
 	bool			optional		= false;	// Specifies whether this signature is required for a successful patch
 
@@ -42,7 +40,7 @@ struct Patch
 
 	bool RegisterSignature(Signature signature)
 	{
-		if (numSignatures >= MAX_PATCHES)
+		if (numSignatures >= MAX_SIGNATURES)
 		{
 			return false;
 		}

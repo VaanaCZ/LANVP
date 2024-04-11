@@ -102,13 +102,15 @@ void DoPatches()
 					// Signature matching
 					for (size_t i = 0; i < signature.sigLength; i++)
 					{
-						BYTE l = *(regionPtr + i);
-						BYTE r = signature.signature[i];
-
-						if (r == signature.maskingByte)
+						if (signature.signature[i] == MASK)
 						{
 							continue;
 						}
+
+						assert(signature.signature[i] <= 0xFF);
+
+						BYTE l = *(regionPtr + i);
+						BYTE r = signature.signature[i];
 
 						if (l != r)
 						{
@@ -375,10 +377,10 @@ bool MemReplace(void* ptr, void* data, size_t dataLength)
 	}
 
 	// Perform write
-	byte* cPtr = (byte*)ptr;
-	byte* cData = (byte*)data;
+	BYTE* cPtr = (BYTE*)ptr;
+	BYTE* cData = (BYTE*)data;
 
-	byte tmp;
+	BYTE tmp;
 	for (size_t i = 0; i < dataLength; i++)
 	{
 		tmp = cPtr[i];

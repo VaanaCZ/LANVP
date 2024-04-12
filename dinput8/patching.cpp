@@ -27,6 +27,8 @@ bool RegisterPatch(Patch patch)
 	return true;
 }
 
+#define SKIP_PROBE 32
+
 void DoPatches()
 {
 	//
@@ -100,16 +102,79 @@ void DoPatches()
 					}
 
 					// Signature matching
+					size_t sigIndex = 0;
+					size_t sigOffset = 0;
+
 					for (size_t i = 0; i < signature.sigLength; i++)
 					{
+						if (signature.signature[i] == HERE)
+						{
+							sigOffset = sigIndex;
+							continue;
+						}
+
+						// Skipping logic allows to skip a variable number of bytes
+						if (signature.signature[i] == SKIP)
+						{
+							// Find the next valid byte in signature
+							DWORD nextValidByte = 0xFFFFFFFF;
+
+							for (size_t j = 0; j < SKIP_PROBE; j++)
+							{
+								if ((i + j) < signature.sigLength && signature.signature[i + j] <= 0xFF)
+								{
+									nextValidByte = signature.signature[i + j];
+									break;
+								}
+							}
+
+							if (nextValidByte == 0xFFFFFFFF)
+							{
+								signatureValid = false;
+								break;
+							}
+
+							// Skip any amount of bytes until the correct signature byte is found
+							bool skipped = false;
+
+							BYTE r = nextValidByte;
+
+							for (size_t j = 0; j < SKIP_PROBE; j++)
+							{
+								if (regionPtr + sigIndex > regionEnd)
+								{
+									break; // probe too far!
+								}
+
+								BYTE l = *(regionPtr + sigIndex);
+
+								if (l == r)
+								{
+									skipped = true;
+									break;
+								}
+
+								sigIndex++;
+							}
+
+							if (!skipped)
+							{
+								signatureValid = false;
+								break;
+							}
+
+							continue;
+						}
+
 						if (signature.signature[i] == MASK)
 						{
+							sigIndex++;
 							continue;
 						}
 
 						assert(signature.signature[i] <= 0xFF);
 
-						BYTE l = *(regionPtr + i);
+						BYTE l = *(regionPtr + sigIndex);
 						BYTE r = signature.signature[i];
 
 						if (l != r)
@@ -117,12 +182,14 @@ void DoPatches()
 							signatureValid = false;
 							break;
 						}
+
+						sigIndex++;
 					}
 
 					if (signatureValid)
 					{
 						signature.numOccurrences++;
-						signature.foundPtr = regionPtr + signature.sigOffset;
+						signature.foundPtr = regionPtr + sigOffset;
 					}
 				}
 			}

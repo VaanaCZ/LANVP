@@ -6,13 +6,14 @@
 #define MAX_PATCHES		10
 
 #define MASK 0xFFFFFFFF
+#define SKIP 0xEEEEEEEE
+#define HERE 0xDDDDDDDD
 
-#define REGISTER_MASK(p, m, o)				\
+#define REGISTER_MASK(p, m)					\
 {											\
 	Signature s;							\
 	s.signature = m;						\
 	s.sigLength = sizeof(m) / sizeof(m[0]);	\
-	s.sigOffset = o;						\
 	p.RegisterSignature(s);					\
 }
 
@@ -24,7 +25,6 @@ struct Signature
 {
 	DWORD*			signature		= nullptr;	// Byte array used as search signature
 	size_t			sigLength		= 0;		// Length of array
-	size_t			sigOffset		= 0;		// Offset into signature which will be used for foundPtr pointer
 	bool			optional		= false;	// Specifies whether this signature is required for a successful patch
 
 	unsigned int	numOccurrences	= 0;		// Number of occurences

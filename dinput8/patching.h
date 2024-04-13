@@ -9,12 +9,22 @@
 #define SKIP 0xEEEEEEEE
 #define HERE 0xDDDDDDDD
 
-#define REGISTER_MASK(p, m)					\
-{											\
-	Signature s;							\
-	s.signature = m;						\
-	s.sigLength = sizeof(m) / sizeof(m[0]);	\
-	p.RegisterSignature(s);					\
+#define REGISTER_MASK(p, m)						\
+{												\
+	Signature s;								\
+	s.signature = m;							\
+	s.sigLength = sizeof(m) / sizeof(m[0]);		\
+	p.RegisterSignature(s);						\
+}
+
+#define REGISTER_MASK_ALTERNATE(p, m, a)		\
+{												\
+	Signature s;								\
+	s.signature = m;							\
+	s.sigLength = sizeof(m) / sizeof(m[0]);		\
+	s.altSignature = a;							\
+	s.altSigLength = sizeof(a) / sizeof(a[0]);	\
+	p.RegisterSignature(s);						\
 }
 
 struct Patch;
@@ -25,9 +35,15 @@ struct Signature
 {
 	DWORD*			signature		= nullptr;	// Byte array used as search signature
 	size_t			sigLength		= 0;		// Length of array
-	bool			optional		= false;	// Specifies whether this signature is required for a successful patch
+	
+	DWORD*			altSignature	= nullptr;	// Byte array used as search signature
+	size_t			altSigLength	= 0;		// Length of array
+	
+	
+	//bool			optional		= false;	// Specifies whether this signature is required for a successful patch
 
 	unsigned int	numOccurrences	= 0;		// Number of occurences
+	bool			isAlternate		= false;	// Specifies whether altSignature was used
 	void*			foundPtr		= nullptr;	// Pointer to the last occurence
 };
 
@@ -61,6 +77,7 @@ extern void* execEnd;
 extern void* execPtr;
 
 bool RegisterPatch(Patch patch);
+bool FindSignature(Signature& sig, bool isAlternate, void* regionStart, void* regionEnd, BYTE* regionPtr);
 
 void DoPatches();
 

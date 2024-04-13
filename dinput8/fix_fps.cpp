@@ -13,11 +13,25 @@
 DWORD sigFramerateDividerConstructor[] =
 {
 		0x89, 0x5C, 0x24, 0x18,
-		SKIP,
+		//SKIP,
 		0x64, 0x8B, 0x15, 0x2C, 0x00, 0x00, 0x00,
-		SKIP, // 0xF3, 0x0F, 0x10, 0x05, MASK, MASK, MASK, MASK,
+		//SKIP,
+		0xF3, 0x0F, 0x10, 0x05, MASK, MASK, MASK, MASK,
 HERE,	0xC7, 0x00, 0x02, 0x00, 0x00, 0x00,
-		SKIP,
+		//SKIP,
+		0x8B, 0x02,
+		0xC7, 0x06, MASK, MASK, MASK, MASK
+};
+
+DWORD sigAltFramerateDividerConstructor[] =
+{
+		0x89, 0x5C, 0x24, 0x18,
+		//SKIP,
+		0x64, 0x8B, 0x15, 0x2C, 0x00, 0x00, 0x00,
+		//SKIP,
+		0xF3, 0x0F, 0x10, 0x05, MASK, MASK, MASK, MASK,
+HERE,	0xC7, 0x00, 0x02, 0x00, 0x00, 0x00,
+		//SKIP,
 		0x8B, 0x02,
 		0xC7, 0x06, MASK, MASK, MASK, MASK
 };
@@ -52,17 +66,27 @@ HERE,	0xF3, 0x0F, 0x10, 0x45, 0x08,
 		0x0F, 0x5A, 0xC0
 };
 
+DWORD sigAltBraking[] =
+{
+		0x0F, 0xC6, 0xC0, 0x00,
+		0x0F, 0x59, 0xC1,
+		0xE8, MASK, MASK, MASK, MASK,
+HERE,	0xF3, 0x0F, 0x10, 0x45, 0x08,
+		0x0F, 0x28, 0x4C, 0x24, 0x40,
+		0x0F, 0x5A, 0xC0
+};
+
 void RegisterPatch_Framerate()
 {
 	Patch patch;
 
 	REGISTER_ENGINE_MASK(patch);
-	REGISTER_MASK(patch, sigFramerateDividerConstructor);
+	REGISTER_MASK_ALTERNATE(patch, sigFramerateDividerConstructor, sigAltFramerateDividerConstructor);
 	REGISTER_MASK(patch, sigFramerateDividerGameplay);
 	REGISTER_MASK(patch, sigWaitAndHook);
-	REGISTER_MASK(patch, sigBraking);
+	REGISTER_MASK_ALTERNATE(patch, sigBraking, sigAltBraking);
 
-	ua_tcscpy_s(patch.name, TEXT("Framerate Unlock"));
+	ua_tcscpy_s(patch.name, 50, TEXT("Framerate Unlock"));
 	patch.func = ApplyPatch_Framerate;
 
 	RegisterPatch(patch);
@@ -93,6 +117,7 @@ bool ApplyPatch_Framerate(Patch* patch)
 	MemWrite(framerateDividerGameplay, &newFramerateDivider, sizeof(newFramerateDivider));
 
 	// Remove waiting logic and add hook
+	// fixme: alternate signature
 	jmp jmp;
 	MemRead(waitAndHook, &jmp, sizeof(jmp));
 	MemWriteHookCall(waitAndHook, &Hook_Frame);
@@ -103,8 +128,8 @@ bool ApplyPatch_Framerate(Patch* patch)
 	// Fix braking force
 	static BYTE brakeHook[] =
 	{
-		0xF3, 0x0F, 0x10, 0x05, MASK, MASK, MASK, MASK,
-		0xE9, MASK, MASK, MASK, MASK
+		0xF3, 0x0F, 0x10, 0x05, MASK, MASK, MASK, MASK,	// movss xmm0, dword ptr $fixedFrametime
+		0xE9, MASK, MASK, MASK, MASK					// jmp $hook
 	};
 
 	byte* pBrakeHook = (byte*)ExecCopy(brakeHook, sizeof(brakeHook));

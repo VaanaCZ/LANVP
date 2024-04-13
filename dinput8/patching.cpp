@@ -94,102 +94,12 @@ void DoPatches()
 				{
 					Signature& signature = patch.signatures[j];
 
-					bool signatureValid = true;
+					bool rescanSignature = !FindSignature(signature, false, regionStart, regionEnd, regionPtr)
+						&& signature.altSignature != nullptr;
 
-					if (regionPtr + signature.sigLength > regionEnd)
+					if (rescanSignature)
 					{
-						break; // Signature cannot be located within current region
-					}
-
-					// Signature matching
-					size_t sigIndex = 0;
-					size_t sigOffset = 0;
-
-					for (size_t i = 0; i < signature.sigLength; i++)
-					{
-						if (signature.signature[i] == HERE)
-						{
-							sigOffset = sigIndex;
-							continue;
-						}
-
-						// Skipping logic allows to skip a variable number of bytes
-						if (signature.signature[i] == SKIP)
-						{
-							// Find the next valid byte in signature
-							DWORD nextValidByte = 0xFFFFFFFF;
-
-							for (size_t j = 0; j < SKIP_PROBE; j++)
-							{
-								if ((i + j) < signature.sigLength && signature.signature[i + j] <= 0xFF)
-								{
-									nextValidByte = signature.signature[i + j];
-									break;
-								}
-							}
-
-							if (nextValidByte == 0xFFFFFFFF)
-							{
-								signatureValid = false;
-								break;
-							}
-
-							// Skip any amount of bytes until the correct signature byte is found
-							bool skipped = false;
-
-							BYTE r = nextValidByte;
-
-							for (size_t j = 0; j < SKIP_PROBE; j++)
-							{
-								if (regionPtr + sigIndex > regionEnd)
-								{
-									break; // probe too far!
-								}
-
-								BYTE l = *(regionPtr + sigIndex);
-
-								if (l == r)
-								{
-									skipped = true;
-									break;
-								}
-
-								sigIndex++;
-							}
-
-							if (!skipped)
-							{
-								signatureValid = false;
-								break;
-							}
-
-							continue;
-						}
-
-						if (signature.signature[i] == MASK)
-						{
-							sigIndex++;
-							continue;
-						}
-
-						assert(signature.signature[i] <= 0xFF);
-
-						BYTE l = *(regionPtr + sigIndex);
-						BYTE r = signature.signature[i];
-
-						if (l != r)
-						{
-							signatureValid = false;
-							break;
-						}
-
-						sigIndex++;
-					}
-
-					if (signatureValid)
-					{
-						signature.numOccurrences++;
-						signature.foundPtr = regionPtr + sigOffset;
+						FindSignature(signature, true, regionStart, regionEnd, regionPtr);
 					}
 				}
 			}
@@ -244,7 +154,7 @@ void DoPatches()
 		for (size_t j = 0; j < patch.numSignatures; j++)
 		{
 			Signature& signature = patch.signatures[j];
-			if (signature.numOccurrences != 1 && !signature.optional)
+			if (signature.numOccurrences != 1/* && !signature.optional*/)
 			{
 				allSignaturesFound = false;
 				break;
@@ -280,6 +190,113 @@ void DoPatches()
 	DWORD oldProtect;
 	VirtualProtect(execMem, systemInfo.dwPageSize, PAGE_EXECUTE_READ, &oldProtect);
 
+}
+
+bool FindSignature(Signature& sig, bool isAlternate, void* regionStart, void* regionEnd, BYTE* regionPtr)
+{
+	bool signatureValid = true;
+
+	DWORD* signature = sig.isAlternate ? sig.altSignature : sig.signature;
+	size_t sigLength = sig.isAlternate ? sig.altSigLength : sig.sigLength;
+
+	if (regionPtr + sigLength > regionEnd)
+	{
+		return false; // Signature cannot be located within current region
+	}
+
+	// Signature matching
+	size_t sigIndex = 0;
+	size_t sigOffset = 0;
+
+	for (size_t i = 0; i < sigLength; i++)
+	{
+		if (signature[i] == HERE)
+		{
+			sigOffset = sigIndex;
+			continue;
+		}
+
+		// Skipping logic allows to skip a variable number of bytes
+		/*if (signature[i] == SKIP)
+		{
+			// Find the next valid byte in signature
+			DWORD nextValidByte = 0xFFFFFFFF;
+
+			for (size_t j = 0; j < SKIP_PROBE; j++)
+			{
+				if ((i + j) < sigLength && signature[i + j] <= 0xFF)
+				{
+					nextValidByte = signature[i + j];
+					break;
+				}
+			}
+
+			if (nextValidByte == 0xFFFFFFFF)
+			{
+				signatureValid = false;
+				break;
+			}
+
+			// Skip any amount of bytes until the correct signature byte is found
+			bool skipped = false;
+
+			BYTE r = nextValidByte;
+
+			for (size_t j = 0; j < SKIP_PROBE; j++)
+			{
+				if (regionPtr + sigIndex > regionEnd)
+				{
+					break; // probe too far!
+				}
+
+				BYTE l = *(regionPtr + sigIndex);
+
+				if (l == r)
+				{
+					skipped = true;
+					break;
+				}
+
+				sigIndex++;
+			}
+
+			if (!skipped)
+			{
+				signatureValid = false;
+				break;
+			}
+
+			continue;
+		}*/
+
+		if (signature[i] == MASK)
+		{
+			sigIndex++;
+			continue;
+		}
+
+		assert(signature[i] <= 0xFF);
+
+		BYTE l = *(regionPtr + sigIndex);
+		BYTE r = signature[i];
+
+		if (l != r)
+		{
+			signatureValid = false;
+			break;
+		}
+
+		sigIndex++;
+	}
+
+	if (signatureValid)
+	{
+		sig.numOccurrences++;
+		sig.isAlternate = isAlternate;
+		sig.foundPtr = regionPtr + sigOffset;
+	}
+
+	return true;
 }
 
 bool MemWrite(void* ptr, void* data, size_t dataLength)

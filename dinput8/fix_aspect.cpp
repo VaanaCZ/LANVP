@@ -19,7 +19,26 @@ HERE,	0x76, MASK,
 		0xDB, 0x44, 0x24, 0x24,
 };
 
+DWORD sigAltBlackBars[] =
+{
+		0xDF, 0xF1,
+		0xDD, 0xD8,
+HERE,	0x76, MASK,
+		0x89, 0x4C, 0x24, 0x24,
+		0xDB, 0x44, 0x24, 0x24,
+};
+
 DWORD sigBlackBarsOnResize[] =
+{
+		0xDF, 0xF1,
+		0xDD, 0xD8,
+HERE,	0x76, MASK,
+		0x8B, 0xD7,
+		0x89, 0x54, 0x24, 0x2C,
+		0xDB, 0x44, 0x24, 0x2C
+};
+
+DWORD sigAltBlackBarsOnResize[] =
 {
 		0xDF, 0xF1,
 		0xDD, 0xD8,
@@ -33,10 +52,10 @@ void RegisterPatch_Aspect()
 {
 	Patch patch;
 
-	REGISTER_MASK(patch, sigBlackBars);
-	REGISTER_MASK(patch, sigBlackBarsOnResize);
+	REGISTER_MASK_ALTERNATE(patch, sigBlackBars,			sigAltBlackBars);
+	REGISTER_MASK_ALTERNATE(patch, sigBlackBarsOnResize,	sigAltBlackBarsOnResize);
 
-	ua_tcscpy_s(patch.name, TEXT("Aspect-ratio fix"));
+	ua_tcscpy_s(patch.name, 50, TEXT("Aspect-ratio fix"));
 	patch.func = ApplyPatch_Aspect;
 
 	RegisterPatch(patch);

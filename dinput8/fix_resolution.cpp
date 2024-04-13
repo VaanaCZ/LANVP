@@ -37,7 +37,7 @@ void RegisterPatch_Resolution()
 	REGISTER_MASK(patch, sigAspectCheck);
 	REGISTER_MASK(patch, sigOptResCheck);
 
-	ua_tcscpy_s(patch.name, TEXT("Unlock resolutions"));
+	ua_tcscpy_s(patch.name, 50, TEXT("Unlock resolutions"));
 	patch.func = ApplyPatch_Resolution;
 
 	RegisterPatch(patch);

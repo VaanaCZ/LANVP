@@ -27,6 +27,40 @@ bool RegisterPatch(Patch patch)
 	return true;
 }
 
+void HandleError(const TCHAR* title, const TCHAR* text)
+{
+	const size_t msgSize = 1000;
+	TCHAR errorMsg[msgSize];
+	TCHAR* msgPtr = errorMsg;
+	TCHAR* msgEnd = errorMsg + msgSize;
+
+	ua_tcscpy_s(msgPtr, msgEnd - msgPtr, text);
+	msgPtr += ua_lstrlen(text);
+
+	DWORD error = GetLastError();
+
+	if (error > 0)
+	{
+		TCHAR* message = nullptr;
+
+		size_t size = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+			NULL,
+			error,
+			MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
+			(TCHAR*)&message,
+			0,
+			NULL);
+
+		if (size > 0)
+		{
+			ua_tcscpy_s(msgPtr, msgEnd - msgPtr, message);
+			msgPtr += ua_lstrlen(message);
+		}
+	}
+
+	MessageBox(NULL, errorMsg, title, MB_OK);
+}
+
 #define SKIP_PROBE 32
 
 void DoPatches()
@@ -41,13 +75,15 @@ void DoPatches()
 
 	if (!module)
 	{
-		assert(false);
+		HandleError(TEXT("Patch initialisation fail!"), TEXT("Failed to get main module handle."));
+		return;
 	}
 
 	MODULEINFO moduleInfo;
 	if (!GetModuleInformation(process, module, &moduleInfo, sizeof(moduleInfo)))
 	{
-		assert(false);
+		HandleError(TEXT("Patch initialisation fail!"), TEXT("Failed to get module information."));
+		return;
 	}
 
 	void* start = moduleInfo.lpBaseOfDll;
@@ -61,7 +97,8 @@ void DoPatches()
 		MEMORY_BASIC_INFORMATION memoryInfo;
 		if (!VirtualQueryEx(process, ptr, &memoryInfo, sizeof(memoryInfo)))
 		{
-			assert(false);
+			HandleError(TEXT("Patch initialisation fail!"), TEXT("Failed to query virtual memory."));
+			return;
 		}
 
 		// Unlock the area for reads
@@ -74,7 +111,8 @@ void DoPatches()
 
 			if (!VirtualProtectEx(process, memoryInfo.BaseAddress, memoryInfo.RegionSize, PAGE_EXECUTE_READ, &oldProtection))
 			{
-				assert(false);
+				HandleError(TEXT("Patch initialisation fail!"), TEXT("Failed to change memory protection."));
+				return;
 			}
 		}
 
@@ -112,7 +150,8 @@ void DoPatches()
 		{
 			if (!VirtualProtectEx(process, memoryInfo.BaseAddress, memoryInfo.RegionSize, oldProtection, &oldProtection))
 			{
-				assert(false);
+				HandleError(TEXT("Patch initialisation fail!"), TEXT("Failed to change memory protection."));
+				return;
 			}
 		}
 
@@ -127,10 +166,15 @@ void DoPatches()
 	GetSystemInfo(&systemInfo);
 
 	execMem = VirtualAlloc(nullptr, systemInfo.dwPageSize, MEM_COMMIT, PAGE_READWRITE);
+
+	if (!execMem)
+	{
+		HandleError(TEXT("Patch initialisation fail!"), TEXT("Could not allocate instruction buffer."));
+		return;
+	}
+
 	execPtr = execMem;
 	execEnd = (byte*)execMem + systemInfo.dwPageSize;
-
-	assert(execMem);
 
 	//
 	// Result
@@ -188,8 +232,11 @@ void DoPatches()
 	// Finish up
 	//
 	DWORD oldProtect;
-	VirtualProtect(execMem, systemInfo.dwPageSize, PAGE_EXECUTE_READ, &oldProtect);
-
+	if (!VirtualProtect(execMem, systemInfo.dwPageSize, PAGE_EXECUTE_READ, &oldProtect))
+	{
+		HandleError(TEXT("Patch initialisation fail!"), TEXT("Failed to change memory protection on instruction buffer."));
+		return;
+	}
 }
 
 bool FindSignature(Signature& sig, bool isAlternate, void* regionStart, void* regionEnd, BYTE* regionPtr)

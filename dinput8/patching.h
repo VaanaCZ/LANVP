@@ -77,9 +77,11 @@ extern void* execEnd;
 extern void* execPtr;
 
 bool RegisterPatch(Patch patch);
-bool FindSignature(Signature& sig, bool isAlternate, void* regionStart, void* regionEnd, BYTE* regionPtr);
+
+void HandleError(const TCHAR* title, const TCHAR* text);
 
 void DoPatches();
+bool FindSignature(Signature& sig, bool isAlternate, void* regionStart, void* regionEnd, BYTE* regionPtr);
 
 #pragma pack(push, 1)
 struct call

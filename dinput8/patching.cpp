@@ -249,8 +249,8 @@ bool FindSignature(Signature& sig, bool isAlternate, void* regionStart, void* re
 {
 	bool signatureValid = true;
 
-	DWORD* signature = sig.isAlternate ? sig.altSignature : sig.signature;
-	size_t sigLength = sig.isAlternate ? sig.altSigLength : sig.sigLength;
+	DWORD* signature = isAlternate ? sig.altSignature : sig.signature;
+	size_t sigLength = isAlternate ? sig.altSigLength : sig.sigLength;
 
 	if (regionPtr + sigLength > regionEnd)
 	{

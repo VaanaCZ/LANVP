@@ -72,8 +72,8 @@ bool ApplyPatch_Aspect(Patch* patch)
 
 	// Remove black bars
 	BYTE jmp = 0xEB;
-	MemWrite(blackBars,			&jmp, sizeof(jmp));
-	MemWrite(blackBarsOnResize,	&jmp, sizeof(jmp));
+	if (!MemWrite(blackBars,			&jmp, sizeof(jmp)))		return false;
+	if (!MemWrite(blackBarsOnResize,	&jmp, sizeof(jmp)))		return false;
 
 	// Fix UI scaling
 

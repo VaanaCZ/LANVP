@@ -1,10 +1,8 @@
 #include "patching.h"
 
 #include <windows.h>
-#include <tlhelp32.h>
 #include <psapi.h>
 
-#include <iostream>
 #include <cassert>
 
 unsigned int numPatches = 0;
@@ -62,6 +60,8 @@ void HandleError(const TCHAR* title, const TCHAR* text)
 }
 
 #define SKIP_PROBE 32
+
+// fixme: constants for error msg
 
 void DoPatches()
 {
@@ -150,7 +150,7 @@ void DoPatches()
 		{
 			if (!VirtualProtectEx(process, memoryInfo.BaseAddress, memoryInfo.RegionSize, oldProtection, &oldProtection))
 			{
-				HandleError(TEXT("Patch initialisation fail!"), TEXT("Failed to change memory protection."));
+				HandleError(TEXT("Patch initialisation fail!"), TEXT("Failed to restore memory protection."));
 				return;
 			}
 		}
@@ -235,6 +235,12 @@ void DoPatches()
 	if (!VirtualProtect(execMem, systemInfo.dwPageSize, PAGE_EXECUTE_READ, &oldProtect))
 	{
 		HandleError(TEXT("Patch initialisation fail!"), TEXT("Failed to change memory protection on instruction buffer."));
+		return;
+	}
+
+	if (!FlushInstructionCache(process, execMem, systemInfo.dwPageSize))
+	{
+		HandleError(TEXT("Patch initialisation fail!"), TEXT("Failed to flush instruction cache on instruction buffer."));
 		return;
 	}
 }
@@ -351,7 +357,8 @@ bool MemWrite(void* ptr, void* data, size_t dataLength)
 	MEMORY_BASIC_INFORMATION memoryInfo;
 	if (!VirtualQueryEx(process, ptr, &memoryInfo, sizeof(memoryInfo)))
 	{
-		assert(false);
+		HandleError(TEXT("Patch memory write fail!"), TEXT("Failed to query virtual memory."));
+		return false;
 	}
 
 	// Unlock the area for writes
@@ -364,7 +371,8 @@ bool MemWrite(void* ptr, void* data, size_t dataLength)
 
 		if (!VirtualProtectEx(process, memoryInfo.BaseAddress, memoryInfo.RegionSize, PAGE_EXECUTE_READWRITE, &oldProtection))
 		{
-			assert(false);
+			HandleError(TEXT("Patch memory write fail!"), TEXT("Failed to change memory protection."));
+			return false;
 		}
 	}
 
@@ -376,12 +384,14 @@ bool MemWrite(void* ptr, void* data, size_t dataLength)
 	{
 		if (!VirtualProtectEx(process, memoryInfo.BaseAddress, memoryInfo.RegionSize, oldProtection, &oldProtection))
 		{
-			assert(false);
+			HandleError(TEXT("Patch memory write fail!"), TEXT("Failed to restore memory protection."));
+			return false;
 		}
 
 		if (!FlushInstructionCache(process, ptr, dataLength))
 		{
-			assert(false);
+			HandleError(TEXT("Patch memory write fail!"), TEXT("Failed to flush instruction cache."));
+			return false;
 		}
 	}
 
@@ -393,7 +403,8 @@ bool MemWriteNop(void* ptr, size_t nopLength)
 	MEMORY_BASIC_INFORMATION memoryInfo;
 	if (!VirtualQueryEx(process, ptr, &memoryInfo, sizeof(memoryInfo)))
 	{
-		assert(false);
+		HandleError(TEXT("Patch memory nop fail!"), TEXT("Failed to query virtual memory."));
+		return false;
 	}
 
 	// Unlock the area for writes
@@ -406,7 +417,8 @@ bool MemWriteNop(void* ptr, size_t nopLength)
 
 		if (!VirtualProtectEx(process, memoryInfo.BaseAddress, memoryInfo.RegionSize, PAGE_EXECUTE_READWRITE, &oldProtection))
 		{
-			assert(false);
+			HandleError(TEXT("Patch memory nop fail!"), TEXT("Failed to change memory protection."));
+			return false;
 		}
 	}
 
@@ -418,12 +430,14 @@ bool MemWriteNop(void* ptr, size_t nopLength)
 	{
 		if (!VirtualProtectEx(process, memoryInfo.BaseAddress, memoryInfo.RegionSize, oldProtection, &oldProtection))
 		{
-			assert(false);
+			HandleError(TEXT("Patch memory nop fail!"), TEXT("Failed to restore memory protection."));
+			return false;
 		}
 
 		if (!FlushInstructionCache(process, ptr, nopLength))
 		{
-			assert(false);
+			HandleError(TEXT("Patch memory nop fail!"), TEXT("Failed to flush instruction cache."));
+			return false;
 		}
 	}
 
@@ -453,7 +467,8 @@ bool MemRead(void* ptr, void* data, size_t dataLength)
 	MEMORY_BASIC_INFORMATION memoryInfo;
 	if (!VirtualQueryEx(process, ptr, &memoryInfo, sizeof(memoryInfo)))
 	{
-		assert(false);
+		HandleError(TEXT("Patch memory read fail!"), TEXT("Failed to query virtual memory."));
+		return false;
 	}
 
 	// Unlock the area for reads
@@ -466,7 +481,8 @@ bool MemRead(void* ptr, void* data, size_t dataLength)
 
 		if (!VirtualProtectEx(process, memoryInfo.BaseAddress, memoryInfo.RegionSize, PAGE_EXECUTE_READ, &oldProtection))
 		{
-			assert(false);
+			HandleError(TEXT("Patch memory read fail!"), TEXT("Failed to change memory protection."));
+			return false;
 		}
 	}
 
@@ -478,7 +494,8 @@ bool MemRead(void* ptr, void* data, size_t dataLength)
 	{
 		if (!VirtualProtectEx(process, memoryInfo.BaseAddress, memoryInfo.RegionSize, oldProtection, &oldProtection))
 		{
-			assert(false);
+			HandleError(TEXT("Patch memory read fail!"), TEXT("Failed to restore memory protection."));
+			return false;
 		}
 	}
 
@@ -490,7 +507,8 @@ bool MemReplace(void* ptr, void* data, size_t dataLength)
 	MEMORY_BASIC_INFORMATION memoryInfo;
 	if (!VirtualQueryEx(process, ptr, &memoryInfo, sizeof(memoryInfo)))
 	{
-		assert(false);
+		HandleError(TEXT("Patch memory replace fail!"), TEXT("Failed to query virtual memory."));
+		return false;
 	}
 
 	// Unlock the area for writes
@@ -503,7 +521,8 @@ bool MemReplace(void* ptr, void* data, size_t dataLength)
 
 		if (!VirtualProtectEx(process, memoryInfo.BaseAddress, memoryInfo.RegionSize, PAGE_EXECUTE_READWRITE, &oldProtection))
 		{
-			assert(false);
+			HandleError(TEXT("Patch memory replace fail!"), TEXT("Failed to change memory protection."));
+			return false;
 		}
 	}
 
@@ -524,12 +543,14 @@ bool MemReplace(void* ptr, void* data, size_t dataLength)
 	{
 		if (!VirtualProtectEx(process, memoryInfo.BaseAddress, memoryInfo.RegionSize, oldProtection, &oldProtection))
 		{
-			assert(false);
+			HandleError(TEXT("Patch memory replace fail!"), TEXT("Failed to restore memory protection."));
+			return false;
 		}
 
 		if (!FlushInstructionCache(process, ptr, dataLength))
 		{
-			assert(false);
+			HandleError(TEXT("Patch memory replace fail!"), TEXT("Failed to flush instruction cache."));
+			return false;
 		}
 	}
 

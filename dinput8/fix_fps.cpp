@@ -109,21 +109,21 @@ bool ApplyPatch_Framerate(Patch* patch)
 	void* braking						= patch->signatures[4].foundPtr;
 
 	// Find the engine pointer
-	MemRead(enginePtr, &ppEngine, sizeof(ppEngine));
+	if (!MemRead(enginePtr, &ppEngine, sizeof(ppEngine)))	return false;
 
 	// Remove framerate divider
 	static unsigned int newFramerateDivider = 1;
-	MemWrite(framerateDividerConstructor, &newFramerateDivider, sizeof(newFramerateDivider));
-	MemWrite(framerateDividerGameplay, &newFramerateDivider, sizeof(newFramerateDivider));
+	if (!MemWrite(framerateDividerConstructor, &newFramerateDivider, sizeof(newFramerateDivider)))	return false;
+	if (!MemWrite(framerateDividerGameplay, &newFramerateDivider, sizeof(newFramerateDivider)))		return false;
 
 	// Remove waiting logic and add hook
 	// fixme: alternate signature
 	jmp jmp;
-	MemRead(waitAndHook, &jmp, sizeof(jmp));
-	MemWriteHookCall(waitAndHook, &Hook_Frame);
+	if (!MemRead(waitAndHook, &jmp, sizeof(jmp)))		return false;
+	if (!MemWriteHookCall(waitAndHook, &Hook_Frame))	return false;
 	jmp.opcode = 0xEB;
 	jmp.offset -= 5;
-	MemWrite((BYTE*)waitAndHook + 5, &jmp, sizeof(jmp));
+	if (!MemWrite((BYTE*)waitAndHook + 5, &jmp, sizeof(jmp)))	return false;
 
 	// Fix braking force
 	static BYTE brakeHook[] =
@@ -140,11 +140,11 @@ bool ApplyPatch_Framerate(Patch* patch)
 	*i1 = (DWORD)&fixedFrametime;
 	*i2 = (DWORD)braking - (DWORD)i2 + 1;
 
-	MemWriteHookJmp(braking, pBrakeHook);
+	if (!MemWriteHookJmp(braking, pBrakeHook))	return false;
 
 	// Prepare required variables
-	QueryPerformanceCounter(&lastTime);
-	QueryPerformanceFrequency(&timeFrequency);
+	if (!QueryPerformanceCounter(&lastTime))		{ HandleError(TEXT("Patching failed!"), TEXT("Could not query performance counter.")); return false; }
+	if (!QueryPerformanceFrequency(&timeFrequency)) { HandleError(TEXT("Patching failed!"), TEXT("Could not query performance frequency.")); return false; }
 
 
 	//void* p = (void*)0x00E56E3D;

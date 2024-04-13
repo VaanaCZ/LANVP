@@ -50,10 +50,10 @@ bool ApplyPatch_Resolution(Patch* patch)
 	void* optResCheck = patch->signatures[1].foundPtr;
 
 	// Removes aspect-ratio filter for resolution options
-	MemWriteNop(aspectCheck, 6);  // "Resolution:1280x1440x120"
+	if (!MemWriteNop(aspectCheck, 6))	return false;  // "Resolution:1280x1440x120"
 
 	// Allows any resolution to be selected using -res W H
-	MemWriteNop(optResCheck, 2); // "-res 2560 720"
+	if (!MemWriteNop(optResCheck, 2))	return false; // "-res 2560 720"
 
 	return true;
 }

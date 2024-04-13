@@ -67,9 +67,9 @@ DWORD sigAltBraking[] =
 		0x0F, 0xC6, 0xC0, 0x00,
 		0x0F, 0x59, 0xC1,
 		0xE8, MASK, MASK, MASK, MASK,
-HERE,	0xF3, 0x0F, 0x10, 0x45, 0x08,
-		0x0F, 0x28, 0x4C, 0x24, 0x40,
-		0x0F, 0x5A, 0xC0
+HERE,	0xD9, 0x45, 0x08,
+		0xDC, 0x0D, MASK, MASK, MASK, MASK,
+		0x8D, 0x94, 0x24, 0xA0, 0x00, 0x00, 0x00
 };
 
 void RegisterPatch_Framerate()
@@ -103,6 +103,7 @@ bool ApplyPatch_Framerate(Patch* patch)
 	void* framerateDividerGameplay		= (BYTE*)patch->signatures[2].foundPtr + 3;
 	void* waitAndHook					= patch->signatures[3].foundPtr;
 	void* braking						= patch->signatures[4].foundPtr;
+	bool isBrakingAlt					= patch->signatures[4].isAlternate;
 
 	// Find the engine pointer
 	if (!MemRead(enginePtr, &ppEngine, sizeof(ppEngine)))	return false;
@@ -113,30 +114,37 @@ bool ApplyPatch_Framerate(Patch* patch)
 	if (!MemWrite(framerateDividerGameplay, &newFramerateDivider, sizeof(newFramerateDivider)))		return false;
 
 	// Remove waiting logic and add hook
-	// fixme: alternate signature
-	jmp jmp;
-	if (!MemRead(waitAndHook, &jmp, sizeof(jmp)))		return false;
-	if (!MemWriteHookCall(waitAndHook, &Hook_Frame))	return false;
-	jmp.opcode = 0xEB;
-	jmp.offset -= 5;
-	if (!MemWrite((BYTE*)waitAndHook + 5, &jmp, sizeof(jmp)))	return false;
-
-	// Fix braking force
-	static BYTE brakeHook[] =
+	if (!isBrakingAlt)
 	{
-		0xF3, 0x0F, 0x10, 0x05, MASK, MASK, MASK, MASK,	// movss xmm0, dword ptr $fixedFrametime
-		0xE9, MASK, MASK, MASK, MASK					// jmp $hook
-	};
+		jmp jmp;
+		if (!MemRead(waitAndHook, &jmp, sizeof(jmp)))		return false;
+		if (!MemWriteHookCall(waitAndHook, &Hook_Frame))	return false;
+		jmp.opcode = 0xEB;
+		jmp.offset -= 5;
+		if (!MemWrite((BYTE*)waitAndHook + 5, &jmp, sizeof(jmp)))	return false;
 
-	byte* pBrakeHook = (byte*)ExecCopy(brakeHook, sizeof(brakeHook));
+		// Fix braking force
+		static BYTE brakeHook[] =
+		{
+			0xF3, 0x0F, 0x10, 0x05, MASK, MASK, MASK, MASK,	// movss xmm0, dword ptr $fixedFrametime
+			0xE9, MASK, MASK, MASK, MASK					// jmp $hook
+		};
 
-	DWORD* i1 = (DWORD*)&pBrakeHook[4];
-	DWORD* i2 = (DWORD*)&pBrakeHook[9];
+		byte* pBrakeHook = (byte*)ExecCopy(brakeHook, sizeof(brakeHook));
 
-	*i1 = (DWORD)&fixedFrametime;
-	*i2 = (DWORD)braking - (DWORD)i2 + 1;
+		DWORD* i1 = (DWORD*)&pBrakeHook[4];
+		DWORD* i2 = (DWORD*)&pBrakeHook[9];
 
-	if (!MemWriteHookJmp(braking, pBrakeHook))	return false;
+		*i1 = (DWORD)&fixedFrametime;
+		*i2 = (DWORD)braking - (DWORD)i2 + 1;
+
+		if (!MemWriteHookJmp(braking, pBrakeHook))	return false;
+	}
+	else
+	{
+		assert(false);
+	}
+
 
 	// Prepare required variables
 	if (!QueryPerformanceCounter(&lastTime))		{ HandleError(TEXT("Patching failed!"), TEXT("Could not query performance counter.")); return false; }

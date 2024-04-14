@@ -176,7 +176,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="config.cpp" />
+    <ClCompile Include="oldconfig.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="fix_aspect.cpp" />
     <ClCompile Include="fix_fps.cpp" />
@@ -184,9 +184,10 @@
     <ClCompile Include="patching.cpp" />
     <ClCompile Include="inih\ini.c" />
     <ClCompile Include="lanPatch.cpp" />
+    <ClCompile Include="opt_skip_logos_and_legals.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="config.h" />
+    <ClInclude Include="oldconfig.h" />
     <ClInclude Include="fix_aspect.h" />
     <ClInclude Include="fix_fps.h" />
     <ClInclude Include="fix_resolution.h" />
@@ -195,6 +196,7 @@
     <ClInclude Include="lanConstants.h" />
     <ClInclude Include="lanPatch.h" />
     <ClInclude Include="shared.h" />
+    <ClInclude Include="opt_skip_logos_and_legals.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

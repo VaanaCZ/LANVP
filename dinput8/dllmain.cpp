@@ -16,12 +16,13 @@
 
 //#include "exports.h"
 #include "lanPatch.h"
-#include "config.h"
+#include "oldconfig.h"
 
 #include "patching.h"
 #include "fix_fps.h"
 #include "fix_resolution.h"
 #include "fix_aspect.h"
+#include "opt_skip_logos_and_legals.h"
 
 /*BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID reserved)
 {
@@ -70,6 +71,8 @@ extern "C" __declspec(dllexport) BOOL InitializeASI()
 	RegisterPatch_Framerate();
 	RegisterPatch_Resolution();
 	RegisterPatch_Aspect();
+
+	RegisterPatch_SkipLogosAndLegals();
 
 	DoPatches();
 

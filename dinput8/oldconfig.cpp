@@ -12,7 +12,7 @@
 // Copyright (c) 2021-2022 Václav AKA Vaana
 //-----------------------------------------------------------------------------
 
-#include "config.h"
+#include "oldconfig.h"
 
 #include <string.h>
 #include <stdio.h>

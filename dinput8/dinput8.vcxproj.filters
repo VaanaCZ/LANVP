@@ -24,7 +24,7 @@
     <ClCompile Include="lanPatch.cpp">
       <Filter>Zdrojové soubory</Filter>
     </ClCompile>
-    <ClCompile Include="config.cpp">
+    <ClCompile Include="oldconfig.cpp">
       <Filter>Zdrojové soubory</Filter>
     </ClCompile>
     <ClCompile Include="inih\ini.c">
@@ -42,6 +42,9 @@
     <ClCompile Include="fix_resolution.cpp">
       <Filter>Patch</Filter>
     </ClCompile>
+    <ClCompile Include="opt_skip_logos_and_legals.cpp">
+      <Filter>Patch</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="lanPatch.h">
@@ -50,7 +53,7 @@
     <ClInclude Include="lanConstants.h">
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
-    <ClInclude Include="config.h">
+    <ClInclude Include="oldconfig.h">
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
     <ClInclude Include="inih\ini.h">
@@ -69,6 +72,9 @@
       <Filter>Patch</Filter>
     </ClInclude>
     <ClInclude Include="fix_resolution.h">
+      <Filter>Patch</Filter>
+    </ClInclude>
+    <ClInclude Include="opt_skip_logos_and_legals.h">
       <Filter>Patch</Filter>
     </ClInclude>
   </ItemGroup>

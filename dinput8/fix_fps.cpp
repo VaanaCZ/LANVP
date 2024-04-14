@@ -145,7 +145,6 @@ bool ApplyPatch_Framerate(Patch* patch)
 		assert(false);
 	}
 
-
 	// Prepare required variables
 	if (!QueryPerformanceCounter(&lastTime))		{ HandleError(TEXT("Patching failed!"), TEXT("Could not query performance counter.")); return false; }
 	if (!QueryPerformanceFrequency(&timeFrequency)) { HandleError(TEXT("Patching failed!"), TEXT("Could not query performance frequency.")); return false; }
@@ -154,17 +153,6 @@ bool ApplyPatch_Framerate(Patch* patch)
 	//void* p = (void*)0x00E56E3D;
 	//DWORD a = (DWORD)&frm;
 	//MemWrite(p, &a, sizeof(a));
-
-
-	/*
-	
-LaNoire.exe+A4936E - F3 0F10 05 709D2501   - movss xmm0,[LaNoire.exe+E59D70] { (0.00) }
-LaNoire.exe+A49376 - E9 856C1BFF           - jmp 00000000
-
-	
-	
-	*/
-
 
 
 	return true;

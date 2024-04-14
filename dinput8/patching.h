@@ -6,7 +6,6 @@
 #define MAX_PATCHES		10
 
 #define MASK 0xFFFFFFFF
-#define SKIP 0xEEEEEEEE
 #define HERE 0xDDDDDDDD
 
 #define REGISTER_MASK(p, m)						\

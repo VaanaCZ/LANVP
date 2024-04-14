@@ -59,8 +59,6 @@ void HandleError(const TCHAR* title, const TCHAR* text)
 	MessageBox(NULL, errorMsg, title, MB_OK);
 }
 
-#define SKIP_PROBE 32
-
 // fixme: constants for error msg
 
 void DoPatches()
@@ -132,13 +130,10 @@ void DoPatches()
 				{
 					Signature& signature = patch.signatures[j];
 
-					bool rescanSignature = !FindSignature(signature, false, regionStart, regionEnd, regionPtr)
-						&& signature.altSignature != nullptr;
+					FindSignature(signature, false, regionStart, regionEnd, regionPtr);
 
-					if (rescanSignature)
-					{
+					if (signature.altSignature != nullptr)
 						FindSignature(signature, true, regionStart, regionEnd, regionPtr);
-					}
 				}
 			}
 
@@ -268,59 +263,6 @@ bool FindSignature(Signature& sig, bool isAlternate, void* regionStart, void* re
 			sigOffset = sigIndex;
 			continue;
 		}
-
-		// Skipping logic allows to skip a variable number of bytes
-		/*if (signature[i] == SKIP)
-		{
-			// Find the next valid byte in signature
-			DWORD nextValidByte = 0xFFFFFFFF;
-
-			for (size_t j = 0; j < SKIP_PROBE; j++)
-			{
-				if ((i + j) < sigLength && signature[i + j] <= 0xFF)
-				{
-					nextValidByte = signature[i + j];
-					break;
-				}
-			}
-
-			if (nextValidByte == 0xFFFFFFFF)
-			{
-				signatureValid = false;
-				break;
-			}
-
-			// Skip any amount of bytes until the correct signature byte is found
-			bool skipped = false;
-
-			BYTE r = nextValidByte;
-
-			for (size_t j = 0; j < SKIP_PROBE; j++)
-			{
-				if (regionPtr + sigIndex > regionEnd)
-				{
-					break; // probe too far!
-				}
-
-				BYTE l = *(regionPtr + sigIndex);
-
-				if (l == r)
-				{
-					skipped = true;
-					break;
-				}
-
-				sigIndex++;
-			}
-
-			if (!skipped)
-			{
-				signatureValid = false;
-				break;
-			}
-
-			continue;
-		}*/
 
 		if (signature[i] == MASK)
 		{

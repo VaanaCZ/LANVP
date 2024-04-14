@@ -114,19 +114,19 @@ bool ApplyPatch_Framerate(Patch* patch)
 	if (!MemWrite(framerateDividerGameplay, &newFramerateDivider, sizeof(newFramerateDivider)))		return false;
 
 	// Remove waiting logic and add hook
+	jmp jmp;
+	if (!MemRead(waitAndHook, &jmp, sizeof(jmp)))		return false;
+	if (!MemWriteHookCall(waitAndHook, &Hook_Frame))	return false;
+	jmp.opcode = 0xEB;
+	jmp.offset -= 5;
+	if (!MemWrite((BYTE*)waitAndHook + 5, &jmp, sizeof(jmp)))	return false;
+
+	// Fix braking force
 	if (!isBrakingAlt)
 	{
-		jmp jmp;
-		if (!MemRead(waitAndHook, &jmp, sizeof(jmp)))		return false;
-		if (!MemWriteHookCall(waitAndHook, &Hook_Frame))	return false;
-		jmp.opcode = 0xEB;
-		jmp.offset -= 5;
-		if (!MemWrite((BYTE*)waitAndHook + 5, &jmp, sizeof(jmp)))	return false;
-
-		// Fix braking force
-		static BYTE brakeHook[] =
+		BYTE brakeHook[] =
 		{
-			0xF3, 0x0F, 0x10, 0x05, MASK, MASK, MASK, MASK,	// movss xmm0, dword ptr $fixedFrametime
+			0xF3, 0x0F, 0x10, 0x05, MASK, MASK, MASK, MASK,	// movss xmm0, dword ptr [$fixedFrametime]
 			0xE9, MASK, MASK, MASK, MASK					// jmp $hook
 		};
 
@@ -142,18 +142,19 @@ bool ApplyPatch_Framerate(Patch* patch)
 	}
 	else
 	{
+		BYTE brakeHook[] =
+		{
+			0xD9, 0x05, MASK, MASK, MASK, MASK,	// fld dword ptr [$fixedFrametime]
+			0xE9, MASK, MASK, MASK, MASK		// jmp $hook
+		};
+
+
 		assert(false);
 	}
 
 	// Prepare required variables
 	if (!QueryPerformanceCounter(&lastTime))		{ HandleError(TEXT("Patching failed!"), TEXT("Could not query performance counter.")); return false; }
 	if (!QueryPerformanceFrequency(&timeFrequency)) { HandleError(TEXT("Patching failed!"), TEXT("Could not query performance frequency.")); return false; }
-
-
-	//void* p = (void*)0x00E56E3D;
-	//DWORD a = (DWORD)&frm;
-	//MemWrite(p, &a, sizeof(a));
-
 
 	return true;
 }
@@ -175,6 +176,9 @@ void Hook_Frame()
 		if (engine)
 		{
 			engine->framerate = max(fps, 25);
+
+			frm = 1 / engine->framerate;
+			//MemWrite((void*)0x10D7230, &frm, sizeof(frm));
 		}
 
 	}

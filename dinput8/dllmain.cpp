@@ -19,6 +19,7 @@
 #include "oldconfig.h"
 
 #include "patching.h"
+#include "config.h"
 #include "fix_fps.h"
 #include "fix_resolution.h"
 #include "fix_aspect.h"
@@ -67,6 +68,13 @@ extern "C" __declspec(dllexport) BOOL InitializeASI()
 
 
 	*/
+
+	
+	Options options;
+	if (!LoadConfig(TEXT("lanvp.ini"), options))
+	{
+		MakeConfig(TEXT("lanvp.ini"));
+	}
 
 	RegisterPatch_Framerate();
 	RegisterPatch_Resolution();

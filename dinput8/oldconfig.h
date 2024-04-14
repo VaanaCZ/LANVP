@@ -14,7 +14,7 @@
 
 #pragma once
 
-#define INI_FILE "lanvp.ini"
+#define INI_FILE "oldlanvp.ini"
 
 #include "inih\ini.h"
 #include "lanConstants.h"
@@ -35,7 +35,7 @@ public:
 
 	static bool GenerateConfig();
 
-	struct Options
+	struct OldOptions
 	{
 		bool	patchEnabled;
 		bool	fpsUnlock;
@@ -51,7 +51,7 @@ public:
 	};
 
 	inline static bool		generateNew = false;
-	inline static Options*	options;
+	inline static OldOptions*	options;
 
 private:
 

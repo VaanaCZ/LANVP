@@ -45,6 +45,9 @@
     <ClCompile Include="opt_skip_logos_and_legals.cpp">
       <Filter>Patch</Filter>
     </ClCompile>
+    <ClCompile Include="config.cpp">
+      <Filter>Patch</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="lanPatch.h">
@@ -75,6 +78,9 @@
       <Filter>Patch</Filter>
     </ClInclude>
     <ClInclude Include="opt_skip_logos_and_legals.h">
+      <Filter>Patch</Filter>
+    </ClInclude>
+    <ClInclude Include="config.h">
       <Filter>Patch</Filter>
     </ClInclude>
   </ItemGroup>

@@ -24,7 +24,7 @@ void Config::Init()
 	//
 	// Load and parse ini
 	//
-	options = new Options;
+	options = new OldOptions;
 
 	options->patchEnabled			= true;
 	options->fpsUnlock				= true;
@@ -170,7 +170,7 @@ int Config::Handler(void* user, const char* section, const char* name, const cha
 	#define MATCH(s, n) strcmp(section, s) == 0 && strcmp(name, n) == 0
 	#define ERROR(msg)	MessageBoxW(NULL, msg, L"[V-Patch] Error while loading config.", MB_OK);
 
-	Options* pOptions = (Options*)user;
+	OldOptions* pOptions = (OldOptions*)user;
 
 	//
 	// Determines whether V-Patch is loaded or not.

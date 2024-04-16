@@ -76,6 +76,11 @@ extern "C" __declspec(dllexport) BOOL InitializeASI()
 		MakeConfig(TEXT("lanvp.ini"));
 	}
 
+	MessageBoxA(NULL, "AAA", "AAA", MB_OK);
+
+	//minFrameTime = 1.0 / 45.0;
+
+
 	RegisterPatch_Framerate();
 	RegisterPatch_Resolution();
 	RegisterPatch_Aspect();
@@ -97,8 +102,8 @@ extern "C" __declspec(dllexport) BOOL InitializeASI()
 		//if (Config::options->fpsUnlock)
 		//	Patcher::PatchFramerate();
 
-		if (Config::options->aspectCorrection)
-			Patcher::PatchAspect();
+		//if (Config::options->aspectCorrection)
+		//	Patcher::PatchAspect();
 
 		// Options
 		Patcher::SetFOVMultiplier(Config::options->fovMultiplier);
@@ -116,8 +121,8 @@ extern "C" __declspec(dllexport) BOOL InitializeASI()
 		if (Config::options->forceBorderlessWindow)
 			Patcher::ForceBorderless();
 
-		if (Config::options->skipLogos)
-			Patcher::SkipLogoAndLegals();
+		//if (Config::options->skipLogos)
+		//	Patcher::SkipLogoAndLegals();
 
 		if (Config::options->skipLauncherCheck)
 			Patcher::SkipLauncherCheck();

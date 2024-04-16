@@ -11,4 +11,6 @@ struct Patch;
 void RegisterPatch_Framerate();
 bool ApplyPatch_Framerate(Patch* patch);
 
+extern double minFrameTime;
+
 void Hook_Frame();

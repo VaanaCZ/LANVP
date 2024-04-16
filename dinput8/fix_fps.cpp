@@ -172,38 +172,39 @@ bool ApplyPatch_Framerate(Patch* patch)
 	if (!QueryPerformanceFrequency(&timeFrequency)) { HandleError(TEXT("Patching failed!"), TEXT("Could not query performance frequency.")); return false; }
 
 
-	DWORD a = (DWORD)&frm;
-
-	void* p01 = (void*)(0x00A6340F + 0x2);
-	void* p02 = (void*)(0x00A6E3A8 + 0x2);
-	void* p03 = (void*)(0x00A6E404 + 0x4);
-	void* p04 = (void*)(0x00A6E40C + 0x2);
-	void* p05 = (void*)(0x00BEADC2 + 0x2);
-	void* p06 = (void*)(0x00BF308E + 0x4);
-	void* p07 = (void*)(0x00C91970 + 0x4);
-	void* p08 = (void*)(0x00DB6E85 + 0x3);
-	void* p09 = (void*)(0x00DF4C0F + 0x4);
-	void* p10 = (void*)(0x00E49024 + 0x2);
-	void* p11 = (void*)(0x00E4D295 + 0x4);
-	void* p12 = (void*)(0x00E56E3B + 0x2);
-
-	MemWrite(p01, &a, sizeof(a));
-	MemWrite(p02, &a, sizeof(a));
-	MemWrite(p03, &a, sizeof(a));
-	MemWrite(p04, &a, sizeof(a));
-	MemWrite(p05, &a, sizeof(a));
-	MemWrite(p06, &a, sizeof(a));
-
-	MemWrite(p07, &a, sizeof(a));
-	MemWrite(p08, &a, sizeof(a));
-	MemWrite(p09, &a, sizeof(a));
-	MemWrite(p10, &a, sizeof(a));
-	//MemWrite(p11, &a, sizeof(a)); // wheels
-	MemWrite(p12, &a, sizeof(a));
-
+	//DWORD a = (DWORD)&frm;
+	//
+	//void* p01 = (void*)(0x00A6340F + 0x2);
+	//void* p02 = (void*)(0x00A6E3A8 + 0x2);
+	//void* p03 = (void*)(0x00A6E404 + 0x4);
+	//void* p04 = (void*)(0x00A6E40C + 0x2);
+	//void* p05 = (void*)(0x00BEADC2 + 0x2);
+	//void* p06 = (void*)(0x00BF308E + 0x4);
+	//void* p07 = (void*)(0x00C91970 + 0x4);
+	//void* p08 = (void*)(0x00DB6E85 + 0x3);
+	//void* p09 = (void*)(0x00DF4C0F + 0x4);
+	//void* p10 = (void*)(0x00E49024 + 0x2);
+	//void* p11 = (void*)(0x00E4D295 + 0x4);
+	//void* p12 = (void*)(0x00E56E3B + 0x2);
+	//
+	//MemWrite(p01, &a, sizeof(a));
+	//MemWrite(p02, &a, sizeof(a));
+	//MemWrite(p03, &a, sizeof(a));
+	//MemWrite(p04, &a, sizeof(a));
+	//MemWrite(p05, &a, sizeof(a));
+	//MemWrite(p06, &a, sizeof(a));
+	//
+	//MemWrite(p07, &a, sizeof(a));
+	//MemWrite(p08, &a, sizeof(a));
+	//MemWrite(p09, &a, sizeof(a));
+	//MemWrite(p10, &a, sizeof(a));
+	////MemWrite(p11, &a, sizeof(a)); // wheels
+	//MemWrite(p12, &a, sizeof(a));
 
 	return true;
 }
+
+double minFrameTime = 0.0;
 
 void Hook_Frame()
 {
@@ -213,21 +214,31 @@ void Hook_Frame()
 	LARGE_INTEGER currTime;
 	QueryPerformanceCounter(&currTime);
 
-	LONGLONG quadDiff = currTime.QuadPart - lastTime.QuadPart;
+	LONGLONG timeDiff = currTime.QuadPart - lastTime.QuadPart;
 
-	if (quadDiff > 0)
+	// Frame limiter
+	LONGLONG minCounter = timeFrequency.QuadPart * minFrameTime;
+
+	while (timeDiff < minCounter)
 	{
-		double fps = timeFrequency.QuadPart / (double)quadDiff;
-
-		if (engine)
-		{
-			engine->framerate = max(fps, 25);
-
-			frm = 1 / engine->framerate;
-			//MemWrite((void*)0x10D7230, &frm, sizeof(frm));
-		}
-
+		QueryPerformanceCounter(&currTime);
+		timeDiff = currTime.QuadPart - lastTime.QuadPart;
 	}
+
+	// Adjust game speed
+	LONGLONG maxCounter = timeFrequency.QuadPart * 0.04; // 25 FPS
+	timeDiff = min(maxCounter, timeDiff);
+
+	double fps = timeFrequency.QuadPart / (double)timeDiff;
+	double frameTime = timeDiff / (double)timeFrequency.QuadPart;
+
+	if (engine)
+	{
+		engine->framerate = fps;
+	}
+
+	frm = frameTime;
+	//MemWrite((void*)0x10D7230, &frm, sizeof(frm));
 
 	lastTime = currTime;
 }

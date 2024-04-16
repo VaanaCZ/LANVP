@@ -575,8 +575,8 @@ void Patcher::PatchAspect()
 	callPtrOld hook = { 0xFF, 0x15, (Address)&hookAtoiAddress };
 	PATCH_INSTRUCTION(hookAddr, hook);
 
-	//interfaceWidthAddr	= ResolveAddress(OFFSET_VALUE_INTERFACE_WIDTH);
-	//interfaceHeightAddr	= ResolveAddress(OFFSET_VALUE_INTERFACE_HEIGHT);
+	interfaceWidthAddr	= ResolveAddress(OFFSET_VALUE_INTERFACE_WIDTH);
+	interfaceHeightAddr	= ResolveAddress(OFFSET_VALUE_INTERFACE_HEIGHT);
 }
 
 NO_SECURITY_CHECKS void Patcher::CameraRelativeLookAtModifier::UpdateFov(void* copyCamera)
@@ -629,7 +629,7 @@ NO_SECURITY_CHECKS int __cdecl Patcher::HookAtoi(const char* string)
 	// be stretched instead of the width. Otherwise, there
 	// will be issues with the interface being too big.
 	//
-	/*if (aspectMultiplier > 1.0f)
+	if (aspectMultiplier > 1.0f)
 	{
 		double interfaceWidth = 1280.0 * aspectMultiplier;
 		PATCH_MEMORY(interfaceWidthAddr, interfaceWidth);
@@ -638,7 +638,7 @@ NO_SECURITY_CHECKS int __cdecl Patcher::HookAtoi(const char* string)
 	{
 		double interfaceHeight = 720.0 / aspectMultiplier;
 		PATCH_MEMORY(interfaceHeightAddr, interfaceHeight);
-	}*/
+	}
 
 	// fixme: both values should be updated, even if one changes
 
@@ -684,15 +684,15 @@ void Patcher::SkipLogoAndLegals()
 	//
 	// Patch out MovieLogo
 	//
-	Address logoAddr = ResolveAddress(OFFSET_PATCH_MOVIE_LOGO);
-	NopInstruction(logoAddr, 14);
+//	Address logoAddr = ResolveAddress(OFFSET_PATCH_MOVIE_LOGO);
+//	NopInstruction(logoAddr, 14);
 
 	//
 	// Patch out the legals screen call
 	//
-	Address legalAddr = ResolveAddress(OFFSET_PATCH_LEGALS_SCREEN);
-	Opcode legalRet = 0xC3;
-	PATCH_INSTRUCTION(legalAddr, legalRet);
+//	Address legalAddr = ResolveAddress(OFFSET_PATCH_LEGALS_SCREEN);
+//	Opcode legalRet = 0xC3;
+//	PATCH_INSTRUCTION(legalAddr, legalRet);
 }
 
 //-------------------------------------------------------------

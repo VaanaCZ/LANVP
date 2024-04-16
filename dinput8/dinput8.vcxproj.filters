@@ -27,9 +27,6 @@
     <ClCompile Include="oldconfig.cpp">
       <Filter>Zdrojové soubory</Filter>
     </ClCompile>
-    <ClCompile Include="inih\ini.c">
-      <Filter>Zdrojové soubory</Filter>
-    </ClCompile>
     <ClCompile Include="patching.cpp">
       <Filter>Patch</Filter>
     </ClCompile>
@@ -60,9 +57,6 @@
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
     <ClInclude Include="oldconfig.h">
-      <Filter>Hlavičkové soubory</Filter>
-    </ClInclude>
-    <ClInclude Include="inih\ini.h">
       <Filter>Hlavičkové soubory</Filter>
     </ClInclude>
     <ClInclude Include="patching.h">

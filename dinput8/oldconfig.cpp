@@ -69,7 +69,7 @@ void Config::Init()
 		options->forceResolutionHeight	= height;
 	}
 
-	if (ini_parse(INI_FILE, Handler, options) < 0 || generateNew)
+	//if (ini_parse(INI_FILE, Handler, options) < 0 || generateNew)
 	{
 		GenerateConfig();
 	}

@@ -16,7 +16,7 @@
 
 #define INI_FILE "oldlanvp.ini"
 
-#include "inih\ini.h"
+//#include "inih\ini.h"
 #include "lanConstants.h"
 #include <string>
 

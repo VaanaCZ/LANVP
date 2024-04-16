@@ -1,8 +1,12 @@
+// ----------------------------------------------------------------------------
+// patching.cpp
+//
+// Copyright (c) 2021-2024 Vaana
+// ----------------------------------------------------------------------------
+
 #include "patching.h"
 
-#include <windows.h>
 #include <psapi.h>
-
 #include <cassert>
 
 unsigned int numPatches = 0;

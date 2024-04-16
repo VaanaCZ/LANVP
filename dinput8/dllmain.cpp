@@ -9,140 +9,82 @@
 //     1.1b - Added support for 2675, fixed dinput8.dll not found on 32-bit
 //            systems, made WinAPI error messages more verbose.
 // 
-// Copyright (c) 2021-2022 V�clav AKA Vaana
+// Copyright (c) 2021-2024 Vaana
 //-----------------------------------------------------------------------------
 
-#include <windows.h>
-
-//#include "exports.h"
-#include "lanPatch.h"
-#include "oldconfig.h"
-
-#include "patching.h"
 #include "config.h"
+#include "patching.h"
 #include "fix_fps.h"
 #include "fix_resolution.h"
 #include "fix_aspect.h"
-#include "opt_skip_logos_and_legals.h"
 #include "opt_borderless_window.h"
+#include "opt_skip_logos_and_legals.h"
 
-/*BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID reserved)
+const TCHAR configFile[] = TEXT("lanvp.ini");
+
+void Init()
+{
+	// Load or create the config
+	Options options;
+	if (!LoadConfig(configFile, options))
+	{
+		MakeConfig(configFile);
+	}
+
+	// Register requested patches
+	if (options.fps_unlock)
+	{
+		RegisterPatch_Framerate();
+	}
+
+	if (options.resolution_unlock)
+	{
+		RegisterPatch_Resolution();
+	}
+
+	if (options.aspect_correction)
+	{
+		RegisterPatch_Aspect();
+	}
+
+	if (options.fps_limit > 0.0)
+	{
+		minFrameTime = 1.0 / options.fps_limit;
+	}
+
+	if (options.borderless_window)
+	{
+		RegisterPatch_BorderlessWindow();
+	}
+
+	if (options.skip_logos_and_legals)
+	{
+		RegisterPatch_SkipLogosAndLegals();
+	}
+
+	// Execute
+	DoPatches();
+};
+
+static LONG isInit = 0;
+
+extern "C" __declspec(dllexport) void InitializeASI()
+{
+	if (_InterlockedCompareExchange(&isInit, 1, 0) != 0)
+	{
+		return;
+	}
+
+	Init();
+};
+
+BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID reserved)
 {
 	switch (reason)
 	{
-	case DLL_PROCESS_ATTACH:
-	{
-		// Enable DirectInput proxy
-		LoadDinput8();*/
-
-
-void f(Patch* patch)
-{
-	size_t a = 0;
+		case DLL_PROCESS_ATTACH:	InitializeASI();	break;
+		case DLL_PROCESS_DETACH:						break;
+		default:										break;
+	}
+	return TRUE;
 }
-
-
-/*
-
-todo: introspection?
-0x00D1AB60
-
-*/
-
-
-
-extern "C" __declspec(dllexport) BOOL InitializeASI()
-{
-	/*
-	BYTE m[]  = { 0xC1, 0x04, 0x8B, 0x15, 0x18, 0xAE, 0x51, 0x01, 0x50, 0x52, 0xE8, 0x21, 0x06, 0xFA, 0xFF, 0x8B };
-
-	Patch p;
-	wcscpy_s(p.name, TEXT("Superduper patch"));
-	p.signatures[0].mask = m;
-	p.signatures[0].maskLength = sizeof(m);
-	p.signatures[0].maskingByte = 0xFF;
-	p.func = f;
-	p.numSignatures++;
-
-
-	RegisterPatch(p);
-
-
-	*/
-
-	
-	Options options;
-	if (!LoadConfig(TEXT("lanvp.ini"), options))
-	{
-		MakeConfig(TEXT("lanvp.ini"));
-	}
-
-	MessageBoxA(NULL, "AAA", "AAA", MB_OK);
-
-	//minFrameTime = 1.0 / 45.0;
-
-
-	RegisterPatch_Framerate();
-	RegisterPatch_Resolution();
-	RegisterPatch_Aspect();
-
-	RegisterPatch_SkipLogosAndLegals();
-	RegisterPatch_BorderlessWindow();
-
-	DoPatches();
-
-
-
-
-
-	Config::Init();
-
-	if (Config::options->patchEnabled &&
-		Patcher::Init())
-	{
-		// Patches
-		//if (Config::options->fpsUnlock)
-		//	Patcher::PatchFramerate();
-
-		//if (Config::options->aspectCorrection)
-		//	Patcher::PatchAspect();
-
-		// Options
-		Patcher::SetFOVMultiplier(Config::options->fovMultiplier);
-		Patcher::SetFPSLock(Config::options->fpsLock);
-
-		//int width = Config::options->forceResolutionWidth;
-		//int height = Config::options->forceResolutionHeight;
-		//int width = 1280;
-		//int height = 1024;
-		/*int width = 2560;
-		int height = 720;
-		if (width != 0 && height != 0)
-			Patcher::ForceResolution(width, height);*/
-
-		//if (Config::options->forceBorderlessWindow)
-		//	Patcher::ForceBorderless();
-
-		//if (Config::options->skipLogos)
-		//	Patcher::SkipLogoAndLegals();
-
-		//if (Config::options->skipLauncherCheck)
-		//	Patcher::SkipLauncherCheck();
-
-		//if (Config::options->forceDx11)
-		//	Patcher::ForceDX11();
-	}
-
-	Config::Destroy();
-
-	return TRUE;
-};
-
-/*		break;
-	}     
-	case DLL_PROCESS_DETACH: break;
-	default: break;
-	}
-	return TRUE;
-}*/
-

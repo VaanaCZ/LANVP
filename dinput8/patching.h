@@ -1,6 +1,12 @@
+// ----------------------------------------------------------------------------
+// patching.h
+//
+// Copyright (c) 2021-2024 Vaana
+// ----------------------------------------------------------------------------
 
 #pragma once
-#include <Windows.h>
+
+#include <windows.h>
 
 #define MAX_SIGNATURES	10
 #define MAX_PATCHES		10

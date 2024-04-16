@@ -182,6 +182,7 @@
     <ClCompile Include="fix_aspect.cpp" />
     <ClCompile Include="fix_fps.cpp" />
     <ClCompile Include="fix_resolution.cpp" />
+    <ClCompile Include="opt_borderless_window.cpp" />
     <ClCompile Include="patching.cpp" />
     <ClCompile Include="inih\ini.c" />
     <ClCompile Include="lanPatch.cpp" />
@@ -193,6 +194,7 @@
     <ClInclude Include="fix_aspect.h" />
     <ClInclude Include="fix_fps.h" />
     <ClInclude Include="fix_resolution.h" />
+    <ClInclude Include="opt_borderless_window.h" />
     <ClInclude Include="patching.h" />
     <ClInclude Include="inih\ini.h" />
     <ClInclude Include="lanConstants.h" />

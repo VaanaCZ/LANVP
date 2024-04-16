@@ -48,6 +48,9 @@
     <ClCompile Include="config.cpp">
       <Filter>Patch</Filter>
     </ClCompile>
+    <ClCompile Include="opt_borderless_window.cpp">
+      <Filter>Patch</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="lanPatch.h">
@@ -81,6 +84,9 @@
       <Filter>Patch</Filter>
     </ClInclude>
     <ClInclude Include="config.h">
+      <Filter>Patch</Filter>
+    </ClInclude>
+    <ClInclude Include="opt_borderless_window.h">
       <Filter>Patch</Filter>
     </ClInclude>
   </ItemGroup>

@@ -24,6 +24,7 @@
 #include "fix_resolution.h"
 #include "fix_aspect.h"
 #include "opt_skip_logos_and_legals.h"
+#include "opt_borderless_window.h"
 
 /*BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID reserved)
 {
@@ -86,6 +87,7 @@ extern "C" __declspec(dllexport) BOOL InitializeASI()
 	RegisterPatch_Aspect();
 
 	RegisterPatch_SkipLogosAndLegals();
+	RegisterPatch_BorderlessWindow();
 
 	DoPatches();
 
@@ -118,17 +120,17 @@ extern "C" __declspec(dllexport) BOOL InitializeASI()
 		if (width != 0 && height != 0)
 			Patcher::ForceResolution(width, height);*/
 
-		if (Config::options->forceBorderlessWindow)
-			Patcher::ForceBorderless();
+		//if (Config::options->forceBorderlessWindow)
+		//	Patcher::ForceBorderless();
 
 		//if (Config::options->skipLogos)
 		//	Patcher::SkipLogoAndLegals();
 
-		if (Config::options->skipLauncherCheck)
-			Patcher::SkipLauncherCheck();
+		//if (Config::options->skipLauncherCheck)
+		//	Patcher::SkipLauncherCheck();
 
-		if (Config::options->forceDx11)
-			Patcher::ForceDX11();
+		//if (Config::options->forceDx11)
+		//	Patcher::ForceDX11();
 	}
 
 	Config::Destroy();

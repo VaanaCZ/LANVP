@@ -26,9 +26,19 @@
 	p.RegisterSignature(s);						\
 }
 
+#define REGISTER_MASK_FILTER(p, m, f)			\
+{												\
+	Signature s;								\
+	s.signature = m;							\
+	s.sigLength = sizeof(m) / sizeof(m[0]);		\
+	s.filterFunc = &f;							\
+	p.RegisterSignature(s);						\
+}
+
 struct Patch;
 
 typedef bool (*ApplyFunc)(Patch*);
+typedef bool (*FilterFunc)(void*);
 
 struct Signature
 {
@@ -37,9 +47,8 @@ struct Signature
 	
 	DWORD*			altSignature	= nullptr;	// Byte array used as search signature
 	size_t			altSigLength	= 0;		// Length of array
-	
-	
-	//bool			optional		= false;	// Specifies whether this signature is required for a successful patch
+
+	FilterFunc		filterFunc		= nullptr;	// Optional callback for extra filtering
 
 	unsigned int	numOccurrences	= 0;		// Number of occurences
 	bool			isAlternate		= false;	// Specifies whether altSignature was used

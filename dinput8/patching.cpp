@@ -286,9 +286,16 @@ bool FindSignature(Signature& sig, bool isAlternate, void* regionStart, void* re
 
 	if (signatureValid)
 	{
+		void* foundPtr = regionPtr + sigOffset;
+
+		if (sig.filterFunc && !sig.filterFunc(foundPtr))
+		{
+			return false;
+		}
+
 		sig.numOccurrences++;
 		sig.isAlternate = isAlternate;
-		sig.foundPtr = regionPtr + sigOffset;
+		sig.foundPtr = foundPtr;
 	}
 
 	return true;

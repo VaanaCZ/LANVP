@@ -67,8 +67,8 @@ bool ApplyPatch_SkipLogosAndLegals(Patch* patch)
 	void* legals	= patch->signatures[1].foundPtr;
 
 	// Logos
-	MemWriteNop(logos,				7);
-	MemWriteNop((BYTE*)logos + 10,	14);
+	if (!MemWriteNop(logos,				7))		return false;
+	if (!MemWriteNop((BYTE*)logos + 10,	14))	return false;
 
 	// Legals
 	BYTE legalsSkip[] =
@@ -77,7 +77,7 @@ bool ApplyPatch_SkipLogosAndLegals(Patch* patch)
 		0xC3							// ret
 	};
 
-	MemWrite(legals, legalsSkip, sizeof(legalsSkip));
+	if (!MemWrite(legals, legalsSkip, sizeof(legalsSkip)))	return false;
 
 	return true;
 }

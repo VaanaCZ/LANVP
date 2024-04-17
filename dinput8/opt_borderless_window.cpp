@@ -45,7 +45,7 @@ bool ApplyPatch_BorderlessWindow(Patch* patch)
 
 	// Change style to borderless
 	DWORD style = WS_POPUP;
-	MemWrite((BYTE*)adjustWindowRect + 4, &style, sizeof(style));
+	if (!MemWrite((BYTE*)adjustWindowRect + 4, &style, sizeof(style)))				return false;
 
 	// Remove AdjustWindowRect call
 	BYTE removeCall[] =
@@ -58,7 +58,7 @@ bool ApplyPatch_BorderlessWindow(Patch* patch)
 		0x90	// nop
 	};
 
-	MemWrite((BYTE*)adjustWindowRect + 24, removeCall, sizeof(removeCall));
+	if (!MemWrite((BYTE*)adjustWindowRect + 24, removeCall, sizeof(removeCall)))	return false;
 
 	return true;
 }

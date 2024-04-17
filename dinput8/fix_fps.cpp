@@ -154,7 +154,7 @@ bool ApplyPatch_Framerate(Patch* patch)
 		assert(pBrakeHook);
 
 		BYTE fmul[6];
-		MemRead((BYTE*)braking + 6, &fmul, sizeof(fmul));
+		if (!MemRead((BYTE*)braking + 6, &fmul, sizeof(fmul)))	return false;
 		memcpy(&brakeHook[6], fmul, sizeof(fmul));
 
 		DWORD* a1 = (DWORD*)&pBrakeHook[2];

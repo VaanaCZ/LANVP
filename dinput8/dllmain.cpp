@@ -19,17 +19,22 @@
 #include "fix_aspect.h"
 #include "opt_borderless_window.h"
 #include "opt_skip_logos_and_legals.h"
+#include "opt_version.h"
 
 const TCHAR configFile[] = TEXT("lanvp.ini");
 
 void Init()
 {
+	MessageBoxA(NULL, "A", "A", MB_OK);
+
 	// Load or create the config
 	Options options;
 	if (!LoadConfig(configFile, options))
 	{
 		MakeConfig(configFile);
 	}
+
+	RegisterPatch_Version();
 
 	// Register requested patches
 	if (options.fps_unlock)

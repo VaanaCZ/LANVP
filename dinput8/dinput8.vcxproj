@@ -177,7 +177,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="config.cpp" />
-    <ClCompile Include="oldconfig.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="fix_aspect.cpp" />
     <ClCompile Include="fix_fps.cpp" />
@@ -185,20 +184,16 @@
     <ClCompile Include="opt_borderless_window.cpp" />
     <ClCompile Include="opt_version.cpp" />
     <ClCompile Include="patching.cpp" />
-    <ClCompile Include="lanPatch.cpp" />
     <ClCompile Include="opt_skip_logos_and_legals.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="config.h" />
-    <ClInclude Include="oldconfig.h" />
     <ClInclude Include="fix_aspect.h" />
     <ClInclude Include="fix_fps.h" />
     <ClInclude Include="fix_resolution.h" />
     <ClInclude Include="opt_borderless_window.h" />
     <ClInclude Include="opt_version.h" />
     <ClInclude Include="patching.h" />
-    <ClInclude Include="lanConstants.h" />
-    <ClInclude Include="lanPatch.h" />
     <ClInclude Include="shared.h" />
     <ClInclude Include="opt_skip_logos_and_legals.h" />
   </ItemGroup>

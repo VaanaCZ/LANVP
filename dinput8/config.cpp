@@ -8,6 +8,7 @@
 
 #include <stdio.h>
 #include <tchar.h>
+#include <stdlib.h>
 
 #define READ_INTEGER(o, k, v, n)	\
 if (strcmp(k, #n) == 0)				\

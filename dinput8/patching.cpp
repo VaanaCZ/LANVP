@@ -173,7 +173,7 @@ void DoPatches()
 	}
 
 	execPtr = execMem;
-	execEnd = (byte*)execMem + systemInfo.dwPageSize;
+	execEnd = (BYTE*)execMem + systemInfo.dwPageSize;
 
 	//
 	// Result
@@ -512,7 +512,7 @@ bool MemReplace(void* ptr, void* data, size_t dataLength)
 
 void* ExecCopy(void* data, size_t dataLength)
 {
-	if ((byte*)execPtr + dataLength > execEnd)
+	if ((BYTE*)execPtr + dataLength > execEnd)
 	{
 		assert(false);
 		return nullptr;
@@ -521,7 +521,7 @@ void* ExecCopy(void* data, size_t dataLength)
 	memcpy(execPtr, data, dataLength);
 
 	void* result = execPtr;
-	execPtr = (byte*)execPtr + dataLength;
+	execPtr = (BYTE*)execPtr + dataLength;
 
 	return result;
 }

@@ -9,6 +9,7 @@
 #include "patching.h"
 #include "shared.h"
 #include <cassert>
+#include <stdlib.h>
 
 DWORD sigBlackBars[] =
 {

@@ -30,6 +30,21 @@ HERE,	MASK, MASK,
 		0x85, 0xD2
 };
 
+
+DWORD sigUiSizeHook[] =
+{
+HERE,	0xFF, 0x15, MASK, MASK, MASK, MASK,
+		0x8B, 0xC8,
+		0x83, 0xC4, 0x04,
+		0x89, 0x4C, 0x24, 0x20,
+		0xDB, 0x44, 0x24, 0x20,
+		0x89, 0x44, 0x24, 0x14,
+		0x85, 0xC9,
+		0x7D, 0x06,
+		0xD8, 0x05, MASK, MASK, MASK, MASK,
+		0xDC, 0x35, MASK, MASK, MASK, MASK
+};
+
 DWORD sigUiLayerSize[] =
 {
 HERE,	0xF2, 0x0F, 0x5E, 0x05, MASK, MASK, MASK, MASK,
@@ -77,15 +92,27 @@ HERE,	0xDC, 0x35, MASK, MASK, MASK, MASK,
 		0xD9, 0x5E, 0x5C
 };
 
+DWORD sigUiLegalsScreen[] =
+{
+HERE,	0xDC, 0x35, MASK, MASK, MASK, MASK,
+		0x8B, 0x0D, MASK, MASK, MASK, MASK,
+		0xD9, 0x5C, 0x24, 0x04,
+		0xD9, 0x44, 0x24, 0x04,
+		0xD9, 0x99, 0xCC, 0x00, 0x00, 0x00,
+		0x83, 0xC4, 0x08
+};
+
 void RegisterPatch_Aspect()
 {
 	Patch patch;
 
 	REGISTER_MASK(patch, sigBlackBars);
 	REGISTER_MASK(patch, sigBlackBarsOnResize);
+	REGISTER_MASK(patch, sigUiSizeHook);
 	REGISTER_MASK_ALTERNATE(patch, sigUiLayerSize, sigAltUiLayerSize);
 	REGISTER_MASK_ALTERNATE(patch, sigUiLayerSize2, sigAltUiLayerSize);
 	REGISTER_MASK(patch, sigUiSubtitleLayer);
+	REGISTER_MASK(patch, sigUiLegalsScreen);
 
 	ua_tcscpy_s(patch.name, 50, TEXT("Aspect-ratio fix"));
 	patch.func = ApplyPatch_Aspect;
@@ -98,13 +125,15 @@ static double uiHeight = 720.0f;
 
 bool ApplyPatch_Aspect(Patch* patch)
 {
-	assert(patch->numSignatures == 5);
+	assert(patch->numSignatures == 7);
 	void* blackBars			= patch->signatures[0].foundPtr;
 	void* blackBarsOnResize	= patch->signatures[1].foundPtr;
-	void* uiLayerSize		= patch->signatures[2].foundPtr;
-	void* uiLayerSize2		= patch->signatures[3].foundPtr;
-	bool isAlternate		= patch->signatures[2].isAlternate;
-	void* uiSubtitleLayer	= patch->signatures[4].foundPtr;
+	void* uiSizeHook		= patch->signatures[2].foundPtr;
+	void* uiLayerSize		= patch->signatures[3].foundPtr;
+	void* uiLayerSize2		= patch->signatures[4].foundPtr;
+	bool isAlternate		= patch->signatures[3].isAlternate;
+	void* uiSubtitleLayer	= patch->signatures[5].foundPtr;
+	void* uiLegalsScreen	= patch->signatures[6].foundPtr;
 
 	// Remove black bars
 	BYTE jmp = 0xEB;
@@ -113,43 +142,49 @@ bool ApplyPatch_Aspect(Patch* patch)
 
 	// Fix scaling of UI layers
 	static void* pAtoi = &Hook_Atoi;
-	MemWriteHookCallPtr((void*)0x009CFD3D, &pAtoi);
+	if (!MemWriteHookCallPtr(uiSizeHook, &pAtoi))				return false;
 
 	static double* pUiWidth = &uiWidth;
 	static double* pUiHeight = &uiHeight;
+
+	void* w0 = (BYTE*)uiSizeHook + 35;
+	if (!MemWrite(w0, &pUiWidth, sizeof(pUiWidth)))				return false;
 
 	if (!isAlternate)
 	{
 		void* w1 = (BYTE*)uiLayerSize + 4;
 		void* h1 = (BYTE*)uiLayerSize + 43;
-		if (!MemWrite(w1, &pUiWidth, sizeof(pUiWidth)))		return false;
-		if (!MemWrite(h1, &pUiHeight, sizeof(pUiHeight)))	return false;
+		if (!MemWrite(w1, &pUiWidth, sizeof(pUiWidth)))			return false;
+		if (!MemWrite(h1, &pUiHeight, sizeof(pUiHeight)))		return false;
 
 		void* w2 = (BYTE*)uiLayerSize2 + 4;
 		void* h2 = (BYTE*)uiLayerSize2 + 38;
-		if (!MemWrite(w2, &pUiWidth, sizeof(pUiWidth)))		return false;
-		if (!MemWrite(h2, &pUiHeight, sizeof(pUiHeight)))	return false;
+		if (!MemWrite(w2, &pUiWidth, sizeof(pUiWidth)))			return false;
+		if (!MemWrite(h2, &pUiHeight, sizeof(pUiHeight)))		return false;
 	}
 	else
 	{
 		void* w1 = (BYTE*)uiLayerSize + 2;
 		void* h1 = (BYTE*)uiLayerSize + 19;
-		if (!MemWrite(w1, &pUiWidth, sizeof(pUiWidth)))		return false;
-		if (!MemWrite(h1, &pUiHeight, sizeof(pUiHeight)))	return false;
+		if (!MemWrite(w1, &pUiWidth, sizeof(pUiWidth)))			return false;
+		if (!MemWrite(h1, &pUiHeight, sizeof(pUiHeight)))		return false;
 	}
 
-	void* w = (BYTE*)uiSubtitleLayer + 2;
-	if (!MemWrite(w, &pUiWidth, sizeof(pUiWidth)))			return false;
+	void* w2 = (BYTE*)uiSubtitleLayer + 2;
+	if (!MemWrite(w2, &pUiWidth, sizeof(pUiWidth)))				return false;
+
+	void* w3 = (BYTE*)uiLegalsScreen + 2;
+	if (!MemWrite(w3, &pUiWidth, sizeof(pUiWidth)))				return false;
 
 
 
 	/*
-	MemWrite((void*)0x009CFD60, &pUiWidth, sizeof(pUiWidth));
+	//MemWrite((void*)0x009CFD60, &pUiWidth, sizeof(pUiWidth));
 	//MemWrite((void*)0x00C64146, &pUiWidth, sizeof(pUiWidth));
 	MemWrite((void*)0x00493326, &pUiWidth, sizeof(pUiWidth));
 	MemWrite((void*)0x00491FD3, &pUiWidth, sizeof(pUiWidth));
 	//MemWrite((void*)0x0048F2C3, &pUiWidth, sizeof(pUiWidth));
-	MemWrite((void*)0x0044DE97, &pUiWidth, sizeof(pUiWidth));
+	//MemWrite((void*)0x0044DE97, &pUiWidth, sizeof(pUiWidth));
 	//MemWrite((void*)0x0040F9EB, &pUiWidth, sizeof(pUiWidth));
 
 	//MemWrite((void*)0x00C6416D, &pUiHeight, sizeof(pUiHeight));

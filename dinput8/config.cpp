@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <tchar.h>
 #include <stdlib.h>
+#include "shared.h"
 
 #define READ_INTEGER(o, k, v, n)	\
 if (strcmp(k, #n) == 0)				\
@@ -82,7 +83,7 @@ bool LoadConfig(const TCHAR* path, Options& options)
 
 const char config[] =
 	"; L.A. Noire: V-Patch\n"
-	"; Version 2.0 - (c) 2021-2024 Vaana\n"
+	"; Version " VPATCH_VERSION " - (c) 2021-2024 Vaana\n"
 	"\n"
 	"[fixes]\n"
 	"\n"

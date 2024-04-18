@@ -63,7 +63,15 @@ void HandleError(const TCHAR* title, const TCHAR* text)
 	MessageBox(NULL, errorMsg, title, MB_OK);
 }
 
-// fixme: constants for error msg
+const TCHAR doPatchesErrorTitle[]				= TEXT("[V-PATCH] Error while initializing patch!");
+const TCHAR memWriteErrorTitle[]				= TEXT("[V-PATCH] Error while writing memory!");
+const TCHAR memWriteNopErrorTitle[]				= TEXT("[V-PATCH] Error while writing NOP to memory!");
+const TCHAR memReadErrorTitle[]					= TEXT("[V-PATCH] Error while reading memory!");
+const TCHAR memReplaceErrorTitle[]				= TEXT("[V-PATCH] Error while replacing memory!");
+const TCHAR virtualQueryErrorText[]				= TEXT("Failed to query virtual memory.");
+const TCHAR virtualProtectErrorText[]			= TEXT("Failed to change memory protection.");
+const TCHAR virtualProtectRestoreErrorText[]	= TEXT("Failed to restore memory protection.");
+const TCHAR flushInstructionCacheErrorText[]	= TEXT("Failed to flush instruction cache.");
 
 void DoPatches()
 {
@@ -77,14 +85,14 @@ void DoPatches()
 
 	if (!module)
 	{
-		HandleError(TEXT("Patch initialisation fail!"), TEXT("Failed to get main module handle."));
+		HandleError(doPatchesErrorTitle, TEXT("Failed to get main module handle."));
 		return;
 	}
 
 	MODULEINFO moduleInfo;
 	if (!GetModuleInformation(process, module, &moduleInfo, sizeof(moduleInfo)))
 	{
-		HandleError(TEXT("Patch initialisation fail!"), TEXT("Failed to get module information."));
+		HandleError(doPatchesErrorTitle, TEXT("Failed to get module information."));
 		return;
 	}
 
@@ -99,7 +107,7 @@ void DoPatches()
 		MEMORY_BASIC_INFORMATION memoryInfo;
 		if (!VirtualQueryEx(process, ptr, &memoryInfo, sizeof(memoryInfo)))
 		{
-			HandleError(TEXT("Patch initialisation fail!"), TEXT("Failed to query virtual memory."));
+			HandleError(doPatchesErrorTitle, virtualQueryErrorText);
 			return;
 		}
 
@@ -113,7 +121,7 @@ void DoPatches()
 
 			if (!VirtualProtectEx(process, memoryInfo.BaseAddress, memoryInfo.RegionSize, PAGE_EXECUTE_READ, &oldProtection))
 			{
-				HandleError(TEXT("Patch initialisation fail!"), TEXT("Failed to change memory protection."));
+				HandleError(doPatchesErrorTitle, virtualProtectErrorText);
 				return;
 			}
 		}
@@ -149,7 +157,7 @@ void DoPatches()
 		{
 			if (!VirtualProtectEx(process, memoryInfo.BaseAddress, memoryInfo.RegionSize, oldProtection, &oldProtection))
 			{
-				HandleError(TEXT("Patch initialisation fail!"), TEXT("Failed to restore memory protection."));
+				HandleError(doPatchesErrorTitle, virtualProtectRestoreErrorText);
 				return;
 			}
 		}
@@ -168,7 +176,7 @@ void DoPatches()
 
 	if (!execMem)
 	{
-		HandleError(TEXT("Patch initialisation fail!"), TEXT("Could not allocate instruction buffer."));
+		HandleError(doPatchesErrorTitle, TEXT("Could not allocate instruction buffer."));
 		return;
 	}
 
@@ -197,7 +205,7 @@ void DoPatches()
 		for (size_t j = 0; j < patch.numSignatures; j++)
 		{
 			Signature& signature = patch.signatures[j];
-			if (signature.numOccurrences != 1/* && !signature.optional*/)
+			if (signature.numOccurrences != 1)
 			{
 				allSignaturesFound = false;
 				break;
@@ -224,7 +232,7 @@ void DoPatches()
 
 	if (!allPatchesApplied)
 	{
-		MessageBox(NULL, errorMsg, TEXT("[ERROR]"), MB_OK);
+		MessageBox(NULL, errorMsg, doPatchesErrorTitle, MB_OK);
 	}
 
 	//
@@ -233,13 +241,13 @@ void DoPatches()
 	DWORD oldProtect;
 	if (!VirtualProtect(execMem, systemInfo.dwPageSize, PAGE_EXECUTE_READ, &oldProtect))
 	{
-		HandleError(TEXT("Patch initialisation fail!"), TEXT("Failed to change memory protection on instruction buffer."));
+		HandleError(doPatchesErrorTitle, TEXT("Failed to change memory protection on instruction buffer."));
 		return;
 	}
 
 	if (!FlushInstructionCache(process, execMem, systemInfo.dwPageSize))
 	{
-		HandleError(TEXT("Patch initialisation fail!"), TEXT("Failed to flush instruction cache on instruction buffer."));
+		HandleError(doPatchesErrorTitle, TEXT("Failed to flush instruction cache on instruction buffer."));
 		return;
 	}
 }
@@ -310,7 +318,7 @@ bool MemWrite(void* ptr, void* data, size_t dataLength)
 	MEMORY_BASIC_INFORMATION memoryInfo;
 	if (!VirtualQueryEx(process, ptr, &memoryInfo, sizeof(memoryInfo)))
 	{
-		HandleError(TEXT("Patch memory write fail!"), TEXT("Failed to query virtual memory."));
+		HandleError(memWriteErrorTitle, virtualQueryErrorText);
 		return false;
 	}
 
@@ -324,7 +332,7 @@ bool MemWrite(void* ptr, void* data, size_t dataLength)
 
 		if (!VirtualProtectEx(process, memoryInfo.BaseAddress, memoryInfo.RegionSize, PAGE_EXECUTE_READWRITE, &oldProtection))
 		{
-			HandleError(TEXT("Patch memory write fail!"), TEXT("Failed to change memory protection."));
+			HandleError(memWriteErrorTitle, virtualProtectErrorText);
 			return false;
 		}
 	}
@@ -337,13 +345,13 @@ bool MemWrite(void* ptr, void* data, size_t dataLength)
 	{
 		if (!VirtualProtectEx(process, memoryInfo.BaseAddress, memoryInfo.RegionSize, oldProtection, &oldProtection))
 		{
-			HandleError(TEXT("Patch memory write fail!"), TEXT("Failed to restore memory protection."));
+			HandleError(memWriteErrorTitle, virtualProtectRestoreErrorText);
 			return false;
 		}
 
 		if (!FlushInstructionCache(process, ptr, dataLength))
 		{
-			HandleError(TEXT("Patch memory write fail!"), TEXT("Failed to flush instruction cache."));
+			HandleError(memWriteErrorTitle, flushInstructionCacheErrorText);
 			return false;
 		}
 	}
@@ -356,7 +364,7 @@ bool MemWriteNop(void* ptr, size_t nopLength)
 	MEMORY_BASIC_INFORMATION memoryInfo;
 	if (!VirtualQueryEx(process, ptr, &memoryInfo, sizeof(memoryInfo)))
 	{
-		HandleError(TEXT("Patch memory nop fail!"), TEXT("Failed to query virtual memory."));
+		HandleError(memWriteNopErrorTitle, virtualQueryErrorText);
 		return false;
 	}
 
@@ -370,7 +378,7 @@ bool MemWriteNop(void* ptr, size_t nopLength)
 
 		if (!VirtualProtectEx(process, memoryInfo.BaseAddress, memoryInfo.RegionSize, PAGE_EXECUTE_READWRITE, &oldProtection))
 		{
-			HandleError(TEXT("Patch memory nop fail!"), TEXT("Failed to change memory protection."));
+			HandleError(memWriteNopErrorTitle, virtualProtectErrorText);
 			return false;
 		}
 	}
@@ -383,13 +391,13 @@ bool MemWriteNop(void* ptr, size_t nopLength)
 	{
 		if (!VirtualProtectEx(process, memoryInfo.BaseAddress, memoryInfo.RegionSize, oldProtection, &oldProtection))
 		{
-			HandleError(TEXT("Patch memory nop fail!"), TEXT("Failed to restore memory protection."));
+			HandleError(memWriteNopErrorTitle, virtualProtectRestoreErrorText);
 			return false;
 		}
 
 		if (!FlushInstructionCache(process, ptr, nopLength))
 		{
-			HandleError(TEXT("Patch memory nop fail!"), TEXT("Failed to flush instruction cache."));
+			HandleError(memWriteNopErrorTitle, flushInstructionCacheErrorText);
 			return false;
 		}
 	}
@@ -420,7 +428,7 @@ bool MemRead(void* ptr, void* data, size_t dataLength)
 	MEMORY_BASIC_INFORMATION memoryInfo;
 	if (!VirtualQueryEx(process, ptr, &memoryInfo, sizeof(memoryInfo)))
 	{
-		HandleError(TEXT("Patch memory read fail!"), TEXT("Failed to query virtual memory."));
+		HandleError(memReadErrorTitle, virtualQueryErrorText);
 		return false;
 	}
 
@@ -434,7 +442,7 @@ bool MemRead(void* ptr, void* data, size_t dataLength)
 
 		if (!VirtualProtectEx(process, memoryInfo.BaseAddress, memoryInfo.RegionSize, PAGE_EXECUTE_READ, &oldProtection))
 		{
-			HandleError(TEXT("Patch memory read fail!"), TEXT("Failed to change memory protection."));
+			HandleError(memReadErrorTitle, virtualProtectErrorText);
 			return false;
 		}
 	}
@@ -447,7 +455,7 @@ bool MemRead(void* ptr, void* data, size_t dataLength)
 	{
 		if (!VirtualProtectEx(process, memoryInfo.BaseAddress, memoryInfo.RegionSize, oldProtection, &oldProtection))
 		{
-			HandleError(TEXT("Patch memory read fail!"), TEXT("Failed to restore memory protection."));
+			HandleError(memReadErrorTitle, virtualProtectRestoreErrorText);
 			return false;
 		}
 	}
@@ -460,7 +468,7 @@ bool MemReplace(void* ptr, void* data, size_t dataLength)
 	MEMORY_BASIC_INFORMATION memoryInfo;
 	if (!VirtualQueryEx(process, ptr, &memoryInfo, sizeof(memoryInfo)))
 	{
-		HandleError(TEXT("Patch memory replace fail!"), TEXT("Failed to query virtual memory."));
+		HandleError(memReplaceErrorTitle, virtualQueryErrorText);
 		return false;
 	}
 
@@ -474,7 +482,7 @@ bool MemReplace(void* ptr, void* data, size_t dataLength)
 
 		if (!VirtualProtectEx(process, memoryInfo.BaseAddress, memoryInfo.RegionSize, PAGE_EXECUTE_READWRITE, &oldProtection))
 		{
-			HandleError(TEXT("Patch memory replace fail!"), TEXT("Failed to change memory protection."));
+			HandleError(memReplaceErrorTitle, virtualProtectErrorText);
 			return false;
 		}
 	}
@@ -496,13 +504,13 @@ bool MemReplace(void* ptr, void* data, size_t dataLength)
 	{
 		if (!VirtualProtectEx(process, memoryInfo.BaseAddress, memoryInfo.RegionSize, oldProtection, &oldProtection))
 		{
-			HandleError(TEXT("Patch memory replace fail!"), TEXT("Failed to restore memory protection."));
+			HandleError(memReplaceErrorTitle, virtualProtectRestoreErrorText);
 			return false;
 		}
 
 		if (!FlushInstructionCache(process, ptr, dataLength))
 		{
-			HandleError(TEXT("Patch memory replace fail!"), TEXT("Failed to flush instruction cache."));
+			HandleError(memReplaceErrorTitle, flushInstructionCacheErrorText);
 			return false;
 		}
 	}

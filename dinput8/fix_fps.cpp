@@ -10,7 +10,7 @@
 #include "shared.h"
 #include <cassert>
 
-DWORD sigFramerateDividerConstructor[] =
+DWORD sigFramerateDivisorConstructor[] =
 {
 		0x89, 0x5C, 0x24, 0x18,
 		0x64, 0x8B, 0x15, 0x2C, 0x00, 0x00, 0x00,
@@ -20,7 +20,7 @@ HERE,	0xC7, 0x00, 0x02, 0x00, 0x00, 0x00,
 		0xC7, 0x06, MASK, MASK, MASK, MASK
 };
 
-DWORD sigAltFramerateDividerConstructor[] =
+DWORD sigAltFramerateDivisorConstructor[] =
 {
 		0x89, 0x5C, 0x24, 0x18,
 		0xD9, 0xE8,
@@ -32,7 +32,7 @@ HERE,	0xC7, 0x00, 0x02, 0x00, 0x00, 0x00,
 		0xC7, 0x06, MASK, MASK, MASK, MASK
 };
 
-DWORD sigFramerateDividerGameplay[] =
+DWORD sigFramerateDivisorGameplay[] =
 {
 		0xFE, 0x0D, MASK, MASK, MASK, MASK,
 		0xFF, 0xD2,
@@ -77,8 +77,8 @@ void RegisterPatch_Framerate()
 	Patch patch;
 
 	REGISTER_ENGINE_MASK(patch);
-	REGISTER_MASK_ALTERNATE(patch, sigFramerateDividerConstructor, sigAltFramerateDividerConstructor);
-	REGISTER_MASK(patch, sigFramerateDividerGameplay);
+	REGISTER_MASK_ALTERNATE(patch, sigFramerateDivisorConstructor, sigAltFramerateDivisorConstructor);
+	REGISTER_MASK(patch, sigFramerateDivisorGameplay);
 	REGISTER_MASK(patch, sigWaitAndHook);
 	REGISTER_MASK_ALTERNATE(patch, sigBraking, sigAltBraking);
 
@@ -99,8 +99,8 @@ bool ApplyPatch_Framerate(Patch* patch)
 {
 	assert(patch->numSignatures == 5);
 	void* enginePtr						= patch->signatures[0].foundPtr;
-	void* framerateDividerConstructor	= (BYTE*)patch->signatures[1].foundPtr + 2;
-	void* framerateDividerGameplay		= (BYTE*)patch->signatures[2].foundPtr + 3;
+	void* framerateDivisorConstructor	= (BYTE*)patch->signatures[1].foundPtr + 2;
+	void* framerateDivisorGameplay		= (BYTE*)patch->signatures[2].foundPtr + 3;
 	void* waitAndHook					= patch->signatures[3].foundPtr;
 	void* braking						= patch->signatures[4].foundPtr;
 	bool isBrakingAlt					= patch->signatures[4].isAlternate;
@@ -109,9 +109,9 @@ bool ApplyPatch_Framerate(Patch* patch)
 	if (!MemRead(enginePtr, &ppEngine, sizeof(ppEngine)))	return false;
 
 	// Remove framerate divider
-	static unsigned int newFramerateDivider = 1;
-	if (!MemWrite(framerateDividerConstructor, &newFramerateDivider, sizeof(newFramerateDivider)))	return false;
-	if (!MemWrite(framerateDividerGameplay, &newFramerateDivider, sizeof(newFramerateDivider)))		return false;
+	static DWORD newFramerateDivisor = 1;
+	if (!MemWrite(framerateDivisorConstructor, &newFramerateDivisor, sizeof(newFramerateDivisor)))	return false;
+	if (!MemWrite(framerateDivisorGameplay, &newFramerateDivisor, sizeof(newFramerateDivisor)))		return false;
 
 	// Remove waiting logic and add hook
 	jmp jmp;

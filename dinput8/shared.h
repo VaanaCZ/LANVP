@@ -27,6 +27,9 @@ public:
 
 // Common signatures
 
+#define MASK 0xFFFFFFFF // fixme
+#define HERE 0xDDDDDDDD // fixme
+
 static DWORD sigEngineDestructor[] =
 {
 		0x8B, 0x96, 0x9C, 0x00, 0x00, 0x00,

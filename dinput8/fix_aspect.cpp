@@ -137,62 +137,49 @@ bool ApplyPatch_Aspect(Patch* patch)
 
 	// Remove black bars
 	BYTE jmp = 0xEB;
-	if (!MemWrite(blackBars,			&jmp, sizeof(jmp)))		return false;
-	if (!MemWrite(blackBarsOnResize,	&jmp, sizeof(jmp)))		return false;
+	if (!MemWrite(blackBars,			&jmp, sizeof(jmp)))				return false;
+	if (!MemWrite(blackBarsOnResize,	&jmp, sizeof(jmp)))				return false;
 
 	// Fix scaling of UI layers
 	static void* pAtoi = &Hook_Atoi;
-	if (!MemWriteHookCallPtr(uiSizeHook, &pAtoi))				return false;
+	if (!MemWriteHookCallPtr(uiSizeHook, &pAtoi))						return false;
 
 	static double* pUiWidth = &uiWidth;
-	static double* pUiHeight = &uiHeight;
+	//static double* pUiHeight = &uiHeight;
 
-	void* w0 = (BYTE*)uiSizeHook + 35;
-	if (!MemWrite(w0, &pUiWidth, sizeof(pUiWidth)))				return false;
+	void* sizeWidth = (BYTE*)uiSizeHook + 35;
+	if (!MemWrite(sizeWidth, &pUiWidth, sizeof(pUiWidth)))				return false;
 
 	if (!isAlternate)
 	{
-		void* w1 = (BYTE*)uiLayerSize + 4;
-		void* h1 = (BYTE*)uiLayerSize + 43;
-		if (!MemWrite(w1, &pUiWidth, sizeof(pUiWidth)))			return false;
-		if (!MemWrite(h1, &pUiHeight, sizeof(pUiHeight)))		return false;
+		void* layerWidth = (BYTE*)uiLayerSize + 4;
+		//void* layerHeight = (BYTE*)uiLayerSize + 43;
+		if (!MemWrite(layerWidth, &pUiWidth, sizeof(pUiWidth)))			return false;
+		//if (!MemWrite(layerHeight, &pUiHeight, sizeof(pUiHeight)))		return false;
 
-		void* w2 = (BYTE*)uiLayerSize2 + 4;
-		void* h2 = (BYTE*)uiLayerSize2 + 38;
-		if (!MemWrite(w2, &pUiWidth, sizeof(pUiWidth)))			return false;
-		if (!MemWrite(h2, &pUiHeight, sizeof(pUiHeight)))		return false;
+		void* layerWidthAlt = (BYTE*)uiLayerSize2 + 4;
+		//void* layerHeightAlt = (BYTE*)uiLayerSize2 + 38;
+		if (!MemWrite(layerWidthAlt, &pUiWidth, sizeof(pUiWidth)))		return false;
+		//if (!MemWrite(layerHeightAlt, &pUiHeight, sizeof(pUiHeight)))	return false;
 	}
 	else
 	{
-		void* w1 = (BYTE*)uiLayerSize + 2;
-		void* h1 = (BYTE*)uiLayerSize + 19;
-		if (!MemWrite(w1, &pUiWidth, sizeof(pUiWidth)))			return false;
-		if (!MemWrite(h1, &pUiHeight, sizeof(pUiHeight)))		return false;
+		void* layerWidth = (BYTE*)uiLayerSize + 2;
+		//void* layerHeight = (BYTE*)uiLayerSize + 19;
+		if (!MemWrite(layerWidth, &pUiWidth, sizeof(pUiWidth)))			return false;
+		//if (!MemWrite(layerHeight, &pUiHeight, sizeof(pUiHeight)))		return false;
 	}
 
-	void* w2 = (BYTE*)uiSubtitleLayer + 2;
-	if (!MemWrite(w2, &pUiWidth, sizeof(pUiWidth)))				return false;
+	void* subtitleWidth = (BYTE*)uiSubtitleLayer + 2;
+	if (!MemWrite(subtitleWidth, &pUiWidth, sizeof(pUiWidth)))			return false;
 
-	void* w3 = (BYTE*)uiLegalsScreen + 2;
-	if (!MemWrite(w3, &pUiWidth, sizeof(pUiWidth)))				return false;
+	void* legalsWidth = (BYTE*)uiLegalsScreen + 2;
+	if (!MemWrite(legalsWidth, &pUiWidth, sizeof(pUiWidth)))			return false;
 
-
-
-	/*
-	//MemWrite((void*)0x009CFD60, &pUiWidth, sizeof(pUiWidth));
-	//MemWrite((void*)0x00C64146, &pUiWidth, sizeof(pUiWidth));
-	MemWrite((void*)0x00493326, &pUiWidth, sizeof(pUiWidth));
-	MemWrite((void*)0x00491FD3, &pUiWidth, sizeof(pUiWidth));
-	//MemWrite((void*)0x0048F2C3, &pUiWidth, sizeof(pUiWidth));
-	//MemWrite((void*)0x0044DE97, &pUiWidth, sizeof(pUiWidth));
-	//MemWrite((void*)0x0040F9EB, &pUiWidth, sizeof(pUiWidth));
-
-	//MemWrite((void*)0x00C6416D, &pUiHeight, sizeof(pUiHeight));
-	MemWrite((void*)0x00493352, &pUiHeight, sizeof(pUiHeight));
-	MemWrite((void*)0x00491FF5, &pUiHeight, sizeof(pUiHeight));
-	//MemWrite((void*)0x0048F2E5, &pUiHeight, sizeof(pUiHeight));
-	*/
-	
+	//MemWrite((void*)0x00491FD3, &pUiWidth, sizeof(pUiWidth));
+	//MemWrite((void*)0x00491FF5, &pUiHeight, sizeof(pUiHeight));	
+	//MemWrite((void*)0x00493326, &pUiWidth, sizeof(pUiWidth));
+	//MemWrite((void*)0x00493352, &pUiHeight, sizeof(pUiHeight));
 
 	// Correct FoV
 
@@ -216,16 +203,16 @@ int __cdecl Hook_Atoi(const char* string)
 	double aspect = width / (double)height;
 	double multiplier = aspect / 1.77777778;
 
-	if (multiplier > 1.0)
+	//if (multiplier > 1.0)
 	{
 		uiWidth		= 1280.0 * multiplier;
 		uiHeight	= 720.0;
 	}
-	else
+	/*else
 	{
 		uiWidth		= 1280.0;
 		uiHeight	= 720.0 / multiplier;
-	}
+	}*/
 
 	return atoi(string);
 }

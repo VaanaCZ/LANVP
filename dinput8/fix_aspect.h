@@ -10,3 +10,5 @@ struct Patch;
 
 void RegisterPatch_Aspect();
 bool ApplyPatch_Aspect(Patch* patch);
+
+int __cdecl Hook_Atoi(const char* string);

@@ -116,7 +116,7 @@ private:
 
 	inline static bool NopInstruction(unsigned long addr, unsigned long nopSize)
 	{
-		char* nop = new char[nopSize];
+		char nop[16];
 		memset(nop, 0x90, nopSize);
 		return WriteMemory(addr, nop, nopSize, true);
 	}

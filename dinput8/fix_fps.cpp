@@ -88,12 +88,12 @@ void RegisterPatch_Framerate()
 	RegisterPatch(patch);
 }
 
-static I3DEngine** ppEngine;
-static LARGE_INTEGER lastTime, timeFrequency;
+static I3DEngine** ppEngine;					// Pointer to engine object
+static LARGE_INTEGER lastTime, timeFrequency;	// Time measurement variables
+
+static DWORD fixedFrametime = 0x3D088889;		// Default frametime => 0.03333333507
 
 static float frm = 0.033333f;
-
-static DWORD fixedFrametime = 0x3D088889; // 0.03333333507
 
 bool ApplyPatch_Framerate(Patch* patch)
 {
@@ -105,23 +105,57 @@ bool ApplyPatch_Framerate(Patch* patch)
 	void* braking						= patch->signatures[4].foundPtr;
 	bool isBrakingAlt					= patch->signatures[4].isAlternate;
 
-	// Find the engine pointer
+	// Find the engine object pointer
 	if (!MemRead(enginePtr, &ppEngine, sizeof(ppEngine)))	return false;
 
-	// Remove framerate divider
+	//
+	// By default, the game has a target framerate of 59.97. However there is
+	// a divisor value, which is used to determine the final framerate.
+	// In menus, this value is set to 1 (60/1=60), but during gameplay, this
+	// is set to 2 (60/2=30).
+	// 
+	// Here we patch out this divisor in gameplay, since it makes the rest of
+	// the patch a lot simpler, and prevents potential bugs.
+	//
+
 	static DWORD newFramerateDivisor = 1;
 	if (!MemWrite(framerateDivisorConstructor, &newFramerateDivisor, sizeof(newFramerateDivisor)))	return false;
 	if (!MemWrite(framerateDivisorGameplay, &newFramerateDivisor, sizeof(newFramerateDivisor)))		return false;
 
-	// Remove waiting logic and add hook
+	//
+	// In order to fully "uncap" the framerate, we must first allow the game
+	// to run at full speed. Here we patch out the waiting logic and hook our
+	// own function, which then increases or decreases the speed of the
+	// simulation based on how quickly the game runs.
+	//
+
 	jmp jmp;
-	if (!MemRead(waitAndHook, &jmp, sizeof(jmp)))		return false;
-	if (!MemWriteHookCall(waitAndHook, &Hook_Frame))	return false;
+	if (!MemRead(waitAndHook, &jmp, sizeof(jmp)))				return false;
+
+	if (!MemWriteHookCall(waitAndHook, &Hook_Frame))			return false; // replace conditional jump with hook
 	jmp.opcode = 0xEB;
 	jmp.offset -= 5;
-	if (!MemWrite((BYTE*)waitAndHook + 5, &jmp, sizeof(jmp)))	return false;
+	if (!MemWrite((BYTE*)waitAndHook + 5, &jmp, sizeof(jmp)))	return false; // append hook with jump to end of branch
 
-	// Fix braking force
+	//
+	// When driving cars, the game creates forces and impulses based on the
+	// user's inputs, which are then passed down to the physics system (Havok)
+	// that actually performs the physics simulation. Havok will then correctly
+	// scale these forces according to the FPS.
+	// 
+	// Unfortunately, the force which is used for braking is already scaled
+	// by the engine once before it is passed to Havok, meaning it gets scaled twice.
+	// This causes the braking to become weaker and weaker, the smaller
+	// the frametime (high FPS)
+	// 
+	// forceVector = forceVector * frametime * frametime;
+	// 
+	// The fix is to simply hardcode one of these multiplications to a fixed value,
+	// so that the final scaling is correct.
+	// 
+	// forceVector = forceVector * 0.0333333 * frametime;
+	//
+
 	if (!isBrakingAlt)
 	{
 		BYTE brakeHook[] =
@@ -226,7 +260,7 @@ void Hook_Frame()
 	}
 
 	// Adjust game speed
-	LONGLONG maxCounter = timeFrequency.QuadPart * 0.04; // 25 FPS
+	LONGLONG maxCounter = timeFrequency.QuadPart * 0.04; // 25 FPS (safe limit)
 	timeDiff = min(maxCounter, timeDiff);
 
 	double fps = timeFrequency.QuadPart / (double)timeDiff;

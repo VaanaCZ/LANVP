@@ -30,7 +30,6 @@ HERE,	MASK, MASK,
 		0x85, 0xD2
 };
 
-
 DWORD sigUiSizeHook[] =
 {
 HERE,	0xFF, 0x15, MASK, MASK, MASK, MASK,
@@ -182,6 +181,8 @@ bool ApplyPatch_Aspect(Patch* patch)
 	//MemWrite((void*)0x00493352, &pUiHeight, sizeof(pUiHeight));
 
 	// Correct FoV
+
+
 
 	/*
 	

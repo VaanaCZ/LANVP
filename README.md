@@ -130,7 +130,7 @@ Same as above except requires Wine to override/accept the dinput8 dll.
 - In **Lutris** open up the Game Configure page. Go into Runner options, scroll down and find DLL Overrides. Add `dinput8.dll` as the Key and `n,b` as the Value.
 - In **Bottles** open up the Bottle settings. Scroll down to DLL Overrides, add `dinput8.dll` as the Override and select **Native, builtin** as the option.
 
-Other Wine/Proton runners will work in a similar way. If there isn't a dedicated DLL Override page, the environement variable `WINEDLLOVERRIDES="dinput8.dll=n,b"` should make it work.
+Other Wine/Proton runners will work in a similar way. If there isn't a dedicated DLL Override page, the environment variable `WINEDLLOVERRIDES="dinput8.dll=n,b"` should make it work.
 
 ## Supported versions
 

@@ -120,18 +120,17 @@ Installing the patch is very simple:
 
 Done. No special setup required.
 
-## Linux (Lutris & Steam Proton) Installation
+## Linux (Steam Proton, Lutris & Bottles) Installation
 
-Same as above except requires winecfg to override/accept the dinput8 dll. 
+Same as above except requires Wine to override/accept the dinput8 dll. 
 
 1. Copy the extracted dinput8.dll into your game's folder (same as above, where LaNoire.exe is located).
-2. If you are using Lutris => (I assume you have L.A. Noire setup in Lutris already), click on the Wine icon -> Winetricks. Proceed with Step 5.
-3. If you are using Steam  => Run `protontricks --gui` in a terminal (you may have to install protontricks from your distro's repo. Consult your package manager.
-4. Select 'L.A. Noire 110800' and wait until a window pops-up (As long as the terminal says 'Executing mkdir' wait. It may show an error regarding 64-bit/32-Bit Prefix, but it'll take a while. Just click on 'Ok'. 
-5. Select 'Run winecfg' (if you don't see that option, open 'Install an application' and cancel out. Now winecfg should be visible.
-6. Select the 'Libraries' tab and add 'dinput8.dll' from the 'New override for library' dropdown menu.
+2. Create a Wine DLL Override for the dinput8.dll.
+- In **Steam** open up the Game Properties page. In the Launch options add a following text - `WINEDLLOVERRIDES="dinput8.dll=n,b" %command%`
+- In **Lutris** open up the Game Configure page. Go into Runner options, scroll down and find DLL Overrides. Add `dinput8.dll` as the Key and `n,b` as the Value.
+- In **Bottles** open up the Bottle settings. Scroll down to DLL Overrides, add `dinput8.dll` as the Override and select **Native, builtin** as the option.
 
-If 'dinput8(native, builtin)' is visible in the list, then you've successfully installed the patch on Linux.
+Other Wine/Proton runners will work in a similar way. If there isn't a dedicated DLL Override page, the environment variable `WINEDLLOVERRIDES="dinput8.dll=n,b"` should make it work.
 
 ## Supported versions
 

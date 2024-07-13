@@ -107,7 +107,8 @@ static LARGE_INTEGER lastTime, timeFrequency;	// Time measurement variables
 
 static DWORD fixedFrametime = 0x3D088889;		// Default frametime => 0.03333333507
 
-static float birdMaxSpeed = 0.0099999998f;
+static float birdMaxSpeed;
+static float* defaultBirdMaxSpeed;
 
 static float frm = 0.033333f;
 
@@ -218,8 +219,21 @@ bool ApplyPatch_Framerate(Patch* patch)
 		if (!MemWriteNop((BYTE*)braking + 5, 4))	return false;
 	}
 
-	// birb
-	void* pBirdMaxSpeed = &birdMaxSpeed;
+	//
+	// Birds have a maximum top speed when taking off. However, this speed
+	// is specified per frame (0.01 units/frame) and thus it becomes too
+	// large on high FPS.
+	// 
+	// 0.01 * 30  = 0.3 u/s
+	// 0.01 * 160 = 1.6 u/s
+	//
+	// The fix adjusts the maximum top speed according to the framerate.
+	//
+
+	if (!MemRead(birds, &defaultBirdMaxSpeed, sizeof(defaultBirdMaxSpeed)))			return false;
+	birdMaxSpeed = *defaultBirdMaxSpeed;
+
+	float* pBirdMaxSpeed = &birdMaxSpeed;
 	if (!MemWrite(birds, &pBirdMaxSpeed, sizeof(pBirdMaxSpeed)))			return false;
 
 	// Prepare required variables
@@ -287,24 +301,21 @@ void Hook_Frame()
 	double fps = timeFrequency.QuadPart / (double)timeDiff;
 	double frameTime = timeDiff / (double)timeFrequency.QuadPart;
 
+	float multiplier = frameTime / *(float*)&fixedFrametime;
+
 	if (engine)
 	{
 		engine->framerate = fps;
 	}
 
+	// Change bird speed limit
+	birdMaxSpeed = multiplier * *defaultBirdMaxSpeed;
+
+
+
+
 	frm = frameTime;
 	//MemWrite((void*)0x10D7230, &frm, sizeof(frm));
-
-	// BIRD problem - 0x00B22A99
-
-
-	const DWORD defaultBirdMaxSpeed = 0x3C23D70A; // Default top speed for birds => 0.0099999998
-
-
-	float multiplier = frameTime / *(float*)&fixedFrametime;
-
-	birdMaxSpeed = multiplier * *(float*)&defaultBirdMaxSpeed;
-
 
 
 	lastTime = currTime;

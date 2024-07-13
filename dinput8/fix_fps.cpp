@@ -72,6 +72,19 @@ HERE,	0xD9, 0x45, 0x08,
 		0x8D, 0x94, 0x24, 0xA0, 0x00, 0x00, 0x00
 };
 
+DWORD sigBirds[] =
+{
+		0xF3, 0x0F, 0x11, 0x83, MASK, MASK, MASK, MASK,
+		0x77, MASK,
+		0x0F, 0x28, 0xC1,
+HERE,	0xF3, 0x0F, 0x10, 0x0D, MASK, MASK, MASK, MASK,
+		0x0F, 0x2F, 0xC8,
+		0x77, MASK,
+		0x0F, 0x28, 0xC1,
+		0xF3, 0x0F, 0x10, 0x8B, MASK, MASK, MASK, MASK,
+		0xF3, 0x0F, 0x10, 0x93, MASK, MASK, MASK, MASK
+};
+
 void RegisterPatch_Framerate()
 {
 	Patch patch;
@@ -81,6 +94,7 @@ void RegisterPatch_Framerate()
 	REGISTER_MASK(patch, sigFramerateDivisorGameplay);
 	REGISTER_MASK(patch, sigWaitAndHook);
 	REGISTER_MASK_ALTERNATE(patch, sigBraking, sigAltBraking);
+	REGISTER_MASK(patch, sigBirds);
 
 	ua_tcscpy_s(patch.name, 50, TEXT("Framerate Unlock"));
 	patch.func = ApplyPatch_Framerate;
@@ -93,17 +107,20 @@ static LARGE_INTEGER lastTime, timeFrequency;	// Time measurement variables
 
 static DWORD fixedFrametime = 0x3D088889;		// Default frametime => 0.03333333507
 
+static float birdMaxSpeed = 0.0099999998f;
+
 static float frm = 0.033333f;
 
 bool ApplyPatch_Framerate(Patch* patch)
 {
-	assert(patch->numSignatures == 5);
+	assert(patch->numSignatures == 6);
 	void* enginePtr						= patch->signatures[0].foundPtr;
 	void* framerateDivisorConstructor	= (BYTE*)patch->signatures[1].foundPtr + 2;
 	void* framerateDivisorGameplay		= (BYTE*)patch->signatures[2].foundPtr + 3;
 	void* waitAndHook					= patch->signatures[3].foundPtr;
 	void* braking						= patch->signatures[4].foundPtr;
 	bool isBrakingAlt					= patch->signatures[4].isAlternate;
+	void* birds							= (BYTE*)patch->signatures[5].foundPtr + 4;
 
 	// Find the engine object pointer
 	if (!MemRead(enginePtr, &ppEngine, sizeof(ppEngine)))	return false;
@@ -201,6 +218,10 @@ bool ApplyPatch_Framerate(Patch* patch)
 		if (!MemWriteNop((BYTE*)braking + 5, 4))	return false;
 	}
 
+	// birb
+	void* pBirdMaxSpeed = &birdMaxSpeed;
+	if (!MemWrite(birds, &pBirdMaxSpeed, sizeof(pBirdMaxSpeed)))			return false;
+
 	// Prepare required variables
 	if (!QueryPerformanceCounter(&lastTime))		{ HandleError(TEXT("Patching failed!"), TEXT("Could not query performance counter.")); return false; }
 	if (!QueryPerformanceFrequency(&timeFrequency)) { HandleError(TEXT("Patching failed!"), TEXT("Could not query performance frequency.")); return false; }
@@ -273,6 +294,18 @@ void Hook_Frame()
 
 	frm = frameTime;
 	//MemWrite((void*)0x10D7230, &frm, sizeof(frm));
+
+	// BIRD problem - 0x00B22A99
+
+
+	const DWORD defaultBirdMaxSpeed = 0x3C23D70A; // Default top speed for birds => 0.0099999998
+
+
+	float multiplier = frameTime / *(float*)&fixedFrametime;
+
+	birdMaxSpeed = multiplier * *(float*)&defaultBirdMaxSpeed;
+
+
 
 	lastTime = currTime;
 }

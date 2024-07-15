@@ -137,8 +137,6 @@ static void* interactionStageVft;
 static float birdMaxSpeed;
 static float* defaultBirdMaxSpeed;
 
-static float frm = 0.033333f;
-
 bool ApplyPatch_Framerate(Patch* patch)
 {
 	assert(patch->numSignatures == 8);
@@ -152,39 +150,54 @@ bool ApplyPatch_Framerate(Patch* patch)
 	void* pairedAnimStageConstructor	= (BYTE*)patch->signatures[6].foundPtr;
 	void* birds							= (BYTE*)patch->signatures[7].foundPtr + 4;
 
-	// Find the engine object pointer
-	if (!MemRead(enginePtr, &ppEngine, sizeof(ppEngine)))	return false;
-
-	//
-	// By default, the game has a target framerate of 59.97. However there is
-	// a divisor value, which is used to determine the final framerate.
-	// In menus, this value is set to 1 (60/1=60), but during gameplay, this
-	// is set to 2 (60/2=30).
+	// ========================================================================
 	// 
-	// Here we patch out this divisor in gameplay, since it makes the rest of
-	// the patch a lot simpler, and prevents potential bugs.
+	// Framerate cap removal
+	// 
+	// ========================================================================
+	{
+		// Find the engine object pointer
+		if (!MemRead(enginePtr, &ppEngine, sizeof(ppEngine)))	return false;
+
+		//
+		// By default, the game has a target framerate of 59.97. However there is
+		// a divisor value, which is used to determine the final framerate.
+		// In menus, this value is set to 1 (60/1=60), but during gameplay, this
+		// is set to 2 (60/2=30).
+		// 
+		// Here we patch out this divisor in gameplay, since it makes the rest of
+		// the patch a lot simpler, and prevents potential bugs.
+		//
+
+		static DWORD newFramerateDivisor = 1;
+		if (!MemWrite(framerateDivisorConstructor, &newFramerateDivisor, sizeof(newFramerateDivisor)))	return false;
+		if (!MemWrite(framerateDivisorGameplay, &newFramerateDivisor, sizeof(newFramerateDivisor)))		return false;
+
+		//
+		// In order to fully "uncap" the framerate, we must first allow the game
+		// to run at full speed. Here we patch out the waiting logic and hook our
+		// own function, which then increases or decreases the speed of the
+		// simulation based on how quickly the game runs.
+		//
+
+		jmp jmp;
+		if (!MemRead(waitAndHook, &jmp, sizeof(jmp)))				return false;
+
+		if (!MemWriteHookCall(waitAndHook, &Hook_Frame))			return false; // replace conditional jump with hook
+		jmp.opcode = 0xEB;
+		jmp.offset -= 5;
+		if (!MemWrite((BYTE*)waitAndHook + 5, &jmp, sizeof(jmp)))	return false; // append hook with jump to end of branch
+	}
+
+	// ========================================================================
+	// 
+	// FPS-related fixes
+	// 
+	// ========================================================================
+
 	//
-
-	static DWORD newFramerateDivisor = 1;
-	if (!MemWrite(framerateDivisorConstructor, &newFramerateDivisor, sizeof(newFramerateDivisor)))	return false;
-	if (!MemWrite(framerateDivisorGameplay, &newFramerateDivisor, sizeof(newFramerateDivisor)))		return false;
-
-	//
-	// In order to fully "uncap" the framerate, we must first allow the game
-	// to run at full speed. Here we patch out the waiting logic and hook our
-	// own function, which then increases or decreases the speed of the
-	// simulation based on how quickly the game runs.
-	//
-
-	jmp jmp;
-	if (!MemRead(waitAndHook, &jmp, sizeof(jmp)))				return false;
-
-	if (!MemWriteHookCall(waitAndHook, &Hook_Frame))			return false; // replace conditional jump with hook
-	jmp.opcode = 0xEB;
-	jmp.offset -= 5;
-	if (!MemWrite((BYTE*)waitAndHook + 5, &jmp, sizeof(jmp)))	return false; // append hook with jump to end of branch
-
-	//
+	// CAR BRAKING
+	// 
 	// When driving cars, the game creates forces and impulses based on the
 	// user's inputs, which are then passed down to the physics system (Havok)
 	// that actually performs the physics simulation. Havok will then correctly
@@ -202,82 +215,100 @@ bool ApplyPatch_Framerate(Patch* patch)
 	// 
 	// forceVector = forceVector * 0.0333333 * frametime;
 	//
-
-	if (!isBrakingAlt)
 	{
-		BYTE brakeHook[] =
+		if (!isBrakingAlt)
 		{
-			0xF3, 0x0F, 0x10, 0x05, MASK, MASK, MASK, MASK,	// movss xmm0, dword ptr [$fixedFrametime]
-			0xE9, MASK, MASK, MASK, MASK					// jmp $hook
-		};
+			BYTE brakeHook[] =
+			{
+				0xF3, 0x0F, 0x10, 0x05, MASK, MASK, MASK, MASK,	// movss xmm0, dword ptr [$fixedFrametime]
+				0xE9, MASK, MASK, MASK, MASK					// jmp $hook
+			};
 
-		BYTE* pBrakeHook = (BYTE*)ExecCopy(brakeHook, sizeof(brakeHook));
-		assert(pBrakeHook);
+			BYTE* pBrakeHook = (BYTE*)ExecCopy(brakeHook, sizeof(brakeHook));
+			assert(pBrakeHook);
 
-		DWORD* a1 = (DWORD*)&pBrakeHook[4];
-		DWORD* a2 = (DWORD*)&pBrakeHook[9];
+			DWORD* a1 = (DWORD*)&pBrakeHook[4];
+			DWORD* a2 = (DWORD*)&pBrakeHook[9];
 
-		*a1 = (DWORD)&fixedFrametime;
-		*a2 = (DWORD)braking - (DWORD)a2 + 1;
+			*a1 = (DWORD)&fixedFrametime;
+			*a2 = (DWORD)braking - (DWORD)a2 + 1;
 
-		if (!MemWriteHookJmp(braking, pBrakeHook))	return false;
+			if (!MemWriteHookJmp(braking, pBrakeHook))	return false;
+		}
+		else
+		{
+			BYTE brakeHook[] =
+			{
+				0xD9, 0x05, MASK, MASK, MASK, MASK,	// fld dword ptr [$fixedFrametime]
+				0xDC, 0x0D, MASK, MASK, MASK, MASK,	// fmul dword ptr [$30]
+				0xE9, MASK, MASK, MASK, MASK		// jmp $hook
+			};
+
+			BYTE* pBrakeHook = (BYTE*)ExecCopy(brakeHook, sizeof(brakeHook));
+			assert(pBrakeHook);
+
+			BYTE fmul[6];
+			if (!MemRead((BYTE*)braking + 6, &fmul, sizeof(fmul)))	return false;
+			memcpy(&brakeHook[6], fmul, sizeof(fmul));
+
+			DWORD* a1 = (DWORD*)&pBrakeHook[2];
+			DWORD* a2 = (DWORD*)&pBrakeHook[13];
+
+			*a1 = (DWORD)&fixedFrametime;
+			*a2 = (DWORD)braking - (DWORD)a2 + 5;
+
+			if (!MemWriteHookJmp(braking, pBrakeHook))	return false;
+			if (!MemWriteNop((BYTE*)braking + 5, 4))	return false;
+		}
 	}
-	else
+
+	//
+	// PENCIL CLUE
+	//
+	// When the player picks up the pencil in the case "The Set Up", there
+	// are two things which have to happen:
+	//   Firstly, a PickupEventHandler should be called.
+	//   Secondly, the InspectionSystem should begin the interaction with
+	//   the object.
+	// 
+	// For some odd reason, above 50 FPS these things happen in the
+	// incorrect order and the InspectionSystem panics and cancels,
+	// since it does not yet have the correct values set by the pickup event.
+	// 
+	// The best way I have figured out to fix this is to manually delay
+	// the InspectionSystem entering the next stage via a hook and
+	// cock-blocking the progression until the pickup event happens.
+	// 
+	// It's probably related to some weird animation event floating point
+	// timing fuckery, and I haven't got the slightest fucking clue how to fix it!
+	//
 	{
-		BYTE brakeHook[] =
+		interactionStageVft = (void*)(*(DWORD*)pairedAnimStageConstructor);
+
+		BYTE pencilHook[] =
 		{
-			0xD9, 0x05, MASK, MASK, MASK, MASK,	// fld dword ptr [$fixedFrametime]
-			0xDC, 0x0D, MASK, MASK, MASK, MASK,	// fmul dword ptr [$30]
+			0x89, 0xE9,							// mov ecx, ebp
+			0x51,								// push ecx
+			0xE8, MASK, MASK, MASK, MASK,		// call $Hook_Pencil
+			0x8B, 0x4D, 0x04,					// mov ecx,[ebp + 04]
+			0x8B, 0x41, 0x10,					// mov eax,[ecx + 10]
 			0xE9, MASK, MASK, MASK, MASK		// jmp $hook
 		};
 
-		BYTE* pBrakeHook = (BYTE*)ExecCopy(brakeHook, sizeof(brakeHook));
-		assert(pBrakeHook);
+		BYTE* pPencilHook = (BYTE*)ExecCopy(pencilHook, sizeof(pencilHook));
 
-		BYTE fmul[6];
-		if (!MemRead((BYTE*)braking + 6, &fmul, sizeof(fmul)))	return false;
-		memcpy(&brakeHook[6], fmul, sizeof(fmul));
+		DWORD* a1 = (DWORD*)&pPencilHook[4];
+		DWORD* a2 = (DWORD*)&pPencilHook[15];
 
-		DWORD* a1 = (DWORD*)&pBrakeHook[2];
-		DWORD* a2 = (DWORD*)&pBrakeHook[13];
+		*a1 = (DWORD)&Hook_Pencil - (DWORD)a1 - 4;
+		*a2 = (DWORD)pencil - (DWORD)a2 + 1;
 
-		*a1 = (DWORD)&fixedFrametime;
-		*a2 = (DWORD)braking - (DWORD)a2 + 5;
-
-		if (!MemWriteHookJmp(braking, pBrakeHook))	return false;
-		if (!MemWriteNop((BYTE*)braking + 5, 4))	return false;
+		if (!MemWriteHookJmp(pencil, pPencilHook))	return false;
+		if (!MemWriteNop((BYTE*)pencil + 5, 1))		return false;
 	}
 
 	//
-	// Pencil fix
-	//
-
-	interactionStageVft = (void*)(*(DWORD*)pairedAnimStageConstructor);
-
-	BYTE pencilHook[] =
-	{
-		0x89, 0xe9,							// mov ecx, ebp
-		0x51,								// push ecx
-		0xE8, MASK, MASK, MASK, MASK,		// call $Hook_Pencil
-		0x8B, 0x4D, 0x04,					// mov ecx,[ebp + 04]
-		0x8B, 0x41, 0x10,					// mov eax,[ecx + 10]
-		0xE9, MASK, MASK, MASK, MASK		// jmp $hook
-	};
-
-	BYTE* pPencilHook = (BYTE*)ExecCopy(pencilHook, sizeof(pencilHook));
-
-	DWORD* a1 = (DWORD*)&pPencilHook[3];
-
-	MemWriteHookCall(a1, &Hook_Pencil);
-
-	DWORD* a2 = (DWORD*)&pPencilHook[15];
-	*a2 = (DWORD)pencil - (DWORD)a2 + 1;
-
-	if (!MemWriteHookJmp(pencil, pPencilHook))	return false;
-	if (!MemWriteNop((BYTE*)pencil + 5, 1))		return false;
-
-
-
+	// PIGEON TAKEOFF
 	//
 	// Birds have a maximum top speed when taking off. However, this speed
 	// is specified per frame (0.01 units/frame) and thus it becomes too
@@ -288,12 +319,13 @@ bool ApplyPatch_Framerate(Patch* patch)
 	//
 	// The fix adjusts the maximum top speed according to the framerate.
 	//
+	{
+		if (!MemRead(birds, &defaultBirdMaxSpeed, sizeof(defaultBirdMaxSpeed)))			return false;
+		birdMaxSpeed = *defaultBirdMaxSpeed;
 
-	if (!MemRead(birds, &defaultBirdMaxSpeed, sizeof(defaultBirdMaxSpeed)))			return false;
-	birdMaxSpeed = *defaultBirdMaxSpeed;
-
-	float* pBirdMaxSpeed = &birdMaxSpeed;
-	if (!MemWrite(birds, &pBirdMaxSpeed, sizeof(pBirdMaxSpeed)))			return false;
+		float* pBirdMaxSpeed = &birdMaxSpeed;
+		if (!MemWrite(birds, &pBirdMaxSpeed, sizeof(pBirdMaxSpeed)))			return false;
+	}
 
 	// Prepare required variables
 	if (!QueryPerformanceCounter(&lastTime))		{ HandleError(TEXT("Patching failed!"), TEXT("Could not query performance counter.")); return false; }
@@ -370,13 +402,6 @@ void __stdcall Hook_Frame()
 	// Change bird speed limit
 	birdMaxSpeed = multiplier * *defaultBirdMaxSpeed;
 
-
-
-
-	frm = frameTime;
-	//MemWrite((void*)0x10D7230, &frm, sizeof(frm));
-
-
 	lastTime = currTime;
 }
 
@@ -387,7 +412,7 @@ void __stdcall Hook_Pencil(InspectionSystem* inspection)
 		return;
 	}
 
-	if (inspection->stage->__vftptr == interactionStageVft && // InteractionStage
+	if (inspection->stage->__vftptr == interactionStageVft && // must be of type InteractionStage
 		inspection->stage->state == 2 &&
 		inspection->tb.object1 == inspection->tb.object2)
 	{

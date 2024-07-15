@@ -72,6 +72,29 @@ HERE,	0xD9, 0x45, 0x08,
 		0x8D, 0x94, 0x24, 0xA0, 0x00, 0x00, 0x00
 };
 
+DWORD sigPencil[] =
+{
+		0x8B, 0x42, 0x10,
+		0x57,
+		0x51,
+		0xD9, 0x1C, 0x24,
+		0xFF, 0xD0,
+HERE,	0x8B, 0x4D, 0x04,
+		0x8B, 0x41, 0x10,
+		0x2B, 0xC6
+};
+
+DWORD sigPairedAnimStageConstructor[] =
+{
+		0x89, 0x48, 0x08,
+		0xC7, 0x40, 0x0C, MASK, MASK, MASK, MASK,
+		0x89, 0x48, 0x10,
+		0xC7, 0x00, HERE, MASK, MASK, MASK, MASK,
+		0xC7, 0x40, 0x0C, MASK, MASK, MASK, MASK,
+		0x89, 0x48, 0x14,
+		0x89, 0x48, 0x18
+};
+
 DWORD sigBirds[] =
 {
 		0xF3, 0x0F, 0x11, 0x83, MASK, MASK, MASK, MASK,
@@ -94,6 +117,8 @@ void RegisterPatch_Framerate()
 	REGISTER_MASK(patch, sigFramerateDivisorGameplay);
 	REGISTER_MASK(patch, sigWaitAndHook);
 	REGISTER_MASK_ALTERNATE(patch, sigBraking, sigAltBraking);
+	REGISTER_MASK(patch, sigPencil);
+	REGISTER_MASK(patch, sigPairedAnimStageConstructor);
 	REGISTER_MASK(patch, sigBirds);
 
 	ua_tcscpy_s(patch.name, 50, TEXT("Framerate Unlock"));
@@ -107,6 +132,8 @@ static LARGE_INTEGER lastTime, timeFrequency;	// Time measurement variables
 
 static DWORD fixedFrametime = 0x3D088889;		// Default frametime => 0.03333333507
 
+static void* interactionStageVft;
+
 static float birdMaxSpeed;
 static float* defaultBirdMaxSpeed;
 
@@ -114,14 +141,16 @@ static float frm = 0.033333f;
 
 bool ApplyPatch_Framerate(Patch* patch)
 {
-	assert(patch->numSignatures == 6);
+	assert(patch->numSignatures == 8);
 	void* enginePtr						= patch->signatures[0].foundPtr;
 	void* framerateDivisorConstructor	= (BYTE*)patch->signatures[1].foundPtr + 2;
 	void* framerateDivisorGameplay		= (BYTE*)patch->signatures[2].foundPtr + 3;
 	void* waitAndHook					= patch->signatures[3].foundPtr;
 	void* braking						= patch->signatures[4].foundPtr;
 	bool isBrakingAlt					= patch->signatures[4].isAlternate;
-	void* birds							= (BYTE*)patch->signatures[5].foundPtr + 4;
+	void* pencil						= (BYTE*)patch->signatures[5].foundPtr;
+	void* pairedAnimStageConstructor	= (BYTE*)patch->signatures[6].foundPtr;
+	void* birds							= (BYTE*)patch->signatures[7].foundPtr + 4;
 
 	// Find the engine object pointer
 	if (!MemRead(enginePtr, &ppEngine, sizeof(ppEngine)))	return false;
@@ -220,6 +249,36 @@ bool ApplyPatch_Framerate(Patch* patch)
 	}
 
 	//
+	// Pencil fix
+	//
+
+	interactionStageVft = (void*)(*(DWORD*)pairedAnimStageConstructor);
+
+	BYTE pencilHook[] =
+	{
+		0x89, 0xe9,							// mov ecx, ebp
+		0x51,								// push ecx
+		0xE8, MASK, MASK, MASK, MASK,		// call $Hook_Pencil
+		0x8B, 0x4D, 0x04,					// mov ecx,[ebp + 04]
+		0x8B, 0x41, 0x10,					// mov eax,[ecx + 10]
+		0xE9, MASK, MASK, MASK, MASK		// jmp $hook
+	};
+
+	BYTE* pPencilHook = (BYTE*)ExecCopy(pencilHook, sizeof(pencilHook));
+
+	DWORD* a1 = (DWORD*)&pPencilHook[3];
+
+	MemWriteHookCall(a1, &Hook_Pencil);
+
+	DWORD* a2 = (DWORD*)&pPencilHook[15];
+	*a2 = (DWORD)pencil - (DWORD)a2 + 1;
+
+	if (!MemWriteHookJmp(pencil, pPencilHook))	return false;
+	if (!MemWriteNop((BYTE*)pencil + 5, 1))		return false;
+
+
+
+	//
 	// Birds have a maximum top speed when taking off. However, this speed
 	// is specified per frame (0.01 units/frame) and thus it becomes too
 	// large on high FPS.
@@ -269,44 +328,6 @@ bool ApplyPatch_Framerate(Patch* patch)
 	//MemWrite(p10, &a, sizeof(a));
 	////MemWrite(p11, &a, sizeof(a)); // wheels
 	//MemWrite(p12, &a, sizeof(a));
-
-
-	void* pencil = (void*)0x00522842;
-
-	BYTE pencilHook[] =
-	{
-		0x89, 0xe9,							// mov ecx, ebp
-		0x51,								// push ecx
-//		0x55,								// push ebp
-		0xE8, MASK, MASK, MASK, MASK,		// call $Hook_Pencil
-		0x8B, 0x4D, 0x04,					// mov ecx,[ebp + 04]
-		0x8B, 0x41, 0x10,					// mov eax,[ecx + 10]
-		0xE9, MASK, MASK, MASK, MASK		// jmp $hook
-	};
-
-	BYTE* pPencilHook = (BYTE*)ExecCopy(pencilHook, sizeof(pencilHook));
-
-
-//	DWORD* a1 = (DWORD*)&pPencilHook[1];
-	DWORD* a1 = (DWORD*)&pPencilHook[2 + 1];
-
-	//DWORD* a1 = (DWORD*)&pPencilHook[1 + 1];
-	//*a1 = (DWORD)&Hook_Pencil - (DWORD)a1 + 1;
-
-	MemWriteHookCall(a1, &Hook_Pencil);
-
-
-
-//	DWORD* a2 = (DWORD*)&pPencilHook[7 + 1 + 5];
-	DWORD* a2 = (DWORD*)&pPencilHook[7 + 2 + 5 + 1];
-	*a2 = (DWORD)pencil - (DWORD)a2 + 1;
-
-
-
-	if (!MemWriteHookJmp(pencil, pPencilHook))	return false;
-	if (!MemWriteNop((BYTE*)pencil + 5, 1))		return false;
-
-
 
 	return true;
 }
@@ -359,8 +380,6 @@ void __stdcall Hook_Frame()
 	lastTime = currTime;
 }
 
-const void* InteractionStageVftptr = (void*)0x0111c86c;
-
 void __stdcall Hook_Pencil(InspectionSystem* inspection)
 {	
 	if (!inspection || !inspection->stage) // Safe-guard
@@ -368,7 +387,7 @@ void __stdcall Hook_Pencil(InspectionSystem* inspection)
 		return;
 	}
 
-	if (inspection->stage->__vftptr == InteractionStageVftptr && // InteractionStage
+	if (inspection->stage->__vftptr == interactionStageVft && // InteractionStage
 		inspection->stage->state == 2 &&
 		inspection->tb.object1 == inspection->tb.object2)
 	{

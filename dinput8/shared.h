@@ -18,11 +18,41 @@
 class I3DEngine
 {
 public:
-	BYTE padding[0xE8];
+	void* __vftptr;
+	BYTE padding[0xE4];
 	float framerate;
 	BYTE padding2[0xE8];
 	int viewWidth;
 	int viewHeight;
+};
+
+class InspectionObject;
+class ActorInstance;
+
+class InspectionStage
+{
+public:
+	void* __vftptr;
+	BYTE padding[0x8];
+	void* __vftptr2;
+	int state;
+};
+
+class InspectionSystem
+{
+public:
+	struct TB
+	{
+		ActorInstance* actor;
+		BYTE padding[0x30];
+		InspectionObject** object1;
+		InspectionObject** object2;
+	};
+
+	void* __vftptr;
+	InspectionStage* stage;
+	BYTE padding[0x8];
+	TB tb;
 };
 
 // Common signatures

@@ -276,9 +276,9 @@ bool ApplyPatch_Framerate(Patch* patch)
 	BYTE pencilHook[] =
 	{
 		0x89, 0xe9,							// mov ecx, ebp
-		0x51,								// push   ecx
-//		0x55,								// push   ebp
-		0xE8, MASK, MASK, MASK, MASK,		// call	 $hook
+		0x51,								// push ecx
+//		0x55,								// push ebp
+		0xE8, MASK, MASK, MASK, MASK,		// call $Hook_Pencil
 		0x8B, 0x4D, 0x04,					// mov ecx,[ebp + 04]
 		0x8B, 0x41, 0x10,					// mov eax,[ecx + 10]
 		0xE9, MASK, MASK, MASK, MASK		// jmp $hook
@@ -313,7 +313,7 @@ bool ApplyPatch_Framerate(Patch* patch)
 
 double minFrameTime = 0.0;
 
-void Hook_Frame()
+void __stdcall Hook_Frame()
 {
 	I3DEngine* engine = *ppEngine;
 	assert(engine);
@@ -359,25 +359,20 @@ void Hook_Frame()
 	lastTime = currTime;
 }
 
-void __stdcall Hook_Pencil(int inst)
-{
-	DWORD* t = (DWORD*)(*(DWORD*)(inst + 4) + 16);
-	DWORD* o = (DWORD*)(*(DWORD*)(inst + 4) + 12);
+const void* InteractionStageVftptr = (void*)0x0111c86c;
 
-	DWORD* a = (DWORD*)(inst + 16);
-
-	/*
-	DWORD a1 = *(DWORD*)(*a + 0x34);
-	DWORD a2 = *(DWORD*)(*a + 0x38);*/
-
-	DWORD a1 = a[13];
-	DWORD a2 = a[14];
-
-
-	//*(DWORD*)(*(DWORD*)(inst + 4) + 16) = 1;
-	
-	if (*t == 2 && *o == 0x0111C8F8 && a1 == a2)
+void __stdcall Hook_Pencil(InspectionSystem* inspection)
+{	
+	if (!inspection || !inspection->stage) // Safe-guard
 	{
-		*t = 1;
+		return;
+	}
+
+	if (inspection->stage->__vftptr == InteractionStageVftptr && // InteractionStage
+		inspection->stage->state == 2 &&
+		inspection->tb.object1 == inspection->tb.object2)
+	{
+		// Delay next stage
+		inspection->stage->state = 1;
 	}
 }

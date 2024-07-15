@@ -14,3 +14,5 @@ bool ApplyPatch_Framerate(Patch* patch);
 extern double minFrameTime;
 
 void Hook_Frame();
+
+void __stdcall Hook_Pencil(int inst);

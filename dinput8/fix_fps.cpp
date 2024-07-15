@@ -270,6 +270,44 @@ bool ApplyPatch_Framerate(Patch* patch)
 	////MemWrite(p11, &a, sizeof(a)); // wheels
 	//MemWrite(p12, &a, sizeof(a));
 
+
+	void* pencil = (void*)0x00522842;
+
+	BYTE pencilHook[] =
+	{
+		0x89, 0xe9,							// mov ecx, ebp
+		0x51,								// push   ecx
+//		0x55,								// push   ebp
+		0xE8, MASK, MASK, MASK, MASK,		// call	 $hook
+		0x8B, 0x4D, 0x04,					// mov ecx,[ebp + 04]
+		0x8B, 0x41, 0x10,					// mov eax,[ecx + 10]
+		0xE9, MASK, MASK, MASK, MASK		// jmp $hook
+	};
+
+	BYTE* pPencilHook = (BYTE*)ExecCopy(pencilHook, sizeof(pencilHook));
+
+
+//	DWORD* a1 = (DWORD*)&pPencilHook[1];
+	DWORD* a1 = (DWORD*)&pPencilHook[2 + 1];
+
+	//DWORD* a1 = (DWORD*)&pPencilHook[1 + 1];
+	//*a1 = (DWORD)&Hook_Pencil - (DWORD)a1 + 1;
+
+	MemWriteHookCall(a1, &Hook_Pencil);
+
+
+
+//	DWORD* a2 = (DWORD*)&pPencilHook[7 + 1 + 5];
+	DWORD* a2 = (DWORD*)&pPencilHook[7 + 2 + 5 + 1];
+	*a2 = (DWORD)pencil - (DWORD)a2 + 1;
+
+
+
+	if (!MemWriteHookJmp(pencil, pPencilHook))	return false;
+	if (!MemWriteNop((BYTE*)pencil + 5, 1))		return false;
+
+
+
 	return true;
 }
 
@@ -319,4 +357,27 @@ void Hook_Frame()
 
 
 	lastTime = currTime;
+}
+
+void __stdcall Hook_Pencil(int inst)
+{
+	DWORD* t = (DWORD*)(*(DWORD*)(inst + 4) + 16);
+	DWORD* o = (DWORD*)(*(DWORD*)(inst + 4) + 12);
+
+	DWORD* a = (DWORD*)(inst + 16);
+
+	/*
+	DWORD a1 = *(DWORD*)(*a + 0x34);
+	DWORD a2 = *(DWORD*)(*a + 0x38);*/
+
+	DWORD a1 = a[13];
+	DWORD a2 = a[14];
+
+
+	//*(DWORD*)(*(DWORD*)(inst + 4) + 16) = 1;
+	
+	if (*t == 2 && *o == 0x0111C8F8 && a1 == a2)
+	{
+		*t = 1;
+	}
 }

@@ -164,7 +164,7 @@ bool ApplyPatch_Aspect(Patch* patch)
 	if (!MemWriteHookCallPtr(uiSizeHook, &pAtoi))						return false;
 
 	static double* pUiWidth = &uiWidth;
-	//static double* pUiHeight = &uiHeight;
+	static double* pUiHeight = &uiHeight;
 
 	void* sizeWidth = (BYTE*)uiSizeHook + 35;
 	if (!MemWrite(sizeWidth, &pUiWidth, sizeof(pUiWidth)))				return false;
@@ -172,21 +172,21 @@ bool ApplyPatch_Aspect(Patch* patch)
 	if (!isAlternate)
 	{
 		void* layerWidth = (BYTE*)uiLayerSize + 4;
-		//void* layerHeight = (BYTE*)uiLayerSize + 43;
+		void* layerHeight = (BYTE*)uiLayerSize + 43;
 		if (!MemWrite(layerWidth, &pUiWidth, sizeof(pUiWidth)))			return false;
-		//if (!MemWrite(layerHeight, &pUiHeight, sizeof(pUiHeight)))		return false;
+		if (!MemWrite(layerHeight, &pUiHeight, sizeof(pUiHeight)))		return false;
 
 		void* layerWidthAlt = (BYTE*)uiLayerSize2 + 4;
-		//void* layerHeightAlt = (BYTE*)uiLayerSize2 + 38;
+		void* layerHeightAlt = (BYTE*)uiLayerSize2 + 38;
 		if (!MemWrite(layerWidthAlt, &pUiWidth, sizeof(pUiWidth)))		return false;
-		//if (!MemWrite(layerHeightAlt, &pUiHeight, sizeof(pUiHeight)))	return false;
+		if (!MemWrite(layerHeightAlt, &pUiHeight, sizeof(pUiHeight)))	return false;
 	}
 	else
 	{
 		void* layerWidth = (BYTE*)uiLayerSize + 2;
-		//void* layerHeight = (BYTE*)uiLayerSize + 19;
+		void* layerHeight = (BYTE*)uiLayerSize + 19;
 		if (!MemWrite(layerWidth, &pUiWidth, sizeof(pUiWidth)))			return false;
-		//if (!MemWrite(layerHeight, &pUiHeight, sizeof(pUiHeight)))		return false;
+		if (!MemWrite(layerHeight, &pUiHeight, sizeof(pUiHeight)))		return false;
 	}
 
 	void* subtitleWidth = (BYTE*)uiSubtitleLayer + 2;
@@ -218,19 +218,16 @@ bool ApplyPatch_Aspect(Patch* patch)
 	if (!MemWriteNop((BYTE*)fov + 5, 3))	return false;
 
 
-
 	//MemWrite((void*)0x00491FD3, &pUiWidth, sizeof(pUiWidth));
 	//MemWrite((void*)0x00491FF5, &pUiHeight, sizeof(pUiHeight));	
 	//MemWrite((void*)0x00493326, &pUiWidth, sizeof(pUiWidth));
 	//MemWrite((void*)0x00493352, &pUiHeight, sizeof(pUiHeight));
-
 
 	/*
 	
 	01259AF8
 	
 	*/
-
 
 	return true;
 }
@@ -245,23 +242,25 @@ int __cdecl Hook_Atoi(const char* string)
 	double aspect = width / (double)height;
 	double multiplier = aspect / 1.77777778;
 
-	//if (multiplier > 1.0)
+	if (multiplier > 1.0)
 	{
 		uiWidth		= 1280.0 * multiplier;
 		uiHeight	= 720.0;
 	}
-	/*else
+	else
 	{
 		uiWidth		= 1280.0;
 		uiHeight	= 720.0 / multiplier;
-	}*/
+	}
 
 	return atoi(string);
 }
 
-float fovMultiplier = 1.0f;
+double fovMultiplier = 1.0f;
 
-void __stdcall Hook_Fov(CameraManager* manager) // FIXME: Check if its called from the correct location only once
+// FIXME: blending on fight looks weird
+// FIXME: Check if its called from the correct location only once
+void __stdcall Hook_Fov(CameraManager* manager)
 {
 	if (!ppEngine || !manager || !manager->activeCamera) // Safe-guard
 	{
@@ -277,8 +276,15 @@ void __stdcall Hook_Fov(CameraManager* manager) // FIXME: Check if its called fr
 		return;
 	}
 
-	float aspect = engine->viewWidth / (float)engine->viewHeight;
-	float multiplier = (aspect / 1.77777778f) * fovMultiplier;
+	double aspect = engine->viewWidth / (double)engine->viewHeight;
+	double multiplier = aspect / 1.77777778;
+
+	if (multiplier < 1.0)
+	{
+		multiplier = 1.0; // If the aspect is smaller than 16:9 => dont do correction
+	}
+
+	multiplier *= fovMultiplier;
 
 	manager->activeCamera->fov *= multiplier;
 }

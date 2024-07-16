@@ -259,7 +259,9 @@ int __cdecl Hook_Atoi(const char* string)
 	return atoi(string);
 }
 
-void __stdcall Hook_Fov(CameraManager* manager)
+float fovMultiplier = 1.0f;
+
+void __stdcall Hook_Fov(CameraManager* manager) // FIXME: Check if its called from the correct location only once
 {
 	if (!ppEngine || !manager || !manager->activeCamera) // Safe-guard
 	{
@@ -276,7 +278,7 @@ void __stdcall Hook_Fov(CameraManager* manager)
 	}
 
 	float aspect = engine->viewWidth / (float)engine->viewHeight;
-	float multiplier = aspect / 1.77777778f;
+	float multiplier = (aspect / 1.77777778f) * fovMultiplier;
 
 	manager->activeCamera->fov *= multiplier;
 }

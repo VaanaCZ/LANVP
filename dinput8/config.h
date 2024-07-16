@@ -15,6 +15,7 @@ struct Options
 	bool	resolution_unlock = true;
 	bool	aspect_correction = true;
 	double	fps_limit = 0.0;
+	float	fov_multiplier = 1.0f;
 	bool	borderless_window = true;
 	bool	skip_logos_and_legals = false;
 };

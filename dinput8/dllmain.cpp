@@ -21,6 +21,8 @@
 #include "opt_skip_logos_and_legals.h"
 #include "opt_version.h"
 
+#define EPSILON 2.2204460492503131e-016
+
 const TCHAR configFile[] = TEXT("lanvp.ini");
 
 void Init()
@@ -50,9 +52,14 @@ void Init()
 		RegisterPatch_Aspect();
 	}
 
-	if (options.fps_limit > 0.0)
+	if (options.fps_limit > EPSILON)
 	{
 		minFrameTime = 1.0 / options.fps_limit;
+	}
+
+	if (options.fov_multiplier > EPSILON)
+	{
+		fovMultiplier = options.fov_multiplier;
 	}
 
 	if (options.borderless_window)

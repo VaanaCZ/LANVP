@@ -71,6 +71,7 @@ bool LoadConfig(const TCHAR* path, Options& options)
 			READ_INTEGER(options, key, val, resolution_unlock);
 			READ_INTEGER(options, key, val, aspect_correction);
 			READ_DOUBLE	(options, key, val, fps_limit);
+			READ_DOUBLE	(options, key, val, fov_multiplier);
 			READ_INTEGER(options, key, val, borderless_window);
 			READ_INTEGER(options, key, val, skip_logos_and_legals);
 		}
@@ -123,6 +124,13 @@ const char config[] =
 	"; 0 = disabled (default)\n"
 	"; example: fps_lock=30\n"
 	"fps_limit=0\n"
+	"\n"
+	"; Allows to set a custom field of view.\n"
+	"; Only works if fps_unlock is also enabled!\n"
+	";\n"
+	"; 1.0 = disabled (default)\n"
+	"; example: aspect_correction=1.5\n"
+	"fov_multiplier=1.0\n"
 	"\n"
 	"; Starts the game in a borderless window.\n"
 	"; Allows for faster switching between windows.\n"

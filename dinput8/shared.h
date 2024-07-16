@@ -62,10 +62,63 @@ public:
 	float fov;
 };
 
+class CameraManagerProperties;
+
 class CameraManager
 {
 public:
-	BYTE padding[0xE0];
+	ICamera* blendCamera;							// class BlendCamera
+	ICamera* clampYModifier;						// class ClampYModifier
+	ICamera* collisionModifier;						// class CollisionModifier
+	ICamera* springModifier;						// class SpringModifier
+	ICamera* sphericalSpringModifier;				// class SphericalSpringModifier
+	ICamera* noiseModifier;							// class NoiseModifier
+	ICamera* zoomModifier;							// class ZoomModifier
+	ICamera* elevationModifier;						// class ElevationModifier
+	ICamera* cameraRelativeLookAtModifier;			// class CameraRelativeLookAtModifier
+	ICamera* followModifier;						// class FollowModifier
+	ICamera* nonPositionalInterpolationModifier;	// class NonPositionalInterpolationModifier
+	ICamera* pullAroundModifier;					// class PullAroundModifier
+	ICamera* jumpModifier;							// class JumpModifier
+	ICamera* attentionFocusModifier;				// class AttentionFocusModifier
+	ICamera* attentionFocusLookAtModifier;			// class AttentionFocusLookAtModifier
+	ICamera* lookModifier2;							// class LookModifier2
+	ICamera* lookModifier3;							// class LookModifier3
+	ICamera* ambushCamera;							// class AmbushCamera
+	ICamera* arrestCamera;							// class ArrestCamera
+	ICamera* balancePlatformCamera;					// class BalancePlatformCamera
+	ICamera* brawlingLockOnCamera;					// class BrawlingLockOnCamera
+	ICamera* brawlingMoveCamera;					// class BrawlingMoveCamera
+	ICamera* cameraCutCamera;						// class CameraCutCamera
+	ICamera* chandelierCamera;						// class ChandelierCamera
+	ICamera* clueConversationCamera;				// class ClueConversationCamera
+	ICamera* conversationCamera;					// class ConversationCamera
+	ICamera* coverCamera;							// class CoverCamera
+	ICamera* cutsceneCamera;						// class CutsceneCamera
+	ICamera* fallingCamera;							// class FallingCamera
+	ICamera* flyCamera;								// class FlyCamera
+	ICamera* gamewellCamera;						// class GamewellCamera
+	ICamera* gunfightEndSequenceCamera;				// class GunfightEndSequenceCamera
+	ICamera* idleCamera;							// class IdleCamera
+	ICamera* inspectionCamera;						// class InspectionCamera
+	ICamera* ledgerCamera;							// class LedgerCamera
+	ICamera* locatorZoomCamera;						// class LocatorZoomCamera
+	ICamera* manualZoomCamera;						// class ManualZoomCamera
+	ICamera* playerCamera;							// class PlayerCamera
+	ICamera* scriptedSequenceCamera;				// class ScriptedSequenceCamera
+	ICamera* shootingCamera;						// class ShootingCamera
+	ICamera* simpleCutCamera;						// class SimpleCutCamera
+	ICamera* sittingCamera;							// class SittingCamera
+	ICamera* staticCamera;							// class StaticCamera
+	ICamera* tackleCamera;							// class TackleCamera
+	ICamera* trolleyCarCamera;						// class TrolleyCarCamera
+	ICamera* vantagePointCamera;					// class VantagePointCamera
+	ICamera* vehicleFollowCamera;					// class VehicleFollowCamera
+	ICamera* uIMainMenu3DCamera;					// class UIMainMenu3DCamera
+	ICamera* vehicleSideCamera;						// class VehicleSideCamera
+	ICamera* vehicleShowRoomCamera;					// class VehicleShowRoomCamera
+	CameraManagerProperties* properties;
+	BYTE padding[0x14];
 	ICamera* activeCamera;
 };
 

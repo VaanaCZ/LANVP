@@ -14,4 +14,4 @@ bool ApplyPatch_Aspect(Patch* patch);
 int __cdecl Hook_Atoi(const char* string);
 
 class CameraManager;
-void __stdcall Hook_Fov(CameraManager* camera);
+void __stdcall Hook_Fov(CameraManager* manager);

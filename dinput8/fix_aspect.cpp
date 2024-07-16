@@ -101,10 +101,22 @@ HERE,	0xDC, 0x35, MASK, MASK, MASK, MASK,
 		0x83, 0xC4, 0x08
 };
 
+DWORD sigFov[] =
+{
+		0x0F, 0x57, 0xC0,
+		0x0F, 0x29, 0x47, 0x20,
+		0x89, 0xBB, 0xE0, 0x00, 0x00, 0x00,
+HERE,	0x8B, 0x17,
+		0x8B, 0x82, 0xA0, 0x00, 0x00, 0x00,
+		0x8B, 0xCF,
+		0xFF, 0xD0
+};
+
 void RegisterPatch_Aspect()
 {
 	Patch patch;
 
+	REGISTER_ENGINE_MASK(patch);
 	REGISTER_MASK(patch, sigBlackBars);
 	REGISTER_MASK(patch, sigBlackBarsOnResize);
 	REGISTER_MASK(patch, sigUiSizeHook);
@@ -112,6 +124,7 @@ void RegisterPatch_Aspect()
 	REGISTER_MASK_ALTERNATE(patch, sigUiLayerSize2, sigAltUiLayerSize);
 	REGISTER_MASK(patch, sigUiSubtitleLayer);
 	REGISTER_MASK(patch, sigUiLegalsScreen);
+	REGISTER_MASK(patch, sigFov);
 
 	ua_tcscpy_s(patch.name, 50, TEXT("Aspect-ratio fix"));
 	patch.func = ApplyPatch_Aspect;
@@ -119,20 +132,27 @@ void RegisterPatch_Aspect()
 	RegisterPatch(patch);
 }
 
+static I3DEngine** ppEngine;					// Pointer to engine object
+
 static double uiWidth = 1280.0f;
 static double uiHeight = 720.0f;
 
 bool ApplyPatch_Aspect(Patch* patch)
 {
-	assert(patch->numSignatures == 7);
-	void* blackBars			= patch->signatures[0].foundPtr;
-	void* blackBarsOnResize	= patch->signatures[1].foundPtr;
-	void* uiSizeHook		= patch->signatures[2].foundPtr;
-	void* uiLayerSize		= patch->signatures[3].foundPtr;
-	void* uiLayerSize2		= patch->signatures[4].foundPtr;
-	bool isAlternate		= patch->signatures[3].isAlternate;
-	void* uiSubtitleLayer	= patch->signatures[5].foundPtr;
-	void* uiLegalsScreen	= patch->signatures[6].foundPtr;
+	assert(patch->numSignatures == 9);
+	void* enginePtr			= patch->signatures[0].foundPtr;
+	void* blackBars			= patch->signatures[1].foundPtr;
+	void* blackBarsOnResize	= patch->signatures[2].foundPtr;
+	void* uiSizeHook		= patch->signatures[3].foundPtr;
+	void* uiLayerSize		= patch->signatures[4].foundPtr;
+	void* uiLayerSize2		= patch->signatures[5].foundPtr;
+	bool isAlternate		= patch->signatures[4].isAlternate;
+	void* uiSubtitleLayer	= patch->signatures[6].foundPtr;
+	void* uiLegalsScreen	= patch->signatures[7].foundPtr;
+	void* fov				= patch->signatures[8].foundPtr;
+
+	// Find the engine object pointer
+	if (!MemRead(enginePtr, &ppEngine, sizeof(ppEngine)))	return false;
 
 	// Remove black bars
 	BYTE jmp = 0xEB;
@@ -175,47 +195,15 @@ bool ApplyPatch_Aspect(Patch* patch)
 	void* legalsWidth = (BYTE*)uiLegalsScreen + 2;
 	if (!MemWrite(legalsWidth, &pUiWidth, sizeof(pUiWidth)))			return false;
 
-	//MemWrite((void*)0x00491FD3, &pUiWidth, sizeof(pUiWidth));
-	//MemWrite((void*)0x00491FF5, &pUiHeight, sizeof(pUiHeight));	
-	//MemWrite((void*)0x00493326, &pUiWidth, sizeof(pUiWidth));
-	//MemWrite((void*)0x00493352, &pUiHeight, sizeof(pUiHeight));
-
 	// Correct FoV
-
-
-	/*void* fov = (void*)0x007C4209;
-
 	BYTE fovHook[] =
 	{
-		0x89, 0xF1,										// mov ecx, esi
-		0x51,											// push ecx
-		0xE8, MASK, MASK, MASK, MASK,					// call Hook_Fov
-		0xC6, 0x84, 0x24, 0x0D, 0x01, 0x00, 0x00, 0x01,	// mov byte ptr[esp + 0000010D], 01
-		0xE9, MASK, MASK, MASK, MASK					// jmp $hook
-	};
-
-	BYTE* pFovHook = (BYTE*)ExecCopy(fovHook, sizeof(fovHook));
-
-	DWORD* a1 = (DWORD*)&pFovHook[4];
-	DWORD* a2 = (DWORD*)&pFovHook[17];
-
-	*a1 = (DWORD)&Hook_Fov - (DWORD)a1 - 4;
-	*a2 = (DWORD)fov - (DWORD)a2 + 1; // FIXME: is this correct?
-
-	if (!MemWriteHookJmp(fov, pFovHook))	return false;
-	if (!MemWriteNop((BYTE*)fov + 5, 3))	return false;*/
-
-
-	void* fov = (void*)0x007C419D;
-
-	BYTE fovHook[] =
-	{
-		0x89, 0xD9,										// mov ecx, ebx
-		0x51,											// push ecx
-		0xE8, MASK, MASK, MASK, MASK,					// call Hook_Fov
-		0x8B, 0x17,										// mov edx,[edi]
-		0x8B, 0x82, 0xA0, 0x00, 0x00, 0x00,				// mov eax,[edx + 000000A0]
-		0xE9, MASK, MASK, MASK, MASK					// jmp $hook
+		0x89, 0xD9,							// mov ecx, ebx
+		0x51,								// push ecx
+		0xE8, MASK, MASK, MASK, MASK,		// call Hook_Fov
+		0x8B, 0x17,							// mov edx,[edi]
+		0x8B, 0x82, 0xA0, 0x00, 0x00, 0x00,	// mov eax,[edx + 000000A0]
+		0xE9, MASK, MASK, MASK, MASK		// jmp $hook
 	};
 
 	BYTE* pFovHook = (BYTE*)ExecCopy(fovHook, sizeof(fovHook));
@@ -228,6 +216,14 @@ bool ApplyPatch_Aspect(Patch* patch)
 
 	if (!MemWriteHookJmp(fov, pFovHook))	return false;
 	if (!MemWriteNop((BYTE*)fov + 5, 3))	return false;
+
+
+
+	//MemWrite((void*)0x00491FD3, &pUiWidth, sizeof(pUiWidth));
+	//MemWrite((void*)0x00491FF5, &pUiHeight, sizeof(pUiHeight));	
+	//MemWrite((void*)0x00493326, &pUiWidth, sizeof(pUiWidth));
+	//MemWrite((void*)0x00493352, &pUiHeight, sizeof(pUiHeight));
+
 
 	/*
 	
@@ -263,12 +259,24 @@ int __cdecl Hook_Atoi(const char* string)
 	return atoi(string);
 }
 
-void __stdcall Hook_Fov(CameraManager* camera)
+void __stdcall Hook_Fov(CameraManager* manager)
 {
-	camera->activeCamera->fov *= 2.2f;
-
-	/*if (camera->fov == 0)
+	if (!ppEngine || !manager || !manager->activeCamera) // Safe-guard
 	{
-		camera->fov = 0;
-	}*/
+		return;
+	}
+
+	I3DEngine* engine = *ppEngine;
+	assert(engine);
+
+	// Disable FoV correction in cutscenes
+	if (manager->activeCamera == manager->cutsceneCamera)
+	{
+		return;
+	}
+
+	float aspect = engine->viewWidth / (float)engine->viewHeight;
+	float multiplier = aspect / 1.77777778f;
+
+	manager->activeCamera->fov *= multiplier;
 }

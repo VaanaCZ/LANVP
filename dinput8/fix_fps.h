@@ -15,5 +15,5 @@ extern double minFrameTime;
 
 void __stdcall Hook_Frame();
 
-struct InspectionSystem;
-void __stdcall Hook_Pencil(InspectionSystem* inst);
+class InspectionSystem;
+void __stdcall Hook_Pencil(InspectionSystem* inspection);

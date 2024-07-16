@@ -183,6 +183,51 @@ bool ApplyPatch_Aspect(Patch* patch)
 	// Correct FoV
 
 
+	/*void* fov = (void*)0x007C4209;
+
+	BYTE fovHook[] =
+	{
+		0x89, 0xF1,										// mov ecx, esi
+		0x51,											// push ecx
+		0xE8, MASK, MASK, MASK, MASK,					// call Hook_Fov
+		0xC6, 0x84, 0x24, 0x0D, 0x01, 0x00, 0x00, 0x01,	// mov byte ptr[esp + 0000010D], 01
+		0xE9, MASK, MASK, MASK, MASK					// jmp $hook
+	};
+
+	BYTE* pFovHook = (BYTE*)ExecCopy(fovHook, sizeof(fovHook));
+
+	DWORD* a1 = (DWORD*)&pFovHook[4];
+	DWORD* a2 = (DWORD*)&pFovHook[17];
+
+	*a1 = (DWORD)&Hook_Fov - (DWORD)a1 - 4;
+	*a2 = (DWORD)fov - (DWORD)a2 + 1; // FIXME: is this correct?
+
+	if (!MemWriteHookJmp(fov, pFovHook))	return false;
+	if (!MemWriteNop((BYTE*)fov + 5, 3))	return false;*/
+
+
+	void* fov = (void*)0x007C419D;
+
+	BYTE fovHook[] =
+	{
+		0x89, 0xD9,										// mov ecx, ebx
+		0x51,											// push ecx
+		0xE8, MASK, MASK, MASK, MASK,					// call Hook_Fov
+		0x8B, 0x17,										// mov edx,[edi]
+		0x8B, 0x82, 0xA0, 0x00, 0x00, 0x00,				// mov eax,[edx + 000000A0]
+		0xE9, MASK, MASK, MASK, MASK					// jmp $hook
+	};
+
+	BYTE* pFovHook = (BYTE*)ExecCopy(fovHook, sizeof(fovHook));
+
+	DWORD* a1 = (DWORD*)&pFovHook[4];
+	DWORD* a2 = (DWORD*)&pFovHook[17];
+
+	*a1 = (DWORD)&Hook_Fov - (DWORD)a1 - 4;
+	*a2 = (DWORD)fov - (DWORD)a2 + 1; // FIXME: is this correct?
+
+	if (!MemWriteHookJmp(fov, pFovHook))	return false;
+	if (!MemWriteNop((BYTE*)fov + 5, 3))	return false;
 
 	/*
 	
@@ -216,4 +261,14 @@ int __cdecl Hook_Atoi(const char* string)
 	}*/
 
 	return atoi(string);
+}
+
+void __stdcall Hook_Fov(CameraManager* camera)
+{
+	camera->activeCamera->fov *= 2.2f;
+
+	/*if (camera->fov == 0)
+	{
+		camera->fov = 0;
+	}*/
 }

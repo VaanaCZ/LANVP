@@ -301,7 +301,7 @@ bool ApplyPatch_Framerate(Patch* patch)
 		DWORD* a2 = (DWORD*)&pPencilHook[15];
 
 		*a1 = (DWORD)&Hook_Pencil - (DWORD)a1 - 4;
-		*a2 = (DWORD)pencil - (DWORD)a2 + 1;
+		*a2 = (DWORD)pencil - (DWORD)a2 + 1; // FIXME: is this correct?
 
 		if (!MemWriteHookJmp(pencil, pPencilHook))	return false;
 		if (!MemWriteNop((BYTE*)pencil + 5, 1))		return false;

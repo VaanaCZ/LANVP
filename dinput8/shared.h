@@ -55,6 +55,20 @@ public:
 	TB tb;
 };
 
+class ICamera
+{
+public:
+	BYTE padding[0x64];
+	float fov;
+};
+
+class CameraManager
+{
+public:
+	BYTE padding[0xE0];
+	ICamera* activeCamera;
+};
+
 // Common signatures
 
 #define MASK 0xFFFFFFFF // fixme

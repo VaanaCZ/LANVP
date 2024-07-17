@@ -258,7 +258,6 @@ int __cdecl Hook_Atoi(const char* string)
 
 double fovMultiplier = 1.0f;
 
-// FIXME: blending on fight looks weird
 // FIXME: Check if its called from the correct location only once
 void __stdcall Hook_Fov(CameraManager* manager)
 {
@@ -281,10 +280,16 @@ void __stdcall Hook_Fov(CameraManager* manager)
 
 	if (multiplier < 1.0)
 	{
-		multiplier = 1.0; // If the aspect is smaller than 16:9 => dont do correction
+		multiplier = 1.0; // If the aspect is smaller than 16:9 => don't do correction
 	}
 
 	multiplier *= fovMultiplier;
+
+	// Handle fov blending
+	// if (manager->blendCamera && manager->blendCamera->from && manager->blendCamera->to)
+	// {
+	//		// FIXME
+	// }
 
 	manager->activeCamera->fov *= multiplier;
 }

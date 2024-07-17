@@ -60,6 +60,18 @@ class ICamera
 public:
 	BYTE padding[0x64];
 	float fov;
+	BYTE padding2[0x18];
+};
+
+class BlendCamera : ICamera
+{
+public:
+	BYTE padding3[0x10];
+	ICamera* from;
+	ICamera* to;
+	float blendingTarget;
+	BYTE padding4[0x8];
+	float blendingFactor;
 };
 
 class CameraManagerProperties;
@@ -67,7 +79,7 @@ class CameraManagerProperties;
 class CameraManager
 {
 public:
-	ICamera* blendCamera;							// class BlendCamera
+	BlendCamera* blendCamera;						// class BlendCamera
 	ICamera* clampYModifier;						// class ClampYModifier
 	ICamera* collisionModifier;						// class CollisionModifier
 	ICamera* springModifier;						// class SpringModifier
@@ -141,3 +153,8 @@ static DWORD sigEngineDestructor[] =
 };
 
 #define REGISTER_ENGINE_MASK(p)	REGISTER_MASK(p, sigEngineDestructor);
+
+template<typename T> inline T lerp(const float c, const T& a, const T& b)
+{
+	return a + c * (b - a);
+}

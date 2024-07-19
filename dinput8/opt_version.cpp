@@ -22,11 +22,13 @@ HERE,	0xE8, MASK, MASK, MASK, MASK,
 		0x50
 };
 
+static int versionIndex = -1;
+
 void RegisterPatch_Version()
 {
 	Patch patch;
 
-	patch.AddSignature(SIGARG(sigVersion));
+	versionIndex = patch.AddSignature(SIGARG(sigVersion));
 
 	ua_tcscpy_s(patch.name, 50, TEXT("Version number in menu"));
 	patch.func = ApplyPatch_Version;
@@ -37,7 +39,7 @@ void RegisterPatch_Version()
 bool ApplyPatch_Version(Patch* patch)
 {
 	assert(patch->numSignatureIndices == 1);
-	void* version = patch->GetSignature(0);
+	void* version = patch->GetSignature(versionIndex);
 
 	if (!MemWriteHookCall(version, &Hook_VerQueryValueA))	return false;
 

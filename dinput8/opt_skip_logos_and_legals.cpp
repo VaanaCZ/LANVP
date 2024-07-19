@@ -40,6 +40,9 @@ HERE,	0x56,
 		0x5E
 };
 
+static int logosIndex = -1;
+static int legalsIndex = -1;
+
 bool sigLegalsFilter(void* ptr)
 {
 	char* str = nullptr;
@@ -51,8 +54,8 @@ void RegisterPatch_SkipLogosAndLegals()
 {
 	Patch patch;
 
-	patch.AddSignature(SIGARG(sigLogos));
-	patch.AddSignatureWithFilter(SIGARG(sigLegals), &sigLegalsFilter);
+	logosIndex	= patch.AddSignature(SIGARG(sigLogos));
+	legalsIndex	= patch.AddSignatureWithFilter(SIGARG(sigLegals), &sigLegalsFilter);
 
 	ua_tcscpy_s(patch.name, 50, TEXT("Skip logos and legals option"));
 	patch.func = ApplyPatch_SkipLogosAndLegals;
@@ -63,8 +66,8 @@ void RegisterPatch_SkipLogosAndLegals()
 bool ApplyPatch_SkipLogosAndLegals(Patch* patch)
 {
 	assert(patch->numSignatureIndices == 2);
-	void* logos		= patch->GetSignature(0);
-	void* legals	= patch->GetSignature(1);
+	void* logos		= patch->GetSignature(logosIndex);
+	void* legals	= patch->GetSignature(legalsIndex);
 
 	// Logos
 	if (!MemWriteNop(logos,				7))		return false;

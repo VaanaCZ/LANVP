@@ -26,11 +26,13 @@ HERE,	0xC7, 0x44, 0x24, 0x2C, MASK, MASK, MASK, MASK,
 		0x8B, 0x6E, 0x04
 };
 
+static int adjustWindowRectIndex = -1;
+
 void RegisterPatch_BorderlessWindow()
 {
 	Patch patch;
 
-	patch.AddSignature(SIGARG(sigAdjustWindowRect));
+	adjustWindowRectIndex = patch.AddSignature(SIGARG(sigAdjustWindowRect));
 
 	ua_tcscpy_s(patch.name, 50, TEXT("Borderless window option"));
 	patch.func = ApplyPatch_BorderlessWindow;
@@ -41,7 +43,7 @@ void RegisterPatch_BorderlessWindow()
 bool ApplyPatch_BorderlessWindow(Patch* patch)
 {
 	assert(patch->numSignatureIndices == 1);
-	void* adjustWindowRect = patch->GetSignature(0);
+	void* adjustWindowRect = patch->GetSignature(adjustWindowRectIndex);
 
 	// Change style to borderless
 	DWORD style = WS_POPUP;

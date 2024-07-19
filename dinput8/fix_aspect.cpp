@@ -112,19 +112,29 @@ HERE,	0x8B, 0x17,
 		0xFF, 0xD0
 };
 
+static int engineDestructorIndex = -1;
+static int blackBarsIndex = -1;
+static int blackBarsOnResizeIndex = -1;
+static int uiSizeHookIndex = -1;
+static int uiLayerSizeIndex = -1;
+static int uiLayerSize2Index = -1;
+static int uiSubtitleLayerIndex = -1;
+static int uiLegalsScreenIndex = -1;
+static int fovIndex = -1;
+
 void RegisterPatch_Aspect()
 {
 	Patch patch;
 
-	patch.AddSignature(SIGARG(sigEngineDestructor));
-	patch.AddSignature(SIGARG(sigBlackBars));
-	patch.AddSignature(SIGARG(sigBlackBarsOnResize));
-	patch.AddSignature(SIGARG(sigUiSizeHook));
-	patch.AddSignatureWithAlt(SIGARG(sigUiLayerSize), SIGARG(sigAltUiLayerSize));
-	patch.AddSignatureWithAlt(SIGARG(sigUiLayerSize2), SIGARG(sigAltUiLayerSize));
-	patch.AddSignature(SIGARG(sigUiSubtitleLayer));
-	patch.AddSignature(SIGARG(sigUiLegalsScreen));
-	patch.AddSignature(SIGARG(sigFov));
+	engineDestructorIndex	= patch.AddSignature(SIGARG(sigEngineDestructor));
+	blackBarsIndex			= patch.AddSignature(SIGARG(sigBlackBars));
+	blackBarsOnResizeIndex	= patch.AddSignature(SIGARG(sigBlackBarsOnResize));
+	uiSizeHookIndex			= patch.AddSignature(SIGARG(sigUiSizeHook));
+	uiLayerSizeIndex		= patch.AddSignatureWithAlt(SIGARG(sigUiLayerSize), SIGARG(sigAltUiLayerSize));
+	uiLayerSize2Index		= patch.AddSignatureWithAlt(SIGARG(sigUiLayerSize2), SIGARG(sigAltUiLayerSize));
+	uiSubtitleLayerIndex	= patch.AddSignature(SIGARG(sigUiSubtitleLayer));
+	uiLegalsScreenIndex		= patch.AddSignature(SIGARG(sigUiLegalsScreen));
+	fovIndex				= patch.AddSignature(SIGARG(sigFov));
 
 	ua_tcscpy_s(patch.name, 50, TEXT("Aspect-ratio fix"));
 	patch.func = ApplyPatch_Aspect;
@@ -140,16 +150,16 @@ static double uiHeight = 720.0f;
 bool ApplyPatch_Aspect(Patch* patch)
 {
 	assert(patch->numSignatureIndices == 9);
-	void* enginePtr			= patch->GetSignature(0);
-	void* blackBars			= patch->GetSignature(1);
-	void* blackBarsOnResize	= patch->GetSignature(2);
-	void* uiSizeHook		= patch->GetSignature(3);
+	void* enginePtr			= patch->GetSignature(engineDestructorIndex);
+	void* blackBars			= patch->GetSignature(blackBarsIndex);
+	void* blackBarsOnResize	= patch->GetSignature(blackBarsOnResizeIndex);
+	void* uiSizeHook		= patch->GetSignature(uiSizeHookIndex);
 	bool isAlternate		= false;
-	void* uiLayerSize		= patch->GetSignature(4, &isAlternate);
-	void* uiLayerSize2		= patch->GetSignature(5);
-	void* uiSubtitleLayer	= patch->GetSignature(6);
-	void* uiLegalsScreen	= patch->GetSignature(7);
-	void* fov				= patch->GetSignature(8);
+	void* uiLayerSize		= patch->GetSignature(uiLayerSizeIndex, &isAlternate);
+	void* uiLayerSize2		= patch->GetSignature(uiLayerSize2Index);
+	void* uiSubtitleLayer	= patch->GetSignature(uiSubtitleLayerIndex);
+	void* uiLegalsScreen	= patch->GetSignature(uiLegalsScreenIndex);
+	void* fov				= patch->GetSignature(fovIndex);
 
 	// Find the engine object pointer
 	if (!MemRead(enginePtr, &ppEngine, sizeof(ppEngine)))	return false;

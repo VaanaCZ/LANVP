@@ -30,12 +30,15 @@ HERE,	0x74, MASK,
 		0x57
 };
 
+static int aspectCheckIndex = -1;
+static int optResCheckIndex = -1;
+
 void RegisterPatch_Resolution()
 {
 	Patch patch;
 
-	patch.AddSignature(SIGARG(sigAspectCheck));
-	patch.AddSignature(SIGARG(sigOptResCheck));
+	aspectCheckIndex = patch.AddSignature(SIGARG(sigAspectCheck));
+	optResCheckIndex = patch.AddSignature(SIGARG(sigOptResCheck));
 
 	ua_tcscpy_s(patch.name, 50, TEXT("Unlock resolutions"));
 	patch.func = ApplyPatch_Resolution;
@@ -46,8 +49,8 @@ void RegisterPatch_Resolution()
 bool ApplyPatch_Resolution(Patch* patch)
 {
 	assert(patch->numSignatureIndices == 2);
-	void* aspectCheck = patch->GetSignature(0);
-	void* optResCheck = patch->GetSignature(1);
+	void* aspectCheck = patch->GetSignature(aspectCheckIndex);
+	void* optResCheck = patch->GetSignature(optResCheckIndex);
 
 	// Removes aspect-ratio filter for resolution options
 	if (!MemWriteNop(aspectCheck, 6))	return false;  // "Resolution:1280x1440x120"

@@ -108,18 +108,27 @@ HERE,	0xF3, 0x0F, 0x10, 0x0D, MASK, MASK, MASK, MASK,
 		0xF3, 0x0F, 0x10, 0x93, MASK, MASK, MASK, MASK
 };
 
+static int engineDestructorIndex = -1;
+static int framerateDivisorConstructorIndex = -1;
+static int framerateDivisorGameplayIndex = -1;
+static int waitAndHookIndex = -1;
+static int brakingIndex = -1;
+static int pencilIndex = -1;
+static int pairedAnimStageConstructorIndex = -1;
+static int birdsIndex = -1;
+
 void RegisterPatch_Framerate()
 {
 	Patch patch;
 
-	patch.AddSignature(SIGARG(sigEngineDestructor));
-	patch.AddSignatureWithAlt(SIGARG(sigFramerateDivisorConstructor), SIGARG(sigAltFramerateDivisorConstructor));
-	patch.AddSignature(SIGARG(sigFramerateDivisorGameplay));
-	patch.AddSignature(SIGARG(sigWaitAndHook));
-	patch.AddSignatureWithAlt(SIGARG(sigBraking), SIGARG(sigAltBraking));
-	patch.AddSignature(SIGARG(sigPencil));
-	patch.AddSignature(SIGARG(sigPairedAnimStageConstructor));
-	patch.AddSignature(SIGARG(sigBirds));
+	engineDestructorIndex				= patch.AddSignature(SIGARG(sigEngineDestructor));
+	framerateDivisorConstructorIndex	= patch.AddSignatureWithAlt(SIGARG(sigFramerateDivisorConstructor), SIGARG(sigAltFramerateDivisorConstructor));
+	framerateDivisorGameplayIndex		= patch.AddSignature(SIGARG(sigFramerateDivisorGameplay));
+	waitAndHookIndex					= patch.AddSignature(SIGARG(sigWaitAndHook));
+	brakingIndex						= patch.AddSignatureWithAlt(SIGARG(sigBraking), SIGARG(sigAltBraking));
+	pencilIndex							= patch.AddSignature(SIGARG(sigPencil));
+	pairedAnimStageConstructorIndex		= patch.AddSignature(SIGARG(sigPairedAnimStageConstructor));
+	birdsIndex							= patch.AddSignature(SIGARG(sigBirds));
 
 	ua_tcscpy_s(patch.name, 50, TEXT("Framerate Unlock"));
 	patch.func = ApplyPatch_Framerate;
@@ -140,54 +149,53 @@ static float* defaultBirdMaxSpeed;
 bool ApplyPatch_Framerate(Patch* patch)
 {
 	assert(patch->numSignatureIndices == 8);
-	void* enginePtr						= patch->GetSignature(0);
-	void* framerateDivisorConstructor	= (BYTE*)patch->GetSignature(1) + 2;
-	void* framerateDivisorGameplay		= (BYTE*)patch->GetSignature(2) + 3;
-	void* waitAndHook					= patch->GetSignature(3);
+	void* enginePtr						= patch->GetSignature(engineDestructorIndex);
+	void* framerateDivisorConstructor	= (BYTE*)patch->GetSignature(framerateDivisorConstructorIndex) + 2;
+	void* framerateDivisorGameplay		= (BYTE*)patch->GetSignature(framerateDivisorGameplayIndex) + 3;
+	void* waitAndHook					= patch->GetSignature(waitAndHookIndex);
 	bool isBrakingAlt					= false;
-	void* braking						= patch->GetSignature(4, &isBrakingAlt);
-	void* pencil						= (BYTE*)patch->GetSignature(5);
-	void* pairedAnimStageConstructor	= (BYTE*)patch->GetSignature(6);
-	void* birds							= (BYTE*)patch->GetSignature(7) + 4;
+	void* braking						= patch->GetSignature(brakingIndex, &isBrakingAlt);
+	void* pencil						= (BYTE*)patch->GetSignature(pencilIndex);
+	void* pairedAnimStageConstructor	= (BYTE*)patch->GetSignature(pairedAnimStageConstructorIndex);
+	void* birds							= (BYTE*)patch->GetSignature(birdsIndex) + 4;
 
 	// ========================================================================
 	// 
 	// Framerate cap removal
 	// 
 	// ========================================================================
-	{
-		// Find the engine object pointer
-		if (!MemRead(enginePtr, &ppEngine, sizeof(ppEngine)))	return false;
 
-		//
-		// By default, the game has a target framerate of 59.97. However there is
-		// a divisor value, which is used to determine the final framerate.
-		// In menus, this value is set to 1 (60/1=60), but during gameplay, this
-		// is set to 2 (60/2=30).
-		// 
-		// Here we patch out this divisor in gameplay, since it makes the rest of
-		// the patch a lot simpler, and prevents potential bugs.
-		//
+	// Find the engine object pointer
+	if (!MemRead(enginePtr, &ppEngine, sizeof(ppEngine)))	return false;
 
-		static DWORD newFramerateDivisor = 1;
-		if (!MemWrite(framerateDivisorConstructor, &newFramerateDivisor, sizeof(newFramerateDivisor)))	return false;
-		if (!MemWrite(framerateDivisorGameplay, &newFramerateDivisor, sizeof(newFramerateDivisor)))		return false;
+	//
+	// By default, the game has a target framerate of 59.97. However there is
+	// a divisor value, which is used to determine the final framerate.
+	// In menus, this value is set to 1 (60/1=60), but during gameplay, this
+	// is set to 2 (60/2=30).
+	// 
+	// Here we patch out this divisor in gameplay, since it makes the rest of
+	// the patch a lot simpler, and prevents potential bugs.
+	//
 
-		//
-		// In order to fully "uncap" the framerate, we must first allow the game
-		// to run at full speed. Here we patch out the waiting logic and hook our
-		// own function, which then increases or decreases the speed of the
-		// simulation based on how quickly the game runs.
-		//
+	static DWORD newFramerateDivisor = 1;
+	if (!MemWrite(framerateDivisorConstructor, &newFramerateDivisor, sizeof(newFramerateDivisor)))	return false;
+	if (!MemWrite(framerateDivisorGameplay, &newFramerateDivisor, sizeof(newFramerateDivisor)))		return false;
 
-		jmp jmp;
-		if (!MemRead(waitAndHook, &jmp, sizeof(jmp)))				return false;
+	//
+	// In order to fully "uncap" the framerate, we must first allow the game
+	// to run at full speed. Here we patch out the waiting logic and hook our
+	// own function, which then increases or decreases the speed of the
+	// simulation based on how quickly the game runs.
+	//
 
-		if (!MemWriteHookCall(waitAndHook, &Hook_Frame))			return false; // replace conditional jump with hook
-		jmp.opcode = 0xEB;
-		jmp.offset -= 5;
-		if (!MemWrite((BYTE*)waitAndHook + 5, &jmp, sizeof(jmp)))	return false; // append hook with jump to end of branch
-	}
+	jmp jmp;
+	if (!MemRead(waitAndHook, &jmp, sizeof(jmp)))				return false;
+
+	if (!MemWriteHookCall(waitAndHook, &Hook_Frame))			return false; // replace conditional jump with hook
+	jmp.opcode = 0xEB;
+	jmp.offset -= 5;
+	if (!MemWrite((BYTE*)waitAndHook + 5, &jmp, sizeof(jmp)))	return false; // append hook with jump to end of branch
 
 	// ========================================================================
 	// 
@@ -215,51 +223,50 @@ bool ApplyPatch_Framerate(Patch* patch)
 	// 
 	// forceVector = forceVector * 0.0333333 * frametime;
 	//
+
+	if (!isBrakingAlt)
 	{
-		if (!isBrakingAlt)
+		BYTE brakeHook[] =
 		{
-			BYTE brakeHook[] =
-			{
-				0xF3, 0x0F, 0x10, 0x05, MASK, MASK, MASK, MASK,	// movss xmm0, dword ptr [$fixedFrametime]
-				0xE9, MASK, MASK, MASK, MASK					// jmp $hook
-			};
+			0xF3, 0x0F, 0x10, 0x05, MASK, MASK, MASK, MASK,	// movss xmm0, dword ptr [$fixedFrametime]
+			0xE9, MASK, MASK, MASK, MASK					// jmp $hook
+		};
 
-			BYTE* pBrakeHook = (BYTE*)ExecCopy(brakeHook, sizeof(brakeHook));
-			assert(pBrakeHook);
+		BYTE* pBrakeHook = (BYTE*)ExecCopy(brakeHook, sizeof(brakeHook));
+		assert(pBrakeHook);
 
-			DWORD* a1 = (DWORD*)&pBrakeHook[4];
-			DWORD* a2 = (DWORD*)&pBrakeHook[9];
+		DWORD* a1 = (DWORD*)&pBrakeHook[4];
+		DWORD* a2 = (DWORD*)&pBrakeHook[9];
 
-			*a1 = (DWORD)&fixedFrametime;
-			*a2 = (DWORD)braking - (DWORD)a2 + 1;
+		*a1 = (DWORD)&fixedFrametime;
+		*a2 = (DWORD)braking - (DWORD)a2 + 1;
 
-			if (!MemWriteHookJmp(braking, pBrakeHook))	return false;
-		}
-		else
+		if (!MemWriteHookJmp(braking, pBrakeHook))	return false;
+	}
+	else
+	{
+		BYTE brakeHook[] =
 		{
-			BYTE brakeHook[] =
-			{
-				0xD9, 0x05, MASK, MASK, MASK, MASK,	// fld dword ptr [$fixedFrametime]
-				0xDC, 0x0D, MASK, MASK, MASK, MASK,	// fmul dword ptr [$30]
-				0xE9, MASK, MASK, MASK, MASK		// jmp $hook
-			};
+			0xD9, 0x05, MASK, MASK, MASK, MASK,	// fld dword ptr [$fixedFrametime]
+			0xDC, 0x0D, MASK, MASK, MASK, MASK,	// fmul dword ptr [$30]
+			0xE9, MASK, MASK, MASK, MASK		// jmp $hook
+		};
 
-			BYTE* pBrakeHook = (BYTE*)ExecCopy(brakeHook, sizeof(brakeHook));
-			assert(pBrakeHook);
+		BYTE* pBrakeHook = (BYTE*)ExecCopy(brakeHook, sizeof(brakeHook));
+		assert(pBrakeHook);
 
-			BYTE fmul[6];
-			if (!MemRead((BYTE*)braking + 6, &fmul, sizeof(fmul)))	return false;
-			memcpy(&brakeHook[6], fmul, sizeof(fmul));
+		BYTE fmul[6];
+		if (!MemRead((BYTE*)braking + 6, &fmul, sizeof(fmul)))	return false;
+		memcpy(&brakeHook[6], fmul, sizeof(fmul));
 
-			DWORD* a1 = (DWORD*)&pBrakeHook[2];
-			DWORD* a2 = (DWORD*)&pBrakeHook[13];
+		DWORD* a1 = (DWORD*)&pBrakeHook[2];
+		DWORD* a2 = (DWORD*)&pBrakeHook[13];
 
-			*a1 = (DWORD)&fixedFrametime;
-			*a2 = (DWORD)braking - (DWORD)a2 + 5;
+		*a1 = (DWORD)&fixedFrametime;
+		*a2 = (DWORD)braking - (DWORD)a2 + 5;
 
-			if (!MemWriteHookJmp(braking, pBrakeHook))	return false;
-			if (!MemWriteNop((BYTE*)braking + 5, 4))	return false;
-		}
+		if (!MemWriteHookJmp(braking, pBrakeHook))	return false;
+		if (!MemWriteNop((BYTE*)braking + 5, 4))	return false;
 	}
 
 	//
@@ -282,30 +289,29 @@ bool ApplyPatch_Framerate(Patch* patch)
 	// It's probably related to some weird animation event floating point
 	// timing fuckery, and I haven't got the slightest fucking clue how to fix it!
 	//
+
+	interactionStageVft = (void*)(*(DWORD*)pairedAnimStageConstructor);
+
+	BYTE pencilHook[] =
 	{
-		interactionStageVft = (void*)(*(DWORD*)pairedAnimStageConstructor);
+		0x89, 0xE9,							// mov ecx, ebp
+		0x51,								// push ecx
+		0xE8, MASK, MASK, MASK, MASK,		// call $Hook_Pencil
+		0x8B, 0x4D, 0x04,					// mov ecx,[ebp + 04]
+		0x8B, 0x41, 0x10,					// mov eax,[ecx + 10]
+		0xE9, MASK, MASK, MASK, MASK		// jmp $hook
+	};
 
-		BYTE pencilHook[] =
-		{
-			0x89, 0xE9,							// mov ecx, ebp
-			0x51,								// push ecx
-			0xE8, MASK, MASK, MASK, MASK,		// call $Hook_Pencil
-			0x8B, 0x4D, 0x04,					// mov ecx,[ebp + 04]
-			0x8B, 0x41, 0x10,					// mov eax,[ecx + 10]
-			0xE9, MASK, MASK, MASK, MASK		// jmp $hook
-		};
+	BYTE* pPencilHook = (BYTE*)ExecCopy(pencilHook, sizeof(pencilHook));
 
-		BYTE* pPencilHook = (BYTE*)ExecCopy(pencilHook, sizeof(pencilHook));
+	DWORD* a1 = (DWORD*)&pPencilHook[4];
+	DWORD* a2 = (DWORD*)&pPencilHook[15];
 
-		DWORD* a1 = (DWORD*)&pPencilHook[4];
-		DWORD* a2 = (DWORD*)&pPencilHook[15];
+	*a1 = (DWORD)&Hook_Pencil - (DWORD)a1 - 4;
+	*a2 = (DWORD)pencil - (DWORD)a2 + 1; // FIXME: is this correct?
 
-		*a1 = (DWORD)&Hook_Pencil - (DWORD)a1 - 4;
-		*a2 = (DWORD)pencil - (DWORD)a2 + 1; // FIXME: is this correct?
-
-		if (!MemWriteHookJmp(pencil, pPencilHook))	return false;
-		if (!MemWriteNop((BYTE*)pencil + 5, 1))		return false;
-	}
+	if (!MemWriteHookJmp(pencil, pPencilHook))	return false;
+	if (!MemWriteNop((BYTE*)pencil + 5, 1))		return false;
 
 	//
 	// PIGEON TAKEOFF
@@ -319,13 +325,12 @@ bool ApplyPatch_Framerate(Patch* patch)
 	//
 	// The fix adjusts the maximum top speed according to the framerate.
 	//
-	{
-		if (!MemRead(birds, &defaultBirdMaxSpeed, sizeof(defaultBirdMaxSpeed)))			return false;
-		birdMaxSpeed = *defaultBirdMaxSpeed;
 
-		float* pBirdMaxSpeed = &birdMaxSpeed;
-		if (!MemWrite(birds, &pBirdMaxSpeed, sizeof(pBirdMaxSpeed)))			return false;
-	}
+	if (!MemRead(birds, &defaultBirdMaxSpeed, sizeof(defaultBirdMaxSpeed)))			return false;
+	birdMaxSpeed = *defaultBirdMaxSpeed;
+
+	float* pBirdMaxSpeed = &birdMaxSpeed;
+	if (!MemWrite(birds, &pBirdMaxSpeed, sizeof(pBirdMaxSpeed)))			return false;
 
 	// Prepare required variables
 	if (!QueryPerformanceCounter(&lastTime))		{ HandleError(TEXT("Patching failed!"), TEXT("Could not query performance counter.")); return false; }

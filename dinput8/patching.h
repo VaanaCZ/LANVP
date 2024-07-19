@@ -61,11 +61,11 @@ struct Patch
 	int			numSignatureIndices	= 0;					// Number of signatures
 	ApplyFunc	func				= nullptr;				// Callback to be called if all signatures are found
 
-	bool AddSignature(DWORD* signature, size_t sigLength)
+	int AddSignature(DWORD* signature, size_t sigLength)
 	{
 		if (numSignatureIndices >= MAX_SIGNATURE_INDICES)
 		{
-			return false;
+			return -1;
 		}
 
 		Signature sig;
@@ -73,18 +73,20 @@ struct Patch
 		sig.sigLength		= sigLength;
 		sig.associatedIndex	= -1;
 
+		int index = numSignatureIndices;
+
 		signatureIndices[numSignatureIndices]		= RegisterSignature(sig);
 		altSignatureIndices[numSignatureIndices]	= -1;
 		numSignatureIndices++;
 
-		return true;
+		return index;
 	};
 
-	bool AddSignatureWithAlt(DWORD* signature, size_t sigLength, DWORD* altSignature, size_t altSigLength)
+	int AddSignatureWithAlt(DWORD* signature, size_t sigLength, DWORD* altSignature, size_t altSigLength)
 	{
 		if (numSignatureIndices >= MAX_SIGNATURE_INDICES)
 		{
-			return false;
+			return -1;
 		}
 
 		Signature sig;
@@ -95,6 +97,8 @@ struct Patch
 		altSig.signature	= altSignature;
 		altSig.sigLength	= altSigLength;
 
+		int index = numSignatureIndices;
+
 		signatureIndices[numSignatureIndices]		= RegisterSignature(sig);
 		altSignatureIndices[numSignatureIndices]	= RegisterSignature(altSig);
 
@@ -103,14 +107,14 @@ struct Patch
 
 		numSignatureIndices++;
 
-		return true;
+		return index;
 	};
 
-	bool AddSignatureWithFilter(DWORD* signature, size_t sigLength, FilterFunc filterFunc)
+	int AddSignatureWithFilter(DWORD* signature, size_t sigLength, FilterFunc filterFunc)
 	{
 		if (numSignatureIndices >= MAX_SIGNATURE_INDICES)
 		{
-			return false;
+			return -1;
 		}
 
 		Signature sig;
@@ -119,11 +123,13 @@ struct Patch
 		sig.filterFunc		= filterFunc;
 		sig.associatedIndex	= -1;
 
+		int index = numSignatureIndices;
+
 		signatureIndices[numSignatureIndices]		= RegisterSignature(sig);
 		altSignatureIndices[numSignatureIndices]	= -1;
 		numSignatureIndices++;
 
-		return true;
+		return index;
 	};
 
 	void* GetSignature(int index, bool* isAlt = nullptr)

@@ -116,15 +116,15 @@ void RegisterPatch_Aspect()
 {
 	Patch patch;
 
-	REGISTER_ENGINE_MASK(patch);
-	REGISTER_MASK(patch, sigBlackBars);
-	REGISTER_MASK(patch, sigBlackBarsOnResize);
-	REGISTER_MASK(patch, sigUiSizeHook);
-	REGISTER_MASK_ALTERNATE(patch, sigUiLayerSize, sigAltUiLayerSize);
-	REGISTER_MASK_ALTERNATE(patch, sigUiLayerSize2, sigAltUiLayerSize);
-	REGISTER_MASK(patch, sigUiSubtitleLayer);
-	REGISTER_MASK(patch, sigUiLegalsScreen);
-	REGISTER_MASK(patch, sigFov);
+	patch.AddSignature(SIGARG(sigEngineDestructor));
+	patch.AddSignature(SIGARG(sigBlackBars));
+	patch.AddSignature(SIGARG(sigBlackBarsOnResize));
+	patch.AddSignature(SIGARG(sigUiSizeHook));
+	patch.AddSignatureWithAlt(SIGARG(sigUiLayerSize), SIGARG(sigAltUiLayerSize));
+	patch.AddSignatureWithAlt(SIGARG(sigUiLayerSize2), SIGARG(sigAltUiLayerSize));
+	patch.AddSignature(SIGARG(sigUiSubtitleLayer));
+	patch.AddSignature(SIGARG(sigUiLegalsScreen));
+	patch.AddSignature(SIGARG(sigFov));
 
 	ua_tcscpy_s(patch.name, 50, TEXT("Aspect-ratio fix"));
 	patch.func = ApplyPatch_Aspect;

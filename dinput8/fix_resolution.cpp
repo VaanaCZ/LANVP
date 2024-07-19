@@ -34,8 +34,8 @@ void RegisterPatch_Resolution()
 {
 	Patch patch;
 
-	REGISTER_MASK(patch, sigAspectCheck);
-	REGISTER_MASK(patch, sigOptResCheck);
+	patch.AddSignature(SIGARG(sigAspectCheck));
+	patch.AddSignature(SIGARG(sigOptResCheck));
 
 	ua_tcscpy_s(patch.name, 50, TEXT("Unlock resolutions"));
 	patch.func = ApplyPatch_Resolution;

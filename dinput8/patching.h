@@ -16,32 +16,7 @@
 #define MASK 0xFFFFFFFF
 #define HERE 0xDDDDDDDD
 
-#define REGISTER_MASK(p, m)						\
-{												\
-	Signature s;								\
-	s.signature = m;							\
-	s.sigLength = sizeof(m) / sizeof(m[0]);		\
-	p.RegisterSignature(s);						\
-}
-
-#define REGISTER_MASK_ALTERNATE(p, m, a)		\
-{												\
-	Signature s;								\
-	s.signature = m;							\
-	s.sigLength = sizeof(m) / sizeof(m[0]);		\
-	s.altSignature = a;							\
-	s.altSigLength = sizeof(a) / sizeof(a[0]);	\
-	p.RegisterSignature(s);						\
-}
-
-#define REGISTER_MASK_FILTER(p, m, f)			\
-{												\
-	Signature s;								\
-	s.signature = m;							\
-	s.sigLength = sizeof(m) / sizeof(m[0]);		\
-	s.filterFunc = &f;							\
-	p.RegisterSignature(s);						\
-}
+#define SIGARG(s)	s, sizeof(s) / sizeof(s[0])
 
 struct Patch;
 
@@ -74,6 +49,13 @@ extern unsigned int numSignatures;
 extern Signature signatures[MAX_SIGNATURES];
 extern HANDLE process;
 
+extern void* execMem;
+extern void* execEnd;
+extern void* execPtr;
+
+unsigned int RegisterPatch(Patch patch);
+unsigned int RegisterSignature(Signature signature);
+
 struct Patch
 {
 	TCHAR			name[50];									// Name which will be displayed if patch fails
@@ -81,50 +63,60 @@ struct Patch
 	unsigned int	numSignatureIndices	= 0;					// Number of signatures
 	ApplyFunc		func				= nullptr;				// Callback to be called if all signatures are found
 
-	bool RegisterSignature(Signature signature)
+	bool AddSignature(DWORD* signature, size_t sigLength)
 	{
 		if (numSignatureIndices >= MAX_SIGNATURE_INDICES)
 		{
 			return false;
 		}
 
-		// Check if signature is already registered
-		unsigned int index = 0xFFFFFFFF;
-		
-		for (size_t i = 0; i < numSignatures; i++)
+		Signature s;
+		s.signature = signature;
+		s.sigLength = sigLength;
+
+		signatureIndices[numSignatureIndices] = RegisterSignature(s);
+		numSignatureIndices++;
+
+		return true;
+	};
+
+	bool AddSignatureWithAlt(DWORD* signature, size_t sigLength, DWORD* altSignature, size_t altSigLength)
+	{
+		if (numSignatureIndices >= MAX_SIGNATURE_INDICES)
 		{
-			if (signatures[i].Equals(signature))
-			{
-				index = i;
-				break;
-			}
+			return false;
 		}
 
-		if (index == 0xFFFFFFFF)
+		Signature s;
+		s.signature = signature;
+		s.sigLength = sigLength;
+		s.altSignature = altSignature;
+		s.altSigLength = altSigLength;
+
+		signatureIndices[numSignatureIndices] = RegisterSignature(s);
+		numSignatureIndices++;
+
+		return true;
+	};
+
+	bool AddSignatureWithFilter(DWORD* signature, size_t sigLength, FilterFunc filterFunc)
+	{
+		if (numSignatureIndices >= MAX_SIGNATURE_INDICES)
 		{
-			if (numSignatures >= MAX_SIGNATURES)
-			{
-				return false;
-			}
-
-			index = numSignatures;
-
-			signatures[numSignatures] = signature;
-			numSignatures++;
+			return false;
 		}
 
-		signatureIndices[numSignatureIndices] = index;
+		Signature s;
+		s.signature = signature;
+		s.sigLength = sigLength;
+		s.filterFunc = filterFunc;
+
+		signatureIndices[numSignatureIndices] = RegisterSignature(s);
 		numSignatureIndices++;
 
 		return true;
 	};
 };
-
-extern void* execMem;
-extern void* execEnd;
-extern void* execPtr;
-
-bool RegisterPatch(Patch patch);
 
 void HandleError(const TCHAR* title, const TCHAR* text);
 

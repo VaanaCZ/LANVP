@@ -152,8 +152,6 @@ static DWORD sigEngineDestructor[] =
 		0x64, 0x89, 0x0D, 0x00, 0x00, 0x00, 0x00
 };
 
-#define REGISTER_ENGINE_MASK(p)	REGISTER_MASK(p, sigEngineDestructor);
-
 template<typename T> inline T lerp(const float c, const T& a, const T& b)
 {
 	return a + c * (b - a);

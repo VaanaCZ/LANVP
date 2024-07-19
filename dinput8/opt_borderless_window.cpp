@@ -30,7 +30,7 @@ void RegisterPatch_BorderlessWindow()
 {
 	Patch patch;
 
-	REGISTER_MASK(patch, sigAdjustWindowRect);
+	patch.AddSignature(SIGARG(sigAdjustWindowRect));
 
 	ua_tcscpy_s(patch.name, 50, TEXT("Borderless window option"));
 	patch.func = ApplyPatch_BorderlessWindow;

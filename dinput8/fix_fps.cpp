@@ -112,14 +112,14 @@ void RegisterPatch_Framerate()
 {
 	Patch patch;
 
-	REGISTER_ENGINE_MASK(patch);
-	REGISTER_MASK_ALTERNATE(patch, sigFramerateDivisorConstructor, sigAltFramerateDivisorConstructor);
-	REGISTER_MASK(patch, sigFramerateDivisorGameplay);
-	REGISTER_MASK(patch, sigWaitAndHook);
-	REGISTER_MASK_ALTERNATE(patch, sigBraking, sigAltBraking);
-	REGISTER_MASK(patch, sigPencil);
-	REGISTER_MASK(patch, sigPairedAnimStageConstructor);
-	REGISTER_MASK(patch, sigBirds);
+	patch.AddSignature(SIGARG(sigEngineDestructor));
+	patch.AddSignatureWithAlt(SIGARG(sigFramerateDivisorConstructor), SIGARG(sigAltFramerateDivisorConstructor));
+	patch.AddSignature(SIGARG(sigFramerateDivisorGameplay));
+	patch.AddSignature(SIGARG(sigWaitAndHook));
+	patch.AddSignatureWithAlt(SIGARG(sigBraking), SIGARG(sigAltBraking));
+	patch.AddSignature(SIGARG(sigPencil));
+	patch.AddSignature(SIGARG(sigPairedAnimStageConstructor));
+	patch.AddSignature(SIGARG(sigBirds));
 
 	ua_tcscpy_s(patch.name, 50, TEXT("Framerate Unlock"));
 	patch.func = ApplyPatch_Framerate;

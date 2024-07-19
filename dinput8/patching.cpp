@@ -19,17 +19,51 @@ void* execMem = nullptr;
 void* execEnd = nullptr;
 void* execPtr = nullptr;
 
-bool RegisterPatch(Patch patch)
+unsigned int RegisterPatch(Patch patch)
 {
+	unsigned int index = 0xFFFFFFFF;
+
 	if (numPatches >= MAX_PATCHES)
 	{
-		return false;
+		return index;
 	}
+
+	index = numPatches;
 
 	patches[numPatches] = patch;
 	numPatches++;
 
-	return true;
+	return index;
+}
+
+unsigned int RegisterSignature(Signature signature)
+{
+	unsigned int index = 0xFFFFFFFF;
+
+	// Check if signature is already registered
+	for (size_t i = 0; i < numSignatures; i++)
+	{
+		if (signatures[i].Equals(signature))
+		{
+			index = i;
+			break;
+		}
+	}
+
+	if (index == 0xFFFFFFFF)
+	{
+		if (numSignatures >= MAX_SIGNATURES)
+		{
+			return index;
+		}
+
+		index = numSignatures;
+
+		signatures[numSignatures] = signature;
+		numSignatures++;
+	}
+
+	return index;
 }
 
 void HandleError(const TCHAR* title, const TCHAR* text)

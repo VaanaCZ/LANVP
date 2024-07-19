@@ -51,8 +51,8 @@ void RegisterPatch_SkipLogosAndLegals()
 {
 	Patch patch;
 
-	REGISTER_MASK(patch,		sigLogos);
-	REGISTER_MASK_FILTER(patch,	sigLegals, sigLegalsFilter);
+	patch.AddSignature(SIGARG(sigLogos));
+	patch.AddSignatureWithFilter(SIGARG(sigLegals), &sigLegalsFilter);
 
 	ua_tcscpy_s(patch.name, 50, TEXT("Skip logos and legals option"));
 	patch.func = ApplyPatch_SkipLogosAndLegals;

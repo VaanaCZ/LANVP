@@ -67,15 +67,6 @@ V-Patch implements correct UI and FoV correction in order to allow the user to p
     </tr>
 </table>
 
-<table>
-    <tr>
-      <td><a href="https://i.imgur.com/rRrbAYq.png"><img src="https://i.imgur.com/rRrbAYq.png"/></a></td>
-      </tr>
-    <tr>
-      <td><div style="text-align: center; font-style: italic">FOV Multiplier 2.0</div></td>
-    </tr>
-</table>
-
 ### Other features
 
 In addition to these fixes, V-Patch also lets you customize technical aspects of the game in the following manner:
@@ -84,6 +75,15 @@ In addition to these fixes, V-Patch also lets you customize technical aspects of
 - Skipping company logos - For a faster startup, the user can disable the logos and legal information which shows up after starting the game.
 - Custom FoV - Via an option in the config, the user can set a custom FoV multiplier.
 - Custom FPS limit - If needs be, the patch allows the user to set a custom FPS cap.
+
+<table>
+    <tr>
+      <td><a href="https://i.imgur.com/rRrbAYq.png"><img src="https://i.imgur.com/rRrbAYq.png"/></a></td>
+      </tr>
+    <tr>
+      <td><div style="text-align: center; font-style: italic">FOV Multiplier 2.0</div></td>
+    </tr>
+</table>
 
 ## Windows Installation
 
@@ -122,6 +122,10 @@ In order to customize the settings of V-Patch, navigate to the game's directory 
 
 - Car steering is more sensitive than it should be.
 - On very high FPS (100+), the chandelier in the mission "The Quarter Moon Murders" can break. If you encounter this issue, temporarily disable the patch or lower your FPS limit to below 100.
+
+## Compilation
+
+Use MSVC 2022 or newer.
 
 ## Changelog
 

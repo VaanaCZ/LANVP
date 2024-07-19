@@ -7,7 +7,7 @@ V-Patch is a lightweight, library-based, drop-in patch intended to fix common is
 
 ### Total FPS Uncap (60+ FPS) & Variable Framerate
 
-The main feature of V-Patch is the abillity to completely remove the default 30 FPS limit. Unlike other FPS patches which can only change the limit to 60, V-Patch allows the game to be run completely uncapped by implementing a more sophisticated FPS cap removal method, which also doesnt suffer from side-effects such as the game simulation running at incorrect speeds during stutters.
+The main feature of V-Patch is the abillity to completely remove the default 30 FPS limit. Unlike other FPS patches which can only change the limit to 60, V-Patch allows the game to be run completely uncapped by implementing a better FPS cap removal method, which also doesnt suffer from side-effects such as the game simulation occasionally running at incorrect speeds.
 
 In addition, V-Patch does not suffer from certain FPS-related bugs such as slow braking or the infamous pencil bug.
 
@@ -15,7 +15,6 @@ FPS-related fixes implemented by V-Patch:
 - Fixes car braking force. (The Golden Butterfly)
 - Fixed pencil. (The Set Up)
 - Fixed pigeons.
-
 
 <table>
     <tr>
@@ -55,7 +54,7 @@ By default, the game has a limited set of allowed resolutions and any non 16:9 a
 
 ### Ultrawide support
 
-V-Patch implements correct UI and FoV correction in order to allow the user to play the game in any ultrawide resolution. Unlike other with patches, the FoV correction does not affect cutscenes, meaning the cinematic experience remains untouched. 
+V-Patch implements correct UI and FoV correction in order to allow the user to play the game in any ultrawide resolution. Unlike other with patches, the FoV correction does not break cutscenes, meaning the cinematic experience remains untouched. 
 
 <table>
     <tr>
@@ -71,10 +70,10 @@ V-Patch implements correct UI and FoV correction in order to allow the user to p
 
 In addition to these fixes, V-Patch also lets you customize technical aspects of the game in the following manner:
 
-- Borderless window - The patch allows the user to start the game in borderless.
-- Skipping company logos - For a faster startup, the user can disable the logos and legal information which shows up after starting the game.
-- Custom FoV - Via an option in the config, the user can set a custom FoV multiplier.
-- Custom FPS limit - If needs be, the patch allows the user to set a custom FPS cap.
+- **Borderless window** - The patch allows the user to start the game in borderless.
+- **Skipping company logos** - For a faster startup, the user can disable the logos and legal information which shows up after starting the game.
+- **Custom FoV** - Via an option in the config, the user can set a custom FoV multiplier.
+- **Custom FPS limit** - If needs be, the patch allows the user to set a custom FPS cap.
 
 <table>
     <tr>

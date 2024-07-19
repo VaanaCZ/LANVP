@@ -19,9 +19,9 @@ void* execMem = nullptr;
 void* execEnd = nullptr;
 void* execPtr = nullptr;
 
-unsigned int RegisterPatch(Patch patch)
+int RegisterPatch(Patch patch)
 {
-	unsigned int index = 0xFFFFFFFF;
+	unsigned int index = -1;
 
 	if (numPatches >= MAX_PATCHES)
 	{
@@ -36,9 +36,9 @@ unsigned int RegisterPatch(Patch patch)
 	return index;
 }
 
-unsigned int RegisterSignature(Signature signature)
+int RegisterSignature(Signature signature)
 {
-	unsigned int index = 0xFFFFFFFF;
+	unsigned int index = -1;
 
 	// Check if signature is already registered
 	for (size_t i = 0; i < numSignatures; i++)
@@ -50,7 +50,7 @@ unsigned int RegisterSignature(Signature signature)
 		}
 	}
 
-	if (index == 0xFFFFFFFF)
+	if (index == -1)
 	{
 		if (numSignatures >= MAX_SIGNATURES)
 		{
@@ -172,29 +172,14 @@ void DoPatches()
 
 		while (regionPtr < regionEnd)
 		{
-			/*for (size_t i = 0; i < numPatches; i++)
-			{
-				Patch& patch = patches[i];
-
-				for (size_t j = 0; j < patch.numSignatures; j++)
-				{
-					Signature& signature = patch.signatures[j];
-
-					FindSignature(signature, false, regionStart, regionEnd, regionPtr);
-
-					if (signature.altSignature != nullptr)
-						FindSignature(signature, true, regionStart, regionEnd, regionPtr);
-				}
-			}*/
-
 			for (size_t i = 0; i < numSignatures; i++)
 			{
-				Signature& signature = signatures[i];
+				//Signature& signature = signatures[i];
 
-				FindSignature(signature, false, regionStart, regionEnd, regionPtr);
+				FindSignature(signatures[i], false, regionStart, regionEnd, regionPtr);
 
-				if (signature.altSignature != nullptr)
-					FindSignature(signature, true, regionStart, regionEnd, regionPtr);
+				//if (signature.altSignature != nullptr)
+				//	FindSignature(signature, true, regionStart, regionEnd, regionPtr);
 
 			}
 
@@ -253,11 +238,29 @@ void DoPatches()
 		bool allSignaturesFound = true;
 		for (size_t j = 0; j < patch.numSignatureIndices; j++)
 		{
-			Signature& signature = signatures[patch.signatureIndices[j]];
-			if (signature.numOccurrences != 1)
+			int signatureIndex		= patch.signatureIndices[j];
+			int altSignatureIndex	= patch.altSignatureIndices[j];
+
+			// Only one of the signatures must be found (if both are found then its invalid)
+			unsigned int totalNumOccurences = signatures[signatureIndex].numOccurrences;
+
+			if (altSignatureIndex != -1)
+				totalNumOccurences += signatures[altSignatureIndex].numOccurrences;
+
+			if (totalNumOccurences != 1)
 			{
 				allSignaturesFound = false;
 				break;
+			}
+
+			// Discard one of the indices to signal which one was found			
+			if (altSignatureIndex != -1 && signatures[altSignatureIndex].numOccurrences == 1)
+			{
+				patch.signatureIndices[j] = -1;
+			}
+			else
+			{
+				patch.altSignatureIndices[j] = -1;
 			}
 		}
 
@@ -305,8 +308,8 @@ bool FindSignature(Signature& sig, bool isAlternate, void* regionStart, void* re
 {
 	bool signatureValid = true;
 
-	DWORD* signature = isAlternate ? sig.altSignature : sig.signature;
-	size_t sigLength = isAlternate ? sig.altSigLength : sig.sigLength;
+	DWORD* signature = /*isAlternate ? sig.altSignature :*/ sig.signature;
+	size_t sigLength = /*isAlternate ? sig.altSigLength :*/ sig.sigLength;
 
 	if (regionPtr + sigLength > regionEnd)
 	{
@@ -358,7 +361,7 @@ bool FindSignature(Signature& sig, bool isAlternate, void* regionStart, void* re
 	}
 
 	sig.numOccurrences++;
-	sig.isAlternate = isAlternate;
+	// sig.isAlternate = isAlternate;
 	sig.foundPtr = foundPtr;
 
 	return true;

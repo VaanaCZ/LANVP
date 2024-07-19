@@ -140,16 +140,16 @@ static double uiHeight = 720.0f;
 bool ApplyPatch_Aspect(Patch* patch)
 {
 	assert(patch->numSignatureIndices == 9);
-	void* enginePtr			= signatures[patch->signatureIndices[0]].foundPtr;
-	void* blackBars			= signatures[patch->signatureIndices[1]].foundPtr;
-	void* blackBarsOnResize	= signatures[patch->signatureIndices[2]].foundPtr;
-	void* uiSizeHook		= signatures[patch->signatureIndices[3]].foundPtr;
-	void* uiLayerSize		= signatures[patch->signatureIndices[4]].foundPtr;
-	void* uiLayerSize2		= signatures[patch->signatureIndices[5]].foundPtr;
-	bool isAlternate		= signatures[patch->signatureIndices[4]].isAlternate;
-	void* uiSubtitleLayer	= signatures[patch->signatureIndices[6]].foundPtr;
-	void* uiLegalsScreen	= signatures[patch->signatureIndices[7]].foundPtr;
-	void* fov				= signatures[patch->signatureIndices[8]].foundPtr;
+	void* enginePtr			= patch->GetSignature(0);
+	void* blackBars			= patch->GetSignature(1);
+	void* blackBarsOnResize	= patch->GetSignature(2);
+	void* uiSizeHook		= patch->GetSignature(3);
+	bool isAlternate		= false;
+	void* uiLayerSize		= patch->GetSignature(4, &isAlternate);
+	void* uiLayerSize2		= patch->GetSignature(5);
+	void* uiSubtitleLayer	= patch->GetSignature(6);
+	void* uiLegalsScreen	= patch->GetSignature(7);
+	void* fov				= patch->GetSignature(8);
 
 	// Find the engine object pointer
 	if (!MemRead(enginePtr, &ppEngine, sizeof(ppEngine)))	return false;

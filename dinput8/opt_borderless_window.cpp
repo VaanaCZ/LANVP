@@ -41,7 +41,7 @@ void RegisterPatch_BorderlessWindow()
 bool ApplyPatch_BorderlessWindow(Patch* patch)
 {
 	assert(patch->numSignatureIndices == 1);
-	void* adjustWindowRect = signatures[patch->signatureIndices[0]].foundPtr;
+	void* adjustWindowRect = patch->GetSignature(0);
 
 	// Change style to borderless
 	DWORD style = WS_POPUP;

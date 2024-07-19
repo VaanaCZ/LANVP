@@ -27,19 +27,15 @@ struct Signature
 {
 	DWORD*			signature		= nullptr;	// Byte array used as search signature
 	size_t			sigLength		= 0;		// Length of array
-	
-	DWORD*			altSignature	= nullptr;	// Byte array used as search signature
-	size_t			altSigLength	= 0;		// Length of array
 
 	FilterFunc		filterFunc		= nullptr;	// Optional callback for extra filtering
 
 	unsigned int	numOccurrences	= 0;		// Number of occurences
-	bool			isAlternate		= false;	// Specifies whether altSignature was used
 	void*			foundPtr		= nullptr;	// Pointer to the last occurence
 
 	bool Equals(Signature& s)
 	{
-		return signature == s.signature && altSignature == s.altSignature && filterFunc == s.filterFunc;
+		return signature == s.signature /* && altSignature == s.altSignature*/ && filterFunc == s.filterFunc;
 	}
 };
 
@@ -53,15 +49,16 @@ extern void* execMem;
 extern void* execEnd;
 extern void* execPtr;
 
-unsigned int RegisterPatch(Patch patch);
-unsigned int RegisterSignature(Signature signature);
+int RegisterPatch(Patch patch);
+int RegisterSignature(Signature signature);
 
 struct Patch
 {
-	TCHAR			name[50];									// Name which will be displayed if patch fails
-	unsigned int	signatureIndices[MAX_SIGNATURE_INDICES];	// Registered signatures to be searched
-	unsigned int	numSignatureIndices	= 0;					// Number of signatures
-	ApplyFunc		func				= nullptr;				// Callback to be called if all signatures are found
+	TCHAR		name[50];									// Name which will be displayed if patch fails
+	int			signatureIndices[MAX_SIGNATURE_INDICES];	// Registered signatures to be searched
+	int			altSignatureIndices[MAX_SIGNATURE_INDICES];	// Registered alt-signatures to be searched
+	int			numSignatureIndices	= 0;					// Number of signatures
+	ApplyFunc	func				= nullptr;				// Callback to be called if all signatures are found
 
 	bool AddSignature(DWORD* signature, size_t sigLength)
 	{
@@ -70,11 +67,12 @@ struct Patch
 			return false;
 		}
 
-		Signature s;
-		s.signature = signature;
-		s.sigLength = sigLength;
+		Signature sig;
+		sig.signature	= signature;
+		sig.sigLength	= sigLength;
 
-		signatureIndices[numSignatureIndices] = RegisterSignature(s);
+		signatureIndices[numSignatureIndices]		= RegisterSignature(sig);
+		altSignatureIndices[numSignatureIndices]	= -1;
 		numSignatureIndices++;
 
 		return true;
@@ -87,13 +85,16 @@ struct Patch
 			return false;
 		}
 
-		Signature s;
-		s.signature = signature;
-		s.sigLength = sigLength;
-		s.altSignature = altSignature;
-		s.altSigLength = altSigLength;
+		Signature sig;
+		sig.signature	= signature;
+		sig.sigLength	= sigLength;
 
-		signatureIndices[numSignatureIndices] = RegisterSignature(s);
+		Signature altSig;
+		altSig.signature	= altSignature;
+		altSig.sigLength	= altSigLength;
+
+		signatureIndices[numSignatureIndices]		= RegisterSignature(sig);
+		altSignatureIndices[numSignatureIndices]	= RegisterSignature(altSig);
 		numSignatureIndices++;
 
 		return true;
@@ -106,16 +107,43 @@ struct Patch
 			return false;
 		}
 
-		Signature s;
-		s.signature = signature;
-		s.sigLength = sigLength;
-		s.filterFunc = filterFunc;
+		Signature sig;
+		sig.signature	= signature;
+		sig.sigLength	= sigLength;
+		sig.filterFunc	= filterFunc;
 
-		signatureIndices[numSignatureIndices] = RegisterSignature(s);
+		signatureIndices[numSignatureIndices]		= RegisterSignature(sig);
+		altSignatureIndices[numSignatureIndices]	= -1;
 		numSignatureIndices++;
 
 		return true;
 	};
+
+	void* GetSignature(int index, bool* isAlt = nullptr)
+	{
+		if (index >= numSignatureIndices)
+		{
+			return nullptr;
+		}
+
+		int sigIndex = -1;
+
+		if (signatureIndices[index] != -1)
+		{
+			if (isAlt) *isAlt = false;
+			sigIndex = signatureIndices[index];
+		}
+		else
+		{
+			if (isAlt) *isAlt = true;
+			sigIndex = altSignatureIndices[index];
+		}
+
+		if (sigIndex == -1)
+			return nullptr;
+
+		return signatures[sigIndex].foundPtr;
+	}
 };
 
 void HandleError(const TCHAR* title, const TCHAR* text);

@@ -140,15 +140,15 @@ static float* defaultBirdMaxSpeed;
 bool ApplyPatch_Framerate(Patch* patch)
 {
 	assert(patch->numSignatureIndices == 8);
-	void* enginePtr						= signatures[patch->signatureIndices[0]].foundPtr;
-	void* framerateDivisorConstructor	= (BYTE*)signatures[patch->signatureIndices[1]].foundPtr + 2;
-	void* framerateDivisorGameplay		= (BYTE*)signatures[patch->signatureIndices[2]].foundPtr + 3;
-	void* waitAndHook					= signatures[patch->signatureIndices[3]].foundPtr;
-	void* braking						= signatures[patch->signatureIndices[4]].foundPtr;
-	bool isBrakingAlt					= signatures[patch->signatureIndices[4]].isAlternate;
-	void* pencil						= (BYTE*)signatures[patch->signatureIndices[5]].foundPtr;
-	void* pairedAnimStageConstructor	= (BYTE*)signatures[patch->signatureIndices[6]].foundPtr;
-	void* birds							= (BYTE*)signatures[patch->signatureIndices[7]].foundPtr + 4;
+	void* enginePtr						= patch->GetSignature(0);
+	void* framerateDivisorConstructor	= (BYTE*)patch->GetSignature(1) + 2;
+	void* framerateDivisorGameplay		= (BYTE*)patch->GetSignature(2) + 3;
+	void* waitAndHook					= patch->GetSignature(3);
+	bool isBrakingAlt					= false;
+	void* braking						= patch->GetSignature(4, &isBrakingAlt);
+	void* pencil						= (BYTE*)patch->GetSignature(5);
+	void* pairedAnimStageConstructor	= (BYTE*)patch->GetSignature(6);
+	void* birds							= (BYTE*)patch->GetSignature(7) + 4;
 
 	// ========================================================================
 	// 

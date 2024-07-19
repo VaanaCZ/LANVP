@@ -30,12 +30,13 @@ struct Signature
 
 	FilterFunc		filterFunc		= nullptr;	// Optional callback for extra filtering
 
+	int				associatedIndex = -1;
 	unsigned int	numOccurrences	= 0;		// Number of occurences
 	void*			foundPtr		= nullptr;	// Pointer to the last occurence
 
 	bool Equals(Signature& s)
 	{
-		return signature == s.signature /* && altSignature == s.altSignature*/ && filterFunc == s.filterFunc;
+		return signature == s.signature && sigLength == s.sigLength && filterFunc == s.filterFunc;
 	}
 };
 
@@ -68,8 +69,9 @@ struct Patch
 		}
 
 		Signature sig;
-		sig.signature	= signature;
-		sig.sigLength	= sigLength;
+		sig.signature		= signature;
+		sig.sigLength		= sigLength;
+		sig.associatedIndex	= -1;
 
 		signatureIndices[numSignatureIndices]		= RegisterSignature(sig);
 		altSignatureIndices[numSignatureIndices]	= -1;
@@ -95,6 +97,10 @@ struct Patch
 
 		signatureIndices[numSignatureIndices]		= RegisterSignature(sig);
 		altSignatureIndices[numSignatureIndices]	= RegisterSignature(altSig);
+
+		signatures[signatureIndices[numSignatureIndices]].associatedIndex = altSignatureIndices[numSignatureIndices];
+		signatures[altSignatureIndices[numSignatureIndices]].associatedIndex = signatureIndices[numSignatureIndices];
+
 		numSignatureIndices++;
 
 		return true;
@@ -108,9 +114,10 @@ struct Patch
 		}
 
 		Signature sig;
-		sig.signature	= signature;
-		sig.sigLength	= sigLength;
-		sig.filterFunc	= filterFunc;
+		sig.signature		= signature;
+		sig.sigLength		= sigLength;
+		sig.filterFunc		= filterFunc;
+		sig.associatedIndex	= -1;
 
 		signatureIndices[numSignatureIndices]		= RegisterSignature(sig);
 		altSignatureIndices[numSignatureIndices]	= -1;

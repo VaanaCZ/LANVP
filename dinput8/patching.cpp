@@ -9,6 +9,8 @@
 #include <psapi.h>
 #include <cassert>
 
+#define NO_CHECK_DUPLICATES
+
 unsigned int numPatches = 0;
 Patch patches[MAX_PATCHES] = { };
 unsigned int numSignatures = 0;
@@ -113,6 +115,12 @@ const TCHAR flushInstructionCacheErrorText[]	= TEXT("Failed to flush instruction
 
 void DoPatches()
 {
+	int remainingSignatureIndices[MAX_SIGNATURES];
+	unsigned int numRemainingSignatures = numSignatures;
+
+	for (size_t i = 0; i < numSignatures; i++)
+		remainingSignatureIndices[i] = i;
+
 	//
 	// Memory search
 	//
@@ -172,18 +180,42 @@ void DoPatches()
 
 		while (regionPtr < regionEnd)
 		{
-			for (size_t i = 0; i < numSignatures; i++)
+			for (size_t i = 0; i < numRemainingSignatures; i++)
 			{
-				//Signature& signature = signatures[i];
+				Signature& signature = signatures[remainingSignatureIndices[i]];
 
-				FindSignature(signatures[i], false, regionStart, regionEnd, regionPtr);
+				if (FindSignature(signature, false, regionStart, regionEnd, regionPtr))
+				{
+#ifdef NO_CHECK_DUPLICATES
+					numRemainingSignatures--;
+					remainingSignatureIndices[i] = remainingSignatureIndices[numRemainingSignatures];
+					i--;
 
-				//if (signature.altSignature != nullptr)
-				//	FindSignature(signature, true, regionStart, regionEnd, regionPtr);
+					if (signature.associatedIndex != -1)
+					{
+						for (size_t j = 0; j < numRemainingSignatures; j++)
+						{
+							if (remainingSignatureIndices[j] == signature.associatedIndex)
+							{
+								numRemainingSignatures--;
+								remainingSignatureIndices[j] = remainingSignatureIndices[numRemainingSignatures];
+								if (j <= i)
+									i = j - 1;
 
+								break;
+							}
+						}
+					}
+#endif
+				}
 			}
 
 			regionPtr++;
+
+#ifdef NO_CHECK_DUPLICATES
+			if (numRemainingSignatures == 0)
+				break;
+#endif
 		}
 
 		// Restore protection
@@ -197,6 +229,11 @@ void DoPatches()
 		}
 
 		ptr = (BYTE*)ptr + memoryInfo.RegionSize;
+
+#ifdef NO_CHECK_DUPLICATES
+		if (numRemainingSignatures == 0)
+			break;
+#endif
 	}
 
 	//
@@ -308,8 +345,8 @@ bool FindSignature(Signature& sig, bool isAlternate, void* regionStart, void* re
 {
 	bool signatureValid = true;
 
-	DWORD* signature = /*isAlternate ? sig.altSignature :*/ sig.signature;
-	size_t sigLength = /*isAlternate ? sig.altSigLength :*/ sig.sigLength;
+	DWORD* signature = sig.signature;
+	size_t sigLength = sig.sigLength;
 
 	if (regionPtr + sigLength > regionEnd)
 	{
@@ -361,7 +398,6 @@ bool FindSignature(Signature& sig, bool isAlternate, void* regionStart, void* re
 	}
 
 	sig.numOccurrences++;
-	// sig.isAlternate = isAlternate;
 	sig.foundPtr = foundPtr;
 
 	return true;

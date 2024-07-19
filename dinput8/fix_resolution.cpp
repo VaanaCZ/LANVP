@@ -45,9 +45,9 @@ void RegisterPatch_Resolution()
 
 bool ApplyPatch_Resolution(Patch* patch)
 {
-	assert(patch->numSignatures == 2);
-	void* aspectCheck = patch->signatures[0].foundPtr;
-	void* optResCheck = patch->signatures[1].foundPtr;
+	assert(patch->numSignatureIndices == 2);
+	void* aspectCheck = signatures[patch->signatureIndices[0]].foundPtr;
+	void* optResCheck = signatures[patch->signatureIndices[1]].foundPtr;
 
 	// Removes aspect-ratio filter for resolution options
 	if (!MemWriteNop(aspectCheck, 6))	return false;  // "Resolution:1280x1440x120"

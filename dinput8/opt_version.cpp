@@ -36,8 +36,8 @@ void RegisterPatch_Version()
 
 bool ApplyPatch_Version(Patch* patch)
 {
-	assert(patch->numSignatures == 1);
-	void* version = patch->signatures[0].foundPtr;
+	assert(patch->numSignatureIndices == 1);
+	void* version = signatures[patch->signatureIndices[0]].foundPtr;
 
 	if (!MemWriteHookCall(version, &Hook_VerQueryValueA))	return false;
 

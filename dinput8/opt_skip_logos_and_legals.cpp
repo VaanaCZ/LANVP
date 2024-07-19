@@ -62,9 +62,9 @@ void RegisterPatch_SkipLogosAndLegals()
 
 bool ApplyPatch_SkipLogosAndLegals(Patch* patch)
 {
-	assert(patch->numSignatures == 2);
-	void* logos		= patch->signatures[0].foundPtr;
-	void* legals	= patch->signatures[1].foundPtr;
+	assert(patch->numSignatureIndices == 2);
+	void* logos		= signatures[patch->signatureIndices[0]].foundPtr;
+	void* legals	= signatures[patch->signatureIndices[1]].foundPtr;
 
 	// Logos
 	if (!MemWriteNop(logos,				7))		return false;

@@ -9,8 +9,9 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
-#define MAX_SIGNATURES	10
-#define MAX_PATCHES		10
+#define MAX_SIGNATURE_INDICES	10
+#define MAX_SIGNATURES			30
+#define MAX_PATCHES				10
 
 #define MASK 0xFFFFFFFF
 #define HERE 0xDDDDDDDD
@@ -60,32 +61,64 @@ struct Signature
 	unsigned int	numOccurrences	= 0;		// Number of occurences
 	bool			isAlternate		= false;	// Specifies whether altSignature was used
 	void*			foundPtr		= nullptr;	// Pointer to the last occurence
-};
 
-struct Patch
-{
-	TCHAR			name[50];					// Name which will be displayed if patch fails
-	Signature		signatures[MAX_SIGNATURES];	// Registered signatures to be searched
-	unsigned int	numSignatures	= 0;		// Number of signatures
-	ApplyFunc		func			= nullptr;	// Callback to be called if all signatures are found
-
-	bool RegisterSignature(Signature signature)
+	bool Equals(Signature& s)
 	{
-		if (numSignatures >= MAX_SIGNATURES)
-		{
-			return false;
-		}
-
-		signatures[numSignatures] = signature;
-		numSignatures++;
-
-		return true;
-	};
+		return signature == s.signature && altSignature == s.altSignature && filterFunc == s.filterFunc;
+	}
 };
 
 extern unsigned int numPatches;
 extern Patch patches[MAX_PATCHES];
+extern unsigned int numSignatures;
+extern Signature signatures[MAX_SIGNATURES];
 extern HANDLE process;
+
+struct Patch
+{
+	TCHAR			name[50];									// Name which will be displayed if patch fails
+	unsigned int	signatureIndices[MAX_SIGNATURE_INDICES];	// Registered signatures to be searched
+	unsigned int	numSignatureIndices	= 0;					// Number of signatures
+	ApplyFunc		func				= nullptr;				// Callback to be called if all signatures are found
+
+	bool RegisterSignature(Signature signature)
+	{
+		if (numSignatureIndices >= MAX_SIGNATURE_INDICES)
+		{
+			return false;
+		}
+
+		// Check if signature is already registered
+		unsigned int index = 0xFFFFFFFF;
+		
+		for (size_t i = 0; i < numSignatures; i++)
+		{
+			if (signatures[i].Equals(signature))
+			{
+				index = i;
+				break;
+			}
+		}
+
+		if (index == 0xFFFFFFFF)
+		{
+			if (numSignatures >= MAX_SIGNATURES)
+			{
+				return false;
+			}
+
+			index = numSignatures;
+
+			signatures[numSignatures] = signature;
+			numSignatures++;
+		}
+
+		signatureIndices[numSignatureIndices] = index;
+		numSignatureIndices++;
+
+		return true;
+	};
+};
 
 extern void* execMem;
 extern void* execEnd;

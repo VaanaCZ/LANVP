@@ -11,7 +11,10 @@
 
 unsigned int numPatches = 0;
 Patch patches[MAX_PATCHES] = { };
+unsigned int numSignatures = 0;
+Signature signatures[MAX_SIGNATURES] = { };
 HANDLE process = 0;
+
 void* execMem = nullptr;
 void* execEnd = nullptr;
 void* execPtr = nullptr;
@@ -68,10 +71,11 @@ const TCHAR memWriteErrorTitle[]				= TEXT("[V-PATCH] Error while writing memory
 const TCHAR memWriteNopErrorTitle[]				= TEXT("[V-PATCH] Error while writing NOP to memory!");
 const TCHAR memReadErrorTitle[]					= TEXT("[V-PATCH] Error while reading memory!");
 const TCHAR memReplaceErrorTitle[]				= TEXT("[V-PATCH] Error while replacing memory!");
-const TCHAR virtualQueryErrorText[]				= TEXT("Failed to query virtual memory.");
-const TCHAR virtualProtectErrorText[]			= TEXT("Failed to change memory protection.");
-const TCHAR virtualProtectRestoreErrorText[]	= TEXT("Failed to restore memory protection.");
-const TCHAR flushInstructionCacheErrorText[]	= TEXT("Failed to flush instruction cache.");
+
+const TCHAR virtualQueryErrorText[]				= TEXT("Failed to query virtual memory. ");
+const TCHAR virtualProtectErrorText[]			= TEXT("Failed to change memory protection. ");
+const TCHAR virtualProtectRestoreErrorText[]	= TEXT("Failed to restore memory protection. ");
+const TCHAR flushInstructionCacheErrorText[]	= TEXT("Failed to flush instruction cache. ");
 
 void DoPatches()
 {
@@ -85,14 +89,14 @@ void DoPatches()
 
 	if (!module)
 	{
-		HandleError(doPatchesErrorTitle, TEXT("Failed to get main module handle."));
+		HandleError(doPatchesErrorTitle, TEXT("Failed to get main module handle. "));
 		return;
 	}
 
 	MODULEINFO moduleInfo;
 	if (!GetModuleInformation(process, module, &moduleInfo, sizeof(moduleInfo)))
 	{
-		HandleError(doPatchesErrorTitle, TEXT("Failed to get module information."));
+		HandleError(doPatchesErrorTitle, TEXT("Failed to get module information. "));
 		return;
 	}
 
@@ -134,7 +138,7 @@ void DoPatches()
 
 		while (regionPtr < regionEnd)
 		{
-			for (size_t i = 0; i < numPatches; i++)
+			/*for (size_t i = 0; i < numPatches; i++)
 			{
 				Patch& patch = patches[i];
 
@@ -147,6 +151,17 @@ void DoPatches()
 					if (signature.altSignature != nullptr)
 						FindSignature(signature, true, regionStart, regionEnd, regionPtr);
 				}
+			}*/
+
+			for (size_t i = 0; i < numSignatures; i++)
+			{
+				Signature& signature = signatures[i];
+
+				FindSignature(signature, false, regionStart, regionEnd, regionPtr);
+
+				if (signature.altSignature != nullptr)
+					FindSignature(signature, true, regionStart, regionEnd, regionPtr);
+
 			}
 
 			regionPtr++;
@@ -176,7 +191,7 @@ void DoPatches()
 
 	if (!execMem)
 	{
-		HandleError(doPatchesErrorTitle, TEXT("Could not allocate instruction buffer."));
+		HandleError(doPatchesErrorTitle, TEXT("Could not allocate instruction buffer. "));
 		return;
 	}
 
@@ -194,17 +209,17 @@ void DoPatches()
 	TCHAR* msgPtr = errorMsg;
 	TCHAR* msgEnd = errorMsg + msgSize;
 
+	ua_tcscpy_s(msgPtr, msgEnd - msgPtr, TEXT("Failed to apply the following patches:\n"));
+	msgPtr += 39;
+
 	for (size_t i = 0; i < numPatches; i++)
 	{
 		Patch& patch = patches[i];
 
-		ua_tcscpy_s(msgPtr, msgEnd - msgPtr, TEXT("Failed to apply the following patches:"));
-		msgPtr += 38;
-
 		bool allSignaturesFound = true;
-		for (size_t j = 0; j < patch.numSignatures; j++)
+		for (size_t j = 0; j < patch.numSignatureIndices; j++)
 		{
-			Signature& signature = patch.signatures[j];
+			Signature& signature = signatures[patch.signatureIndices[j]];
 			if (signature.numOccurrences != 1)
 			{
 				allSignaturesFound = false;
@@ -221,8 +236,8 @@ void DoPatches()
 
 		if (!allSignaturesFound)
 		{
-			ua_tcscpy_s(msgPtr, msgEnd - msgPtr, TEXT("\n\t"));
-			msgPtr += 2;
+			ua_tcscpy_s(msgPtr, msgEnd - msgPtr, TEXT("\n    "));
+			msgPtr += 5;
 			ua_tcscpy_s(msgPtr, msgEnd - msgPtr, patch.name);
 			msgPtr += ua_lstrlen(patch.name);
 		}
@@ -241,13 +256,13 @@ void DoPatches()
 	DWORD oldProtect;
 	if (!VirtualProtect(execMem, systemInfo.dwPageSize, PAGE_EXECUTE_READ, &oldProtect))
 	{
-		HandleError(doPatchesErrorTitle, TEXT("Failed to change memory protection on instruction buffer."));
+		HandleError(doPatchesErrorTitle, TEXT("Failed to change memory protection on instruction buffer. "));
 		return;
 	}
 
 	if (!FlushInstructionCache(process, execMem, systemInfo.dwPageSize))
 	{
-		HandleError(doPatchesErrorTitle, TEXT("Failed to flush instruction cache on instruction buffer."));
+		HandleError(doPatchesErrorTitle, TEXT("Failed to flush instruction cache on instruction buffer. "));
 		return;
 	}
 }
@@ -296,19 +311,21 @@ bool FindSignature(Signature& sig, bool isAlternate, void* regionStart, void* re
 		sigIndex++;
 	}
 
-	if (signatureValid)
+	if (!signatureValid)
 	{
-		void* foundPtr = regionPtr + sigOffset;
-
-		if (sig.filterFunc && !sig.filterFunc(foundPtr))
-		{
-			return false;
-		}
-
-		sig.numOccurrences++;
-		sig.isAlternate = isAlternate;
-		sig.foundPtr = foundPtr;
+		return false;
 	}
+
+	void* foundPtr = regionPtr + sigOffset;
+
+	if (sig.filterFunc && !sig.filterFunc(foundPtr))
+	{
+		return false;
+	}
+
+	sig.numOccurrences++;
+	sig.isAlternate = isAlternate;
+	sig.foundPtr = foundPtr;
 
 	return true;
 }

@@ -157,6 +157,17 @@ void DoPatches()
 			return;
 		}
 
+		// Small speedup
+		// Ignore non-execute pages
+		if (!(memoryInfo.Protect & PAGE_EXECUTE) &&
+			!(memoryInfo.Protect & PAGE_EXECUTE_READ) &&
+			!(memoryInfo.Protect & PAGE_EXECUTE_READWRITE) &&
+			!(memoryInfo.Protect & PAGE_EXECUTE_WRITECOPY))
+		{
+			ptr = (BYTE*)ptr + memoryInfo.RegionSize;
+			continue;
+		}
+
 		// Unlock the area for reads
 		DWORD oldProtection;
 		bool wasProtected = false;

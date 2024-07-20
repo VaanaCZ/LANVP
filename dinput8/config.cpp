@@ -129,7 +129,7 @@ const char config[] =
 	"; Only works if fps_unlock is also enabled!\n"
 	";\n"
 	"; 1.0 = disabled (default)\n"
-	"; example: aspect_correction=1.5\n"
+	"; example: fov_multiplier=1.5\n"
 	"fov_multiplier=1.0\n"
 	"\n"
 	"; Starts the game in a borderless window.\n"

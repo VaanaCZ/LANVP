@@ -216,12 +216,12 @@ bool ApplyPatch_Framerate(Patch* patch)
 	// This causes the braking to become weaker and weaker, the smaller
 	// the frametime (high FPS)
 	// 
-	// forceVector = forceVector * frametime * frametime;
+	// forcePerFrameVector = forceVector * frametime * frametime;
 	// 
-	// The fix is to simply hardcode one of these multiplications to a fixed value,
-	// so that the final scaling is correct.
+	// The fix is to simply hardcode one of these multiplications to a fixed 1/30 value,
+	// so that the final scaling is correct on FPS above 30.
 	// 
-	// forceVector = forceVector * 0.0333333 * frametime;
+	// forcePerFrameVector = forceVector * 0.0333333 * frametime;
 	//
 
 	if (!isBrakingAlt)

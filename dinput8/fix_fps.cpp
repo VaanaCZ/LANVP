@@ -84,6 +84,17 @@ HERE,	0x8B, 0x4D, 0x04,
 		0x2B, 0xC6
 };
 
+DWORD sigNotebookClueConstructor[] =
+{
+		0x56,
+		0xE8, MASK, MASK, MASK, MASK,
+		0xB8, 0xFF, 0xFF, 0x00, 0x00,
+		0xC7, 0x06, HERE, MASK, MASK, MASK, MASK,
+		0xC7, 0x46, 0x24, MASK, MASK, MASK, MASK,
+		0x66, 0x89, 0x86, 0xB0, 0x00, 0x00, 0x00,
+		0x64, 0x8B, 0x0D, 0x2C, 0x00, 0x00, 0x00
+};
+
 DWORD sigPairedAnimStageConstructor[] =
 {
 		0x89, 0x48, 0x08,
@@ -114,6 +125,7 @@ static int framerateDivisorGameplayIndex = -1;
 static int waitAndHookIndex = -1;
 static int brakingIndex = -1;
 static int pencilIndex = -1;
+static int notebookClueConstructorIndex = -1;
 static int pairedAnimStageConstructorIndex = -1;
 static int birdsIndex = -1;
 
@@ -127,6 +139,7 @@ void RegisterPatch_Framerate()
 	waitAndHookIndex					= patch.AddSignature(SIGARG(sigWaitAndHook));
 	brakingIndex						= patch.AddSignatureWithAlt(SIGARG(sigBraking), SIGARG(sigAltBraking));
 	pencilIndex							= patch.AddSignature(SIGARG(sigPencil));
+	notebookClueConstructorIndex		= patch.AddSignature(SIGARG(sigNotebookClueConstructor));
 	pairedAnimStageConstructorIndex		= patch.AddSignature(SIGARG(sigPairedAnimStageConstructor));
 	birdsIndex							= patch.AddSignature(SIGARG(sigBirds));
 
@@ -141,14 +154,15 @@ static LARGE_INTEGER lastTime, timeFrequency;	// Time measurement variables
 
 static DWORD fixedFrametime = 0x3D088889;		// Default frametime => 0.03333333507
 
-static void* interactionStageVft;
+static void* pairedAnimStageVft;
+static void* notebookClueVft;
 
 static float birdMaxSpeed;
 static float* defaultBirdMaxSpeed;
 
 bool ApplyPatch_Framerate(Patch* patch)
 {
-	assert(patch->numSignatureIndices == 8);
+	assert(patch->numSignatureIndices == 9);
 	void* enginePtr						= patch->GetSignature(engineDestructorIndex);
 	void* framerateDivisorConstructor	= (BYTE*)patch->GetSignature(framerateDivisorConstructorIndex) + 2;
 	void* framerateDivisorGameplay		= (BYTE*)patch->GetSignature(framerateDivisorGameplayIndex) + 3;
@@ -156,6 +170,7 @@ bool ApplyPatch_Framerate(Patch* patch)
 	bool isBrakingAlt					= false;
 	void* braking						= patch->GetSignature(brakingIndex, &isBrakingAlt);
 	void* pencil						= (BYTE*)patch->GetSignature(pencilIndex);
+	void* notebookClueConstructor		= (BYTE*)patch->GetSignature(notebookClueConstructorIndex);
 	void* pairedAnimStageConstructor	= (BYTE*)patch->GetSignature(pairedAnimStageConstructorIndex);
 	void* birds							= (BYTE*)patch->GetSignature(birdsIndex) + 4;
 
@@ -290,7 +305,8 @@ bool ApplyPatch_Framerate(Patch* patch)
 	// timing fuckery, and I haven't got the slightest fucking clue how to fix it!
 	//
 
-	interactionStageVft = (void*)(*(DWORD*)pairedAnimStageConstructor);
+	pairedAnimStageVft	= (void*)(*(DWORD*)pairedAnimStageConstructor);
+	notebookClueVft		= (void*)(*(DWORD*)notebookClueConstructor);
 
 	BYTE pencilHook[] =
 	{
@@ -412,16 +428,22 @@ void __stdcall Hook_Frame()
 
 void __stdcall Hook_Pencil(InspectionSystem* inspection)
 {	
-	if (!inspection || !inspection->stage) // Safe-guard
+	if (!inspection || !inspection->tb.object || !inspection->tb.object->clue || !inspection->stage) // Safe-guard
 	{
 		return;
 	}
 
-	if (inspection->stage->__vftptr == interactionStageVft && // must be of type InteractionStage
-		inspection->stage->state == 2 &&
-		inspection->tb.object1 == inspection->tb.object2)
+	if (inspection->tb.object->clue->__vftptr == notebookClueVft) // must be of type NotebookClue
 	{
-		// Delay next stage
-		inspection->stage->state = 1;
+		if (inspection->stage->__vftptr != pairedAnimStageVft) // must be of type PairedAnimStage
+		{
+			return; 
+		}
+
+		if (inspection->stage->state == 2 &&
+			inspection->tb.object1 == inspection->tb.object2)
+		{
+			inspection->stage->state = 1; // Delay next stage
+		}
 	}
 }

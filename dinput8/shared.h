@@ -26,8 +26,26 @@ public:
 	int viewHeight;
 };
 
-class InspectionObject;
+class Clue
+{
+public:
+	void* __vftptr;
+	BYTE padding[0x20];
+	void* __vftptr2;
+};
+
+class InspectionObject
+{
+public:
+	void* __vftptr;
+	BYTE padding[0x30];
+	Clue* clue;
+};
+
 class ActorInstance;
+class InspectionSession;
+class InspectionMode;
+class AnimEventHandler;
 
 class InspectionStage
 {
@@ -36,6 +54,8 @@ public:
 	BYTE padding[0x8];
 	void* __vftptr2;
 	int state;
+	BYTE padding2[0x50];
+	AnimEventHandler* eventHandler;
 };
 
 class InspectionSystem
@@ -44,7 +64,12 @@ public:
 	struct TB
 	{
 		ActorInstance* actor;
-		BYTE padding[0x30];
+		InspectionSession* session;
+		BYTE padding[0x4];
+		InspectionMode* mode;
+		BYTE padding2[0x4];
+		InspectionObject* object;
+		BYTE padding3[0x1C];
 		InspectionObject** object1;
 		InspectionObject** object2;
 	};

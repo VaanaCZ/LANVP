@@ -30,7 +30,7 @@ void RegisterPatch_Version()
 
 	versionIndex = patch.AddSignature(SIGARG(sigVersion));
 
-	ua_tcscpy_s(patch.name, 50, TEXT("Version number in menu"));
+	patch.SetName(TEXT("Version number in menu"));
 	patch.func = ApplyPatch_Version;
 
 	RegisterPatch(patch);

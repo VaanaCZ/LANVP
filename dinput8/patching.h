@@ -157,6 +157,11 @@ struct Patch
 
 		return signatures[sigIndex].foundPtr;
 	}
+
+	void SetName(const TCHAR* _name)
+	{
+		ua_tcscpy_s(name, sizeof(name) / sizeof(name[0]), _name);
+	}
 };
 
 void HandleError(const TCHAR* title, const TCHAR* text);

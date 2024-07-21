@@ -143,7 +143,7 @@ void RegisterPatch_Framerate()
 	pairedAnimStageConstructorIndex		= patch.AddSignature(SIGARG(sigPairedAnimStageConstructor));
 	birdsIndex							= patch.AddSignature(SIGARG(sigBirds));
 
-	ua_tcscpy_s(patch.name, 50, TEXT("Framerate Unlock"));
+	patch.SetName(TEXT("Framerate Unlock"));
 	patch.func = ApplyPatch_Framerate;
 
 	RegisterPatch(patch);
@@ -154,8 +154,8 @@ static LARGE_INTEGER lastTime, timeFrequency;	// Time measurement variables
 
 static DWORD fixedFrametime = 0x3D088889;		// Default frametime => 0.03333333507
 
-static void* pairedAnimStageVft;
-static void* notebookClueVft;
+static void* pairedAnimStageVft;				// PairedAnimStage::__vftptr
+static void* notebookClueVft;					// NotebookClue::__vftptr
 
 static float birdMaxSpeed;
 static float* defaultBirdMaxSpeed;
@@ -342,7 +342,7 @@ bool ApplyPatch_Framerate(Patch* patch)
 	// The fix adjusts the maximum top speed according to the framerate.
 	//
 
-	if (!MemRead(birds, &defaultBirdMaxSpeed, sizeof(defaultBirdMaxSpeed)))			return false;
+	if (!MemRead(birds, &defaultBirdMaxSpeed, sizeof(defaultBirdMaxSpeed)))	return false;
 	birdMaxSpeed = *defaultBirdMaxSpeed;
 
 	float* pBirdMaxSpeed = &birdMaxSpeed;
@@ -351,36 +351,6 @@ bool ApplyPatch_Framerate(Patch* patch)
 	// Prepare required variables
 	if (!QueryPerformanceCounter(&lastTime))		{ HandleError(TEXT("Patching failed!"), TEXT("Could not query performance counter.")); return false; }
 	if (!QueryPerformanceFrequency(&timeFrequency)) { HandleError(TEXT("Patching failed!"), TEXT("Could not query performance frequency.")); return false; }
-
-
-	//DWORD a = (DWORD)&frm;
-	//
-	//void* p01 = (void*)(0x00A6340F + 0x2);
-	//void* p02 = (void*)(0x00A6E3A8 + 0x2);
-	//void* p03 = (void*)(0x00A6E404 + 0x4);
-	//void* p04 = (void*)(0x00A6E40C + 0x2);
-	//void* p05 = (void*)(0x00BEADC2 + 0x2);
-	//void* p06 = (void*)(0x00BF308E + 0x4);
-	//void* p07 = (void*)(0x00C91970 + 0x4);
-	//void* p08 = (void*)(0x00DB6E85 + 0x3);
-	//void* p09 = (void*)(0x00DF4C0F + 0x4);
-	//void* p10 = (void*)(0x00E49024 + 0x2);
-	//void* p11 = (void*)(0x00E4D295 + 0x4);
-	//void* p12 = (void*)(0x00E56E3B + 0x2);
-	//
-	//MemWrite(p01, &a, sizeof(a));
-	//MemWrite(p02, &a, sizeof(a));
-	//MemWrite(p03, &a, sizeof(a));
-	//MemWrite(p04, &a, sizeof(a));
-	//MemWrite(p05, &a, sizeof(a));
-	//MemWrite(p06, &a, sizeof(a));
-	//
-	//MemWrite(p07, &a, sizeof(a));
-	//MemWrite(p08, &a, sizeof(a));
-	//MemWrite(p09, &a, sizeof(a));
-	//MemWrite(p10, &a, sizeof(a));
-	////MemWrite(p11, &a, sizeof(a)); // wheels
-	//MemWrite(p12, &a, sizeof(a));
 
 	return true;
 }

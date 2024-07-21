@@ -40,7 +40,7 @@ void RegisterPatch_Resolution()
 	aspectCheckIndex = patch.AddSignature(SIGARG(sigAspectCheck));
 	optResCheckIndex = patch.AddSignature(SIGARG(sigOptResCheck));
 
-	ua_tcscpy_s(patch.name, 50, TEXT("Unlock resolutions"));
+	patch.SetName(TEXT("Unlock resolutions"));
 	patch.func = ApplyPatch_Resolution;
 
 	RegisterPatch(patch);

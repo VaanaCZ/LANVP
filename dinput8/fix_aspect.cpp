@@ -136,7 +136,7 @@ void RegisterPatch_Aspect()
 	uiLegalsScreenIndex		= patch.AddSignature(SIGARG(sigUiLegalsScreen));
 	fovIndex				= patch.AddSignature(SIGARG(sigFov));
 
-	ua_tcscpy_s(patch.name, 50, TEXT("Aspect-ratio fix"));
+	patch.SetName(TEXT("Aspect-ratio fix"));
 	patch.func = ApplyPatch_Aspect;
 
 	RegisterPatch(patch);
@@ -226,12 +226,6 @@ bool ApplyPatch_Aspect(Patch* patch)
 
 	if (!MemWriteHookJmp(fov, pFovHook))	return false;
 	if (!MemWriteNop((BYTE*)fov + 5, 3))	return false;
-
-
-	//MemWrite((void*)0x00491FD3, &pUiWidth, sizeof(pUiWidth));
-	//MemWrite((void*)0x00491FF5, &pUiHeight, sizeof(pUiHeight));	
-	//MemWrite((void*)0x00493326, &pUiWidth, sizeof(pUiWidth));
-	//MemWrite((void*)0x00493352, &pUiHeight, sizeof(pUiHeight));
 
 	/*
 	

@@ -57,7 +57,7 @@ void RegisterPatch_SkipLogosAndLegals()
 	logosIndex	= patch.AddSignature(SIGARG(sigLogos));
 	legalsIndex	= patch.AddSignatureWithFilter(SIGARG(sigLegals), &sigLegalsFilter);
 
-	ua_tcscpy_s(patch.name, 50, TEXT("Skip logos and legals option"));
+	patch.SetName(TEXT("Skip logos and legals option"));
 	patch.func = ApplyPatch_SkipLogosAndLegals;
 
 	RegisterPatch(patch);

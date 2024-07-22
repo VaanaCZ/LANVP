@@ -40,7 +40,7 @@ void RegisterPatch_Resolution()
 	aspectCheckIndex = patch.AddSignature(SIGARG(sigAspectCheck));
 	optResCheckIndex = patch.AddSignature(SIGARG(sigOptResCheck));
 
-	patch.SetName(TEXT("Unlock resolutions"));
+	patch.SetName(L"Unlock resolutions");
 	patch.func = ApplyPatch_Resolution;
 
 	RegisterPatch(patch);

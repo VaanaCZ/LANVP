@@ -136,7 +136,7 @@ void RegisterPatch_Aspect()
 	uiLegalsScreenIndex		= patch.AddSignature(SIGARG(sigUiLegalsScreen));
 	fovIndex				= patch.AddSignature(SIGARG(sigFov));
 
-	patch.SetName(TEXT("Aspect-ratio fix"));
+	patch.SetName(L"Aspect-ratio fix");
 	patch.func = ApplyPatch_Aspect;
 
 	RegisterPatch(patch);
@@ -162,7 +162,7 @@ bool ApplyPatch_Aspect(Patch* patch)
 	void* fov				= patch->GetSignature(fovIndex);
 
 	// Find the engine object pointer
-	if (!MemRead(enginePtr, &ppEngine, sizeof(ppEngine)))	return false;
+	if (!MemRead(enginePtr, &ppEngine, sizeof(ppEngine)))				return false;
 
 	// Remove black bars
 	BYTE jmp = 0xEB;

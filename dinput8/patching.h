@@ -44,6 +44,7 @@ extern unsigned int numPatches;
 extern Patch patches[MAX_PATCHES];
 extern unsigned int numSignatures;
 extern Signature signatures[MAX_SIGNATURES];
+
 extern HANDLE process;
 
 extern void* execMem;
@@ -55,11 +56,11 @@ int RegisterSignature(Signature signature);
 
 struct Patch
 {
-	TCHAR		name[50];									// Name which will be displayed if patch fails
-	int			signatureIndices[MAX_SIGNATURE_INDICES];	// Registered signatures to be searched
-	int			altSignatureIndices[MAX_SIGNATURE_INDICES];	// Registered alt-signatures to be searched
-	int			numSignatureIndices	= 0;					// Number of signatures
-	ApplyFunc	func				= nullptr;				// Callback to be called if all signatures are found
+	wchar_t			name[50];									// Name which will be displayed if patch fails
+	int				signatureIndices[MAX_SIGNATURE_INDICES];	// Registered signatures to be searched
+	int				altSignatureIndices[MAX_SIGNATURE_INDICES];	// Registered alt-signatures to be searched
+	unsigned int	numSignatureIndices	= 0;					// Number of signatures
+	ApplyFunc		func				= nullptr;				// Callback to be called if all signatures are found
 
 	int AddSignature(DWORD* signature, size_t sigLength)
 	{
@@ -158,13 +159,13 @@ struct Patch
 		return signatures[sigIndex].foundPtr;
 	}
 
-	void SetName(const TCHAR* _name)
+	void SetName(const wchar_t* _name)
 	{
-		ua_tcscpy_s(name, sizeof(name) / sizeof(name[0]), _name);
+		wcscpy_s(name, sizeof(name) / sizeof(name[0]), _name);
 	}
 };
 
-void HandleError(const TCHAR* title, const TCHAR* text);
+void HandleError(const wchar_t* title, const wchar_t* text);
 
 void DoPatches();
 bool FindSignature(Signature& sig, bool isAlternate, void* regionStart, void* regionEnd, BYTE* regionPtr);

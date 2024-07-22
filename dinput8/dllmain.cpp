@@ -23,7 +23,7 @@
 
 #define EPSILON 2.2204460492503131e-016
 
-const TCHAR configFile[] = TEXT("lanvp.ini");
+const wchar_t configFile[] = L"lanvp.ini";
 
 void Init()
 {

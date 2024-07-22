@@ -8,14 +8,16 @@
 
 #include <psapi.h>
 #include <cassert>
+#include <wchar.h>
 
 #define NO_CHECK_DUPLICATES
 
-unsigned int numPatches = 0;
-Patch patches[MAX_PATCHES] = { };
-unsigned int numSignatures = 0;
-Signature signatures[MAX_SIGNATURES] = { };
-HANDLE process = 0;
+unsigned int numPatches					= 0;
+Patch patches[MAX_PATCHES]				= { };
+unsigned int numSignatures				= 0;
+Signature signatures[MAX_SIGNATURES]	= { };
+
+HANDLE process = NULL;
 
 void* execMem = nullptr;
 void* execEnd = nullptr;
@@ -68,50 +70,35 @@ int RegisterSignature(Signature signature)
 	return index;
 }
 
-void HandleError(const TCHAR* title, const TCHAR* text)
+void HandleError(const wchar_t* title, const wchar_t* text)
 {
-	const size_t msgSize = 1000;
-	TCHAR errorMsg[msgSize];
-	TCHAR* msgPtr = errorMsg;
-	TCHAR* msgEnd = errorMsg + msgSize;
+	const size_t messageLength = 1024;
+	wchar_t message[messageLength];
 
-	ua_tcscpy_s(msgPtr, msgEnd - msgPtr, text);
-	msgPtr += ua_lstrlen(text);
-
+	wchar_t* errorMessage = nullptr;
 	DWORD error = GetLastError();
 
 	if (error > 0)
 	{
-		TCHAR* message = nullptr;
-
-		size_t size = FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-			NULL,
-			error,
-			MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US),
-			(TCHAR*)&message,
-			0,
-			NULL);
-
-		if (size > 0)
-		{
-			ua_tcscpy_s(msgPtr, msgEnd - msgPtr, message);
-			msgPtr += ua_lstrlen(message);
-		}
+		size_t size = FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+			NULL, error, MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), (wchar_t*)&errorMessage, 0, NULL);
 	}
 
-	MessageBox(NULL, errorMsg, title, MB_OK);
+	swprintf_s(message, messageLength, L"%s %s", text, errorMessage);
+
+	MessageBoxW(NULL, message, title, MB_OK);
 }
 
-const TCHAR doPatchesErrorTitle[]				= TEXT("[V-PATCH] Error while initializing patch!");
-const TCHAR memWriteErrorTitle[]				= TEXT("[V-PATCH] Error while writing memory!");
-const TCHAR memWriteNopErrorTitle[]				= TEXT("[V-PATCH] Error while writing NOP to memory!");
-const TCHAR memReadErrorTitle[]					= TEXT("[V-PATCH] Error while reading memory!");
-const TCHAR memReplaceErrorTitle[]				= TEXT("[V-PATCH] Error while replacing memory!");
+const wchar_t doPatchesErrorTitle[]				= L"[V-PATCH] Error while initializing patch!";
+const wchar_t memWriteErrorTitle[]				= L"[V-PATCH] Error while writing memory!";
+const wchar_t memWriteNopErrorTitle[]			= L"[V-PATCH] Error while writing NOP to memory!";
+const wchar_t memReadErrorTitle[]				= L"[V-PATCH] Error while reading memory!";
+const wchar_t memReplaceErrorTitle[]			= L"[V-PATCH] Error while replacing memory!";
 
-const TCHAR virtualQueryErrorText[]				= TEXT("Failed to query virtual memory. ");
-const TCHAR virtualProtectErrorText[]			= TEXT("Failed to change memory protection. ");
-const TCHAR virtualProtectRestoreErrorText[]	= TEXT("Failed to restore memory protection. ");
-const TCHAR flushInstructionCacheErrorText[]	= TEXT("Failed to flush instruction cache. ");
+const wchar_t virtualQueryErrorText[]			= L"Failed to query virtual memory.";
+const wchar_t virtualProtectErrorText[]			= L"Failed to change memory protection.";
+const wchar_t virtualProtectRestoreErrorText[]	= L"Failed to restore memory protection.";
+const wchar_t flushInstructionCacheErrorText[]	= L"Failed to flush instruction cache.";
 
 void DoPatches()
 {
@@ -131,14 +118,14 @@ void DoPatches()
 
 	if (!module)
 	{
-		HandleError(doPatchesErrorTitle, TEXT("Failed to get main module handle. "));
+		HandleError(doPatchesErrorTitle, L"Failed to get main module handle.");
 		return;
 	}
 
 	MODULEINFO moduleInfo;
 	if (!GetModuleInformation(process, module, &moduleInfo, sizeof(moduleInfo)))
 	{
-		HandleError(doPatchesErrorTitle, TEXT("Failed to get module information. "));
+		HandleError(doPatchesErrorTitle, L"Failed to get module information.");
 		return;
 	}
 
@@ -258,7 +245,7 @@ void DoPatches()
 
 	if (!execMem)
 	{
-		HandleError(doPatchesErrorTitle, TEXT("Could not allocate instruction buffer. "));
+		HandleError(doPatchesErrorTitle, L"Could not allocate instruction buffer.");
 		return;
 	}
 
@@ -271,13 +258,8 @@ void DoPatches()
 
 	bool allPatchesApplied = true;
 
-	const size_t msgSize = 1000;
-	TCHAR errorMsg[msgSize];
-	TCHAR* msgPtr = errorMsg;
-	TCHAR* msgEnd = errorMsg + msgSize;
-
-	ua_tcscpy_s(msgPtr, msgEnd - msgPtr, TEXT("Failed to apply the following patches:\n"));
-	msgPtr += 39;
+	const size_t messageLength = 1024;
+	wchar_t message[messageLength] = L"Failed to apply the following patches:\n";
 
 	for (size_t i = 0; i < numPatches; i++)
 	{
@@ -321,10 +303,10 @@ void DoPatches()
 
 		if (!allSignaturesFound)
 		{
-			ua_tcscpy_s(msgPtr, msgEnd - msgPtr, TEXT("\n    "));
-			msgPtr += 5;
-			ua_tcscpy_s(msgPtr, msgEnd - msgPtr, patch.name);
-			msgPtr += ua_lstrlen(patch.name);
+			size_t length = wcslen(message);
+			wcscpy_s(&message[length], messageLength - length, L"\n    ");
+			length = wcslen(message);
+			wcscpy_s(&message[length], messageLength - length, patch.name);
 		}
 
 		allPatchesApplied &= allSignaturesFound;
@@ -332,7 +314,7 @@ void DoPatches()
 
 	if (!allPatchesApplied)
 	{
-		MessageBox(NULL, errorMsg, doPatchesErrorTitle, MB_OK);
+		MessageBoxW(NULL, message, doPatchesErrorTitle, MB_OK);
 	}
 
 	//
@@ -341,13 +323,13 @@ void DoPatches()
 	DWORD oldProtect;
 	if (!VirtualProtect(execMem, systemInfo.dwPageSize, PAGE_EXECUTE_READ, &oldProtect))
 	{
-		HandleError(doPatchesErrorTitle, TEXT("Failed to change memory protection on instruction buffer. "));
+		HandleError(doPatchesErrorTitle, L"Failed to change memory protection on instruction buffer.");
 		return;
 	}
 
 	if (!FlushInstructionCache(process, execMem, systemInfo.dwPageSize))
 	{
-		HandleError(doPatchesErrorTitle, TEXT("Failed to flush instruction cache on instruction buffer. "));
+		HandleError(doPatchesErrorTitle, L"Failed to flush instruction cache on instruction buffer.");
 		return;
 	}
 }

@@ -30,7 +30,7 @@ void RegisterPatch_Version()
 
 	versionIndex = patch.AddSignature(SIGARG(sigVersion));
 
-	patch.SetName(TEXT("Version number in menu"));
+	patch.SetName(L"Version number in menu");
 	patch.func = ApplyPatch_Version;
 
 	RegisterPatch(patch);

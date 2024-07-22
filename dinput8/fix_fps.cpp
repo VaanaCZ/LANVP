@@ -143,7 +143,7 @@ void RegisterPatch_Framerate()
 	pairedAnimStageConstructorIndex		= patch.AddSignature(SIGARG(sigPairedAnimStageConstructor));
 	birdsIndex							= patch.AddSignature(SIGARG(sigBirds));
 
-	patch.SetName(TEXT("Framerate Unlock"));
+	patch.SetName(L"Framerate Unlock");
 	patch.func = ApplyPatch_Framerate;
 
 	RegisterPatch(patch);
@@ -175,9 +175,7 @@ bool ApplyPatch_Framerate(Patch* patch)
 	void* birds							= (BYTE*)patch->GetSignature(birdsIndex) + 4;
 
 	// ========================================================================
-	// 
 	// Framerate cap removal
-	// 
 	// ========================================================================
 
 	// Find the engine object pointer
@@ -213,9 +211,7 @@ bool ApplyPatch_Framerate(Patch* patch)
 	if (!MemWrite((BYTE*)waitAndHook + 5, &jmp, sizeof(jmp)))	return false; // append hook with jump to end of branch
 
 	// ========================================================================
-	// 
 	// FPS-related fixes
-	// 
 	// ========================================================================
 
 	//
@@ -254,7 +250,7 @@ bool ApplyPatch_Framerate(Patch* patch)
 		DWORD* a2 = (DWORD*)&pBrakeHook[9];
 
 		*a1 = (DWORD)&fixedFrametime;
-		*a2 = (DWORD)braking - (DWORD)a2 + 1;
+		*a2 = (DWORD)braking - (DWORD)a2 + 1; // FIXME: is this correct?
 
 		if (!MemWriteHookJmp(braking, pBrakeHook))	return false;
 	}
@@ -278,7 +274,7 @@ bool ApplyPatch_Framerate(Patch* patch)
 		DWORD* a2 = (DWORD*)&pBrakeHook[13];
 
 		*a1 = (DWORD)&fixedFrametime;
-		*a2 = (DWORD)braking - (DWORD)a2 + 5;
+		*a2 = (DWORD)braking - (DWORD)a2 + 5; // FIXME: is this correct?
 
 		if (!MemWriteHookJmp(braking, pBrakeHook))	return false;
 		if (!MemWriteNop((BYTE*)braking + 5, 4))	return false;
@@ -349,8 +345,8 @@ bool ApplyPatch_Framerate(Patch* patch)
 	if (!MemWrite(birds, &pBirdMaxSpeed, sizeof(pBirdMaxSpeed)))			return false;
 
 	// Prepare required variables
-	if (!QueryPerformanceCounter(&lastTime))		{ HandleError(TEXT("Patching failed!"), TEXT("Could not query performance counter.")); return false; }
-	if (!QueryPerformanceFrequency(&timeFrequency)) { HandleError(TEXT("Patching failed!"), TEXT("Could not query performance frequency.")); return false; }
+	if (!QueryPerformanceCounter(&lastTime))		{ HandleError(L"[V-PATCH] Patching failed!", L"Could not query performance counter."); return false; }
+	if (!QueryPerformanceFrequency(&timeFrequency)) { HandleError(L"[V-PATCH] Patching failed!", L"Could not query performance frequency."); return false; }
 
 	return true;
 }

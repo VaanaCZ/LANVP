@@ -34,7 +34,7 @@ void RegisterPatch_BorderlessWindow()
 
 	adjustWindowRectIndex = patch.AddSignature(SIGARG(sigAdjustWindowRect));
 
-	patch.SetName(TEXT("Borderless window option"));
+	patch.SetName(L"Borderless window option");
 	patch.func = ApplyPatch_BorderlessWindow;
 
 	RegisterPatch(patch);

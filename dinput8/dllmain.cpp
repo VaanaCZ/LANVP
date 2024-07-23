@@ -8,6 +8,8 @@
 //     1.1a - Added "Force DX11" option, fixed a bug with force resolution.
 //     1.1b - Added support for 2675, fixed dinput8.dll not found on 32-bit
 //            systems, made WinAPI error messages more verbose.
+//     2.0  - Patch rewritten, fixed many problems with the implementations of
+//            fixes. Fixed the pencil FPS bug and pigeons.
 // 
 // Copyright (c) 2021-2024 Vaana
 //-----------------------------------------------------------------------------

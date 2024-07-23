@@ -28,7 +28,7 @@ bool LoadConfig(const wchar_t* path, Options& options)
 	// Load file
 	FILE* file = nullptr;
 
-	if (_tfopen_s(&file, path, TEXT("r")) != 0)
+	if (_wfopen_s(&file, path, TEXT("r")) != 0)
 	{
 		return false;
 	}
@@ -125,10 +125,11 @@ const char config[] =
 	"; example: fps_lock=30\n"
 	"fps_limit=0\n"
 	"\n"
-	"; Allows to set a custom field of view.\n"
-	"; Only works if fps_unlock is also enabled!\n"
+	"; Allows to set a custom field of view of multiplier.\n"
+	"; Useful if the game appears too zoomed in/out.\n"
+	"; Only works if aspect_correction is also enabled!\n"
 	";\n"
-	"; 1.0 = disabled (default)\n"
+	"; 1.0 = default\n"
 	"; example: fov_multiplier=1.5\n"
 	"fov_multiplier=1.0\n"
 	"\n"
@@ -158,7 +159,7 @@ bool MakeConfig(const wchar_t* path)
 {
 	FILE* file = nullptr;
 
-	if (_tfopen_s(&file, path, TEXT("w")) != 0)
+	if (_wfopen_s(&file, path, TEXT("w")) != 0)
 	{
 		return false;
 	}

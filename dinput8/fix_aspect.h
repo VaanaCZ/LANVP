@@ -11,9 +11,9 @@ struct Patch;
 void RegisterPatch_Aspect();
 bool ApplyPatch_Aspect(Patch* patch);
 
-extern double fovMultiplier;
-
 int __cdecl Hook_Atoi(const char* string);
+
+extern double fovMultiplier;
 
 class ICamera;
 class Camera;

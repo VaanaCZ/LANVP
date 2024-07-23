@@ -247,12 +247,11 @@ bool ApplyPatch_Framerate(Patch* patch)
 		assert(pBrakeHook);
 
 		DWORD* a1 = (DWORD*)&pBrakeHook[4];
-		DWORD* a2 = (DWORD*)&pBrakeHook[9];
-
 		*a1 = (DWORD)&fixedFrametime;
-		*a2 = (DWORD)braking - (DWORD)a2 + 1; // FIXME: is this correct?
 
-		if (!MemWriteHookJmp(braking, pBrakeHook))	return false;
+		if (!MemWriteHookJmp(&pBrakeHook[8], (BYTE*)braking + 5))	return false;
+
+		if (!MemWriteHookJmp(braking, pBrakeHook))					return false;
 	}
 	else
 	{
@@ -266,18 +265,15 @@ bool ApplyPatch_Framerate(Patch* patch)
 		BYTE* pBrakeHook = (BYTE*)ExecCopy(brakeHook, sizeof(brakeHook));
 		assert(pBrakeHook);
 
-		BYTE fmul[6];
-		if (!MemRead((BYTE*)braking + 6, &fmul, sizeof(fmul)))	return false;
-		memcpy(&brakeHook[6], fmul, sizeof(fmul));
+		if (!MemRead((BYTE*)braking + 3, &brakeHook[6], 6))			return false;
 
 		DWORD* a1 = (DWORD*)&pBrakeHook[2];
-		DWORD* a2 = (DWORD*)&pBrakeHook[13];
-
 		*a1 = (DWORD)&fixedFrametime;
-		*a2 = (DWORD)braking - (DWORD)a2 + 5; // FIXME: is this correct?
 
-		if (!MemWriteHookJmp(braking, pBrakeHook))	return false;
-		if (!MemWriteNop((BYTE*)braking + 5, 4))	return false;
+		if (!MemWriteHookJmp(&pBrakeHook[12], (BYTE*)braking + 9))	return false;
+
+		if (!MemWriteHookJmp(braking, pBrakeHook))					return false;
+		if (!MemWriteNop((BYTE*)braking + 5, 4))					return false;
 	}
 
 	//
@@ -316,14 +312,11 @@ bool ApplyPatch_Framerate(Patch* patch)
 
 	BYTE* pPencilHook = (BYTE*)ExecCopy(pencilHook, sizeof(pencilHook));
 
-	DWORD* a1 = (DWORD*)&pPencilHook[4];
-	DWORD* a2 = (DWORD*)&pPencilHook[15];
+	if (!MemWriteHookCall(&pPencilHook[3], &Hook_Pencil))		return false;
+	if (!MemWriteHookJmp(&pPencilHook[14], (BYTE*)pencil + 6))	return false;
 
-	*a1 = (DWORD)&Hook_Pencil - (DWORD)a1 - 4;
-	*a2 = (DWORD)pencil - (DWORD)a2 + 1; // FIXME: is this correct?
-
-	if (!MemWriteHookJmp(pencil, pPencilHook))	return false;
-	if (!MemWriteNop((BYTE*)pencil + 5, 1))		return false;
+	if (!MemWriteHookJmp(pencil, pPencilHook))					return false;
+	if (!MemWriteNop((BYTE*)pencil + 5, 1))						return false;
 
 	//
 	// PIGEON TAKEOFF

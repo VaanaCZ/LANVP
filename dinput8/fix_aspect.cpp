@@ -248,14 +248,11 @@ bool ApplyPatch_Aspect(Patch* patch)
 
 	BYTE* pFovHook = (BYTE*)ExecCopy(fovHook, sizeof(fovHook));
 
-	DWORD* a1 = (DWORD*)&pFovHook[14];
-	DWORD* a2 = (DWORD*)&pFovHook[19];
+	if (!MemWriteHookCall(&pFovHook[13], &Hook_Fov))		return false;
+	if (!MemWriteHookJmp(&pFovHook[18], (BYTE*)fov + 6))	return false;
 
-	*a1 = (DWORD)&Hook_Fov - (DWORD)a1 - 4;
-	*a2 = (DWORD)fov - (DWORD)a2 + 1; // FIXME: is this correct?
-
-	if (!MemWriteHookJmp(fov, pFovHook))		return false;
-	if (!MemWriteNop((BYTE*)fov + 5, 1))		return false;
+	if (!MemWriteHookJmp(fov, pFovHook))					return false;
+	if (!MemWriteNop((BYTE*)fov + 5, 1))					return false;
 
 	/*
 	

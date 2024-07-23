@@ -103,13 +103,35 @@ HERE,	0xDC, 0x35, MASK, MASK, MASK, MASK,
 
 DWORD sigFov[] =
 {
-		0x0F, 0x57, 0xC0,
-		0x0F, 0x29, 0x47, 0x20,
-		0x89, 0xBB, 0xE0, 0x00, 0x00, 0x00,
-HERE,	0x8B, 0x17,
-		0x8B, 0x82, 0xA0, 0x00, 0x00, 0x00,
-		0x8B, 0xCF,
-		0xFF, 0xD0
+		0x0F, 0x29, 0x86, 0xD0, 0x00, 0x00, 0x00,
+		0xE8, MASK, MASK, MASK, MASK,
+		0xD9, 0x47, 0x54,
+HERE,	0xD9, 0x9E, 0xE0, 0x00, 0x00, 0x00,
+		0xD9, 0x47, 0x58,
+		0xD9, 0x9E, 0xE8, 0x00, 0x00, 0x00,
+		0x8A, 0x57, 0x64
+};
+
+DWORD sigCutsceneCameraConstructor[] =
+{
+		0x88, 0x99, 0x80, 0x00, 0x00, 0x00,
+		0xF3, 0x0F, 0x11, 0x81, 0x88, 0x00, 0x00, 0x00,
+		0xC7, 0x81, 0x8C, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF,
+		0xC7, 0x01, HERE, MASK, MASK, MASK, MASK,
+		0x88, 0x99, 0x90, 0x00, 0x00, 0x00,
+		0x89, 0x99, 0x84, 0x00, 0x00, 0x00,
+		0xEB, MASK
+};
+
+DWORD sigAltCutsceneCameraConstructor[] =
+{
+		0xC6, 0x81, 0x80, 0x00, 0x00, 0x00, 0x00,
+		0xF3, 0x0F, 0x11, 0x81, 0x88, 0x00, 0x00, 0x00,
+		0xC7, 0x81, 0x8C, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF,
+		0xC7, 0x01, HERE, MASK, MASK, MASK, MASK,
+		0xC6, 0x81, 0x90, 0x00, 0x00, 0x00, 0x00,
+		0xC7, 0x81, 0x84, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+		0xEB, MASK
 };
 
 static int engineDestructorIndex = -1;
@@ -121,20 +143,22 @@ static int uiLayerSize2Index = -1;
 static int uiSubtitleLayerIndex = -1;
 static int uiLegalsScreenIndex = -1;
 static int fovIndex = -1;
+static int fovCutsceneCameraConstructor = -1;
 
 void RegisterPatch_Aspect()
 {
 	Patch patch;
 
-	engineDestructorIndex	= patch.AddSignature(SIGARG(sigEngineDestructor));
-	blackBarsIndex			= patch.AddSignature(SIGARG(sigBlackBars));
-	blackBarsOnResizeIndex	= patch.AddSignature(SIGARG(sigBlackBarsOnResize));
-	uiSizeHookIndex			= patch.AddSignature(SIGARG(sigUiSizeHook));
-	uiLayerSizeIndex		= patch.AddSignatureWithAlt(SIGARG(sigUiLayerSize), SIGARG(sigAltUiLayerSize));
-	uiLayerSize2Index		= patch.AddSignatureWithAlt(SIGARG(sigUiLayerSize2), SIGARG(sigAltUiLayerSize));
-	uiSubtitleLayerIndex	= patch.AddSignature(SIGARG(sigUiSubtitleLayer));
-	uiLegalsScreenIndex		= patch.AddSignature(SIGARG(sigUiLegalsScreen));
-	fovIndex				= patch.AddSignature(SIGARG(sigFov));
+	engineDestructorIndex			= patch.AddSignature(SIGARG(sigEngineDestructor));
+	blackBarsIndex					= patch.AddSignature(SIGARG(sigBlackBars));
+	blackBarsOnResizeIndex			= patch.AddSignature(SIGARG(sigBlackBarsOnResize));
+	uiSizeHookIndex					= patch.AddSignature(SIGARG(sigUiSizeHook));
+	uiLayerSizeIndex				= patch.AddSignatureWithAlt(SIGARG(sigUiLayerSize), SIGARG(sigAltUiLayerSize));
+	uiLayerSize2Index				= patch.AddSignatureWithAlt(SIGARG(sigUiLayerSize2), SIGARG(sigAltUiLayerSize));
+	uiSubtitleLayerIndex			= patch.AddSignature(SIGARG(sigUiSubtitleLayer));
+	uiLegalsScreenIndex				= patch.AddSignature(SIGARG(sigUiLegalsScreen));
+	fovIndex						= patch.AddSignature(SIGARG(sigFov));
+	fovCutsceneCameraConstructor	= patch.AddSignatureWithAlt(SIGARG(sigCutsceneCameraConstructor), SIGARG(sigAltCutsceneCameraConstructor));
 
 	patch.SetName(L"Aspect-ratio fix");
 	patch.func = ApplyPatch_Aspect;
@@ -147,21 +171,22 @@ static I3DEngine** ppEngine;					// Pointer to engine object
 static double uiWidth = 1280.0f;
 static double uiHeight = 720.0f;
 
-static void* cutsceneCameraVft = (void*)0x011748A4;				// CutsceneCamera::__vftptr
+static void* cutsceneCameraVft;					// CutsceneCamera::__vftptr
 
 bool ApplyPatch_Aspect(Patch* patch)
 {
 	assert(patch->numSignatureIndices == 9);
-	void* enginePtr			= patch->GetSignature(engineDestructorIndex);
-	void* blackBars			= patch->GetSignature(blackBarsIndex);
-	void* blackBarsOnResize	= patch->GetSignature(blackBarsOnResizeIndex);
-	void* uiSizeHook		= patch->GetSignature(uiSizeHookIndex);
-	bool isAlternate		= false;
-	void* uiLayerSize		= patch->GetSignature(uiLayerSizeIndex, &isAlternate);
-	void* uiLayerSize2		= patch->GetSignature(uiLayerSize2Index);
-	void* uiSubtitleLayer	= patch->GetSignature(uiSubtitleLayerIndex);
-	void* uiLegalsScreen	= patch->GetSignature(uiLegalsScreenIndex);
-	void* fov				= patch->GetSignature(fovIndex);
+	void* enginePtr					= patch->GetSignature(engineDestructorIndex);
+	void* blackBars					= patch->GetSignature(blackBarsIndex);
+	void* blackBarsOnResize			= patch->GetSignature(blackBarsOnResizeIndex);
+	void* uiSizeHook				= patch->GetSignature(uiSizeHookIndex);
+	bool isAlternate				= false;
+	void* uiLayerSize				= patch->GetSignature(uiLayerSizeIndex, &isAlternate);
+	void* uiLayerSize2				= patch->GetSignature(uiLayerSize2Index);
+	void* uiSubtitleLayer			= patch->GetSignature(uiSubtitleLayerIndex);
+	void* uiLegalsScreen			= patch->GetSignature(uiLegalsScreenIndex);
+	void* fov						= patch->GetSignature(fovIndex);
+	void* cutsceneCameraConstructor	= patch->GetSignature(fovCutsceneCameraConstructor);
 
 	// Find the engine object pointer
 	if (!MemRead(enginePtr, &ppEngine, sizeof(ppEngine)))				return false;
@@ -208,13 +233,11 @@ bool ApplyPatch_Aspect(Patch* patch)
 	if (!MemWrite(legalsWidth, &pUiWidth, sizeof(pUiWidth)))			return false;
 
 	// Correct FoV
-
-	fov = (void*)0x007C223B;
-
+	cutsceneCameraVft = (void*)(*(DWORD*)cutsceneCameraConstructor);
 
 	BYTE fovHook[] =
 	{
-		0XD9, 0x9E, 0xE0, 0x00, 0x00, 0x00,	// fstp dword ptr [esi+000000E0]
+		0xD9, 0x9E, 0xE0, 0x00, 0x00, 0x00,	// fstp dword ptr [esi+000000E0]
 		0x89, 0xF9,							// mov ecx, edi
 		0x83, 0xE9, 0x10,					// sub ecx, 0x10
 		0x56,								// push esi
@@ -225,8 +248,6 @@ bool ApplyPatch_Aspect(Patch* patch)
 
 	BYTE* pFovHook = (BYTE*)ExecCopy(fovHook, sizeof(fovHook));
 
-	//if (!MemRead((BYTE*)fov, pFovHook + 12, 6))	return false;
-
 	DWORD* a1 = (DWORD*)&pFovHook[14];
 	DWORD* a2 = (DWORD*)&pFovHook[19];
 
@@ -235,12 +256,6 @@ bool ApplyPatch_Aspect(Patch* patch)
 
 	if (!MemWriteHookJmp(fov, pFovHook))		return false;
 	if (!MemWriteNop((BYTE*)fov + 5, 1))		return false;
-
-
-
-
-
-
 
 	/*
 	
@@ -293,7 +308,7 @@ void __stdcall Hook_Fov(ICamera* cameraModifier, Camera* camera)
 	// Disable FoV correction in cutscenes
 	if (cameraModifier->__vftptr == cutsceneCameraVft)
 	{
-		double cutsceneMultiplier = aspect / 2.40277778;
+		double cutsceneMultiplier = aspect / 2.4;
 
 		if (cutsceneMultiplier > 1.0)
 		{

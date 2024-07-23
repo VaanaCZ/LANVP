@@ -490,19 +490,19 @@ bool MemWriteNop(void* ptr, size_t nopLength)
 
 bool MemWriteHookCall(void* ptr, void* hook)
 {
-	call c = { 0xE8, (DWORD)hook - (DWORD)ptr - sizeof(call)};
+	callNear c = { 0xE8, (DWORD)hook - (DWORD)ptr - sizeof(callNear)};
 	return MemWrite(ptr, &c, sizeof(c));
 }
 
 bool MemWriteHookCallPtr(void* ptr, void** hook)
 {
-	callPtr c = { 0xFF, 0x15, (DWORD)hook };
+	callFar c = { 0xFF, 0x15, (DWORD)hook };
 	return MemWrite(ptr, &c, sizeof(c));
 }
 
 bool MemWriteHookJmp(void* ptr, void* hook)
 {
-	call c = { 0xE9, (DWORD)hook - (DWORD)ptr - sizeof(call) };
+	callNear c = { 0xE9, (DWORD)hook - (DWORD)ptr - sizeof(callNear) };
 	return MemWrite(ptr, &c, sizeof(c));
 }
 

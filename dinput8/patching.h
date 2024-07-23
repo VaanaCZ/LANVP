@@ -171,20 +171,20 @@ void DoPatches();
 bool FindSignature(Signature& sig, bool isAlternate, void* regionStart, void* regionEnd, BYTE* regionPtr);
 
 #pragma pack(push, 1)
-struct call
+struct callNear
 {
 	BYTE	opcode;  // E8
 	DWORD	address;
 };
 
-struct callPtr
+struct callFar
 {
 	BYTE	opcode;  // FF
 	BYTE	reg;     // 15
 	DWORD	address;
 };
 
-struct jmp
+struct jmpShort
 {
 	BYTE	opcode;  // EB
 	BYTE	offset;

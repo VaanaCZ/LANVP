@@ -83,7 +83,8 @@ public:
 class ICamera
 {
 public:
-	BYTE padding[0x64];
+	void* __vftptr;
+	BYTE padding[0x60];
 	float fov;
 	BYTE padding2[0x18];
 };

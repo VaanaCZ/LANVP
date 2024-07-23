@@ -15,5 +15,6 @@ extern double fovMultiplier;
 
 int __cdecl Hook_Atoi(const char* string);
 
-class CameraManager;
-void __stdcall Hook_Fov(CameraManager* manager);
+class ICamera;
+class Camera;
+void __stdcall Hook_Fov(ICamera* camera, Camera* camera2);

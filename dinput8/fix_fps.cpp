@@ -202,7 +202,7 @@ bool ApplyPatch_Framerate(Patch* patch)
 	// simulation based on how quickly the game runs.
 	//
 
-	jmp jmp;
+	jmpShort jmp;
 	if (!MemRead(waitAndHook, &jmp, sizeof(jmp)))				return false;
 
 	if (!MemWriteHookCall(waitAndHook, &Hook_Frame))			return false; // replace conditional jump with hook

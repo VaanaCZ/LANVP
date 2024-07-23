@@ -83,13 +83,13 @@ bool LoadConfig(const wchar_t* path, Options& options)
 }
 
 const char config[] =
-	"; L.A. Noire: V-Patch\n"
+	"; V-Patch for L.A. Noire\n"
 	"; Version " VPATCH_VERSION " - (c) 2021-2024 Vaana\n"
 	"\n"
 	"[fixes]\n"
 	"\n"
 	"; Removes the default 30 FPS framerate cap and \n"
-	"; allows for a varible framerate. Also includes\n"
+	"; allows for a variable framerate. Also includes\n"
 	"; fixes for problems related to high FPS.\n"
 	";\n"
 	"; IF YOU CANNOT PROGRESS DUE TO AN FPS BUG, DISABLE THIS OPTION!\n"

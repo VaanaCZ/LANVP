@@ -147,6 +147,8 @@ static I3DEngine** ppEngine;					// Pointer to engine object
 static double uiWidth = 1280.0f;
 static double uiHeight = 720.0f;
 
+static void* cutsceneCameraVft = (void*)0x011748A4;				// CutsceneCamera::__vftptr
+
 bool ApplyPatch_Aspect(Patch* patch)
 {
 	assert(patch->numSignatureIndices == 9);
@@ -206,54 +208,26 @@ bool ApplyPatch_Aspect(Patch* patch)
 	if (!MemWrite(legalsWidth, &pUiWidth, sizeof(pUiWidth)))			return false;
 
 	// Correct FoV
-	/*BYTE fovHook[] =
-	{
-		0x89, 0xD9,							// mov ecx, ebx
-		0x51,								// push ecx
-		0xE8, MASK, MASK, MASK, MASK,		// call Hook_Fov
-		0x8B, 0x17,							// mov edx,[edi]
-		0x8B, 0x82, 0xA0, 0x00, 0x00, 0x00,	// mov eax,[edx + 000000A0]
-		0xE9, MASK, MASK, MASK, MASK		// jmp $hook
-	};
 
-	BYTE* pFovHook = (BYTE*)ExecCopy(fovHook, sizeof(fovHook));
-
-	DWORD* a1 = (DWORD*)&pFovHook[4];
-	DWORD* a2 = (DWORD*)&pFovHook[17];
-
-	*a1 = (DWORD)&Hook_Fov - (DWORD)a1 - 4;
-	*a2 = (DWORD)fov - (DWORD)a2 + 1; // FIXME: is this correct?
-
-	if (!MemWriteHookJmp(fov, pFovHook))	return false;
-	if (!MemWriteNop((BYTE*)fov + 5, 3))	return false;*/
-
-
-
-
-
-	/*
-
-	{
-
-	fov = (void*)0x007C4351;
+	fov = (void*)0x007C223B;
 
 
 	BYTE fovHook[] =
 	{
+		0XD9, 0x9E, 0xE0, 0x00, 0x00, 0x00,	// fstp dword ptr [esi+000000E0]
 		0x89, 0xF9,							// mov ecx, edi
 		0x83, 0xE9, 0x10,					// sub ecx, 0x10
 		0x56,								// push esi
 		0x51,								// push ecx
 		0xE8, MASK, MASK, MASK, MASK,		// call Hook_Fov
-		0x8A, 0x8B, MASK, MASK, MASK, MASK,	// mov cl,[ebx+000000E5]
 		0xE9, MASK, MASK, MASK, MASK		// jmp $hook
 	};
 
 	BYTE* pFovHook = (BYTE*)ExecCopy(fovHook, sizeof(fovHook));
 
-	if (!MemRead((BYTE*)fov, pFovHook + 12, 6))	return false;
+	//if (!MemRead((BYTE*)fov, pFovHook + 12, 6))	return false;
 
-	DWORD* a1 = (DWORD*)&pFovHook[8];
+	DWORD* a1 = (DWORD*)&pFovHook[14];
 	DWORD* a2 = (DWORD*)&pFovHook[19];
 
 	*a1 = (DWORD)&Hook_Fov - (DWORD)a1 - 4;
@@ -261,77 +235,6 @@ bool ApplyPatch_Aspect(Patch* patch)
 
 	if (!MemWriteHookJmp(fov, pFovHook))		return false;
 	if (!MemWriteNop((BYTE*)fov + 5, 1))		return false;
-
-}
-
-
-
-
-
-
-
-
-
-	{
-
-	fov = (void*)0x007C43AB;
-
-
-	BYTE fovHook[] =
-	{
-		0x89, 0xF9,							// mov ecx, edi
-		0x83, 0xE9, 0x10,					// sub ecx, 0x10
-		0x56,								// push esi
-		0x51,								// push ecx
-		0xE8, MASK, MASK, MASK, MASK,		// call Hook_Fov
-		0x8A, 0x8B, MASK, MASK, MASK, MASK,	// mov cl,[ebx+000000E5]
-		0xE9, MASK, MASK, MASK, MASK		// jmp $hook
-	};
-
-	BYTE* pFovHook = (BYTE*)ExecCopy(fovHook, sizeof(fovHook));
-
-	if (!MemRead((BYTE*)fov, pFovHook + 12, 6))	return false;
-
-	DWORD* a1 = (DWORD*)&pFovHook[8];
-	DWORD* a2 = (DWORD*)&pFovHook[19];
-
-	*a1 = (DWORD)&Hook_Fov - (DWORD)a1 - 4;
-	*a2 = (DWORD)fov - (DWORD)a2 + 1; // FIXME: is this correct?
-
-	if (!MemWriteHookJmp(fov, pFovHook))		return false;
-	if (!MemWriteNop((BYTE*)fov + 5, 1))		return false;
-	}
-	*/
-
-
-
-
-		fov = (void*)0x007C223B;
-
-
-		BYTE fovHook[] =
-		{
-			0XD9, 0x9E, 0xE0, 0x00, 0x00, 0x00,	// fstp dword ptr [esi+000000E0]
-			0x89, 0xF9,							// mov ecx, edi
-			0x83, 0xE9, 0x10,					// sub ecx, 0x10
-			0x56,								// push esi
-			0x51,								// push ecx
-			0xE8, MASK, MASK, MASK, MASK,		// call Hook_Fov
-			0xE9, MASK, MASK, MASK, MASK		// jmp $hook
-		};
-
-		BYTE* pFovHook = (BYTE*)ExecCopy(fovHook, sizeof(fovHook));
-
-		//if (!MemRead((BYTE*)fov, pFovHook + 12, 6))	return false;
-
-		DWORD* a1 = (DWORD*)&pFovHook[14];
-		DWORD* a2 = (DWORD*)&pFovHook[19];
-
-		*a1 = (DWORD)&Hook_Fov - (DWORD)a1 - 4;
-		*a2 = (DWORD)fov - (DWORD)a2 + 1; // FIXME: is this correct?
-
-		if (!MemWriteHookJmp(fov, pFovHook))		return false;
-		if (!MemWriteNop((BYTE*)fov + 5, 1))		return false;
 
 
 
@@ -374,44 +277,27 @@ int __cdecl Hook_Atoi(const char* string)
 
 double fovMultiplier = 1.0f;
 
-
-
-class Camera
-{
-public:
-	void* __vftptr;
-	BYTE padding[0xDC];
-	float fov;
-};
-
-
-// FIXME: Crash when browsing ledger
 // FIXME: Check if its called from the correct location only once
-void __stdcall Hook_Fov(ICamera* camera, Camera* camera2)
+void __stdcall Hook_Fov(ICamera* cameraModifier, Camera* camera)
 {
-
-	/*if (!ppEngine || !manager || !manager->activeCamera) // Safe-guard
+	if (!ppEngine || !cameraModifier || !camera) // Safe-guard
 	{
 		return;
-	}*/
+	}
 
 	I3DEngine* engine = *ppEngine;
 	assert(engine);
 
-	// Disable FoV correction in cutscenes
-	/*if (manager->activeCamera == manager->cutsceneCamera)
-	{
-		return;
-	}*/
 	double aspect = engine->viewWidth / (double)engine->viewHeight;
 
-	if (camera->__vftptr == (void*)0x011748A4)
+	// Disable FoV correction in cutscenes
+	if (cameraModifier->__vftptr == cutsceneCameraVft)
 	{
 		double cutsceneMultiplier = aspect / 2.40277778;
 
 		if (cutsceneMultiplier > 1.0)
 		{
-			camera2->fov *= cutsceneMultiplier;
+			camera->fov *= cutsceneMultiplier;
 		}
 
 		return;
@@ -426,11 +312,5 @@ void __stdcall Hook_Fov(ICamera* camera, Camera* camera2)
 
 	multiplier *= fovMultiplier;
 
-	// Handle fov blending
-	// if (manager->blendCamera && manager->blendCamera->from && manager->blendCamera->to)
-	// {
-	//		// FIXME
-	// }
-
-	camera2->fov *= multiplier;
+	camera->fov *= multiplier;
 }

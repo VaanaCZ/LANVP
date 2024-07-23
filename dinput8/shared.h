@@ -80,6 +80,14 @@ public:
 	TB tb;
 };
 
+class Camera
+{
+public:
+	void* __vftptr;
+	BYTE padding[0xDC];
+	float fov;
+};
+
 class ICamera
 {
 public:

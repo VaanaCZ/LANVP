@@ -168,8 +168,8 @@ void RegisterPatch_Aspect()
 
 static I3DEngine** ppEngine;					// Pointer to engine object
 
-static double uiWidth = 1280.0f;
-static double uiHeight = 720.0f;
+static double uiWidth = 1280.0;
+static double uiHeight = 720.0;
 
 static void* cutsceneCameraVft;					// CutsceneCamera::__vftptr
 
@@ -191,12 +191,29 @@ bool ApplyPatch_Aspect(Patch* patch)
 	// Find the engine object pointer
 	if (!MemRead(enginePtr, &ppEngine, sizeof(ppEngine)))				return false;
 
-	// Remove black bars
+	//
+	// BLACK BARS
+	// 
+	// Aspect ratios smaller than 16:9 have black bars on the top
+	// and bottom of the screen.
+	// Removing this is as simple as jumping over the logic which
+	// trims the viewport.
+	//
+
 	BYTE jmp = 0xEB;
 	if (!MemWrite(blackBars,			&jmp, sizeof(jmp)))				return false;
 	if (!MemWrite(blackBarsOnResize,	&jmp, sizeof(jmp)))				return false;
 
-	// Fix scaling of UI layers
+	//
+	// UI SCALING
+	//
+	// On anything other than 16:9, the UI will correctly fill
+	// the screen or might appear unreasonably large.
+	// This step adjust the values used for sizing UI layers
+	// so that they always are correct to the current screen's
+	// aspect.
+	//
+
 	static void* pAtoi = &Hook_Atoi;
 	if (!MemWriteHookCallPtr(uiSizeHook, &pAtoi))						return false;
 
@@ -232,7 +249,20 @@ bool ApplyPatch_Aspect(Patch* patch)
 	void* legalsWidth = (BYTE*)uiLegalsScreen + 2;
 	if (!MemWrite(legalsWidth, &pUiWidth, sizeof(pUiWidth)))			return false;
 
-	// Correct FoV
+
+	//
+	// FOV CORRECTION
+	//
+	// By default, the game stores the FoV as the horizontal angle
+	// across the frustrum in radians. For 16:9 resolutions this works
+	// fine, but when the screen becomes wider, the vertical angle
+	// becomes smaller, leading to an overall decreased FoV.
+	// The correction simply scales the horizontal angle according
+	// to the ratio between the current aspect and 16:9, which
+	// ensures it's correct all the time.
+	// In addition, special care must be taken for cutscenes, since
+	// those are in a cinematic 2.40:1 aspect ratio.
+	//
 
 	// Find the addresses of the required virtual tables
 	if (!MemRead(cutsceneCameraVftPtr, &cutsceneCameraVft, sizeof(void*)))	return false;
@@ -257,9 +287,7 @@ bool ApplyPatch_Aspect(Patch* patch)
 	if (!MemWriteNop((BYTE*)fov + 5, 1))					return false;
 
 	/*
-	
 	01259AF8
-	
 	*/
 
 	return true;

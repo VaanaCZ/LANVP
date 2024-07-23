@@ -175,7 +175,7 @@ static void* cutsceneCameraVft;					// CutsceneCamera::__vftptr
 
 bool ApplyPatch_Aspect(Patch* patch)
 {
-	assert(patch->numSignatureIndices == 9);
+	assert(patch->numSignatureIndices == 10);
 	void* enginePtr					= (BYTE*)patch->GetSignature(enginePtrIndex) + 2;
 	void* blackBars					= patch->GetSignature(blackBarsIndex);
 	void* blackBarsOnResize			= patch->GetSignature(blackBarsOnResizeIndex);

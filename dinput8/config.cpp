@@ -23,7 +23,7 @@ if (strcmp(k, #n) == 0)				\
 	o.n = atof(v);					\
 }
 
-bool LoadConfig(const TCHAR* path, Options& options)
+bool LoadConfig(const wchar_t* path, Options& options)
 {
 	// Load file
 	FILE* file = nullptr;
@@ -154,7 +154,7 @@ const char config[] =
 	"; example: LaNoire.exe -res 1280 720\n"
 	"";
 
-bool MakeConfig(const TCHAR* path)
+bool MakeConfig(const wchar_t* path)
 {
 	FILE* file = nullptr;
 

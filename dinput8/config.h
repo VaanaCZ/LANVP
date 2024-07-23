@@ -20,5 +20,5 @@ struct Options
 	bool	skip_logos_and_legals = false;
 };
 
-bool LoadConfig(const TCHAR* path, Options& options);
-bool MakeConfig(const TCHAR* path);
+bool LoadConfig(const wchar_t* path, Options& options);
+bool MakeConfig(const wchar_t* path);

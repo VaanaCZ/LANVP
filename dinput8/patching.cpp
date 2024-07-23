@@ -10,7 +10,7 @@
 #include <cassert>
 #include <wchar.h>
 
-#define NO_CHECK_DUPLICATES
+// #define NO_CHECK_DUPLICATES // FIXME: ENABLE FOR FINAL RELEASE
 
 unsigned int numPatches					= 0;
 Patch patches[MAX_PATCHES]				= { };

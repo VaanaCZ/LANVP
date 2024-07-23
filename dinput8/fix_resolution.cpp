@@ -7,7 +7,6 @@
 #include "fix_resolution.h"
 
 #include "patching.h"
-#include "shared.h"
 #include <cassert>
 
 DWORD sigAspectCheck[] =
@@ -40,8 +39,8 @@ void RegisterPatch_Resolution()
 	aspectCheckIndex = patch.AddSignature(SIGARG(sigAspectCheck));
 	optResCheckIndex = patch.AddSignature(SIGARG(sigOptResCheck));
 
-	patch.SetName(L"Unlock resolutions");
-	patch.func = ApplyPatch_Resolution;
+	patch.SetName(L"Unlock Resolutions");
+	patch.func = &ApplyPatch_Resolution;
 
 	RegisterPatch(patch);
 }

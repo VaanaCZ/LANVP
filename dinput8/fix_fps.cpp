@@ -144,7 +144,7 @@ void RegisterPatch_Framerate()
 	birdsIndex							= patch.AddSignature(SIGARG(sigBirds));
 
 	patch.SetName(L"Framerate Unlock");
-	patch.func = ApplyPatch_Framerate;
+	patch.func = &ApplyPatch_Framerate;
 
 	RegisterPatch(patch);
 }

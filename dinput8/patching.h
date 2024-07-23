@@ -56,7 +56,7 @@ int RegisterSignature(Signature signature);
 
 struct Patch
 {
-	wchar_t			name[50];									// Name which will be displayed if patch fails
+	wchar_t			name[64];									// Name which will be displayed if patch fails
 	int				signatureIndices[MAX_SIGNATURE_INDICES];	// Registered signatures to be searched
 	int				altSignatureIndices[MAX_SIGNATURE_INDICES];	// Registered alt-signatures to be searched
 	unsigned int	numSignatureIndices	= 0;					// Number of signatures

@@ -96,7 +96,7 @@ public:
 	float fov;
 	BYTE padding2[0x18];
 };
-
+/*
 class BlendCamera : ICamera
 {
 public:
@@ -167,7 +167,7 @@ public:
 	BYTE padding[0x14];
 	ICamera* activeCamera;
 };
-
+*/
 // Common signatures
 
 #define MASK 0xFFFFFFFF // fixme

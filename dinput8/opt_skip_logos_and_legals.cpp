@@ -7,7 +7,6 @@
 #include "opt_skip_logos_and_legals.h"
 
 #include "patching.h"
-#include "shared.h"
 #include <cassert>
 
 DWORD sigLogos[] =
@@ -57,8 +56,8 @@ void RegisterPatch_SkipLogosAndLegals()
 	logosIndex	= patch.AddSignature(SIGARG(sigLogos));
 	legalsIndex	= patch.AddSignatureWithFilter(SIGARG(sigLegals), &sigLegalsFilter);
 
-	patch.SetName(L"Skip logos and legals option");
-	patch.func = ApplyPatch_SkipLogosAndLegals;
+	patch.SetName(L"Skip Logos and Legals option");
+	patch.func = &ApplyPatch_SkipLogosAndLegals;
 
 	RegisterPatch(patch);
 }

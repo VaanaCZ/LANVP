@@ -30,8 +30,8 @@ void RegisterPatch_Version()
 
 	versionIndex = patch.AddSignature(SIGARG(sigVersion));
 
-	patch.SetName(L"Version number in menu");
-	patch.func = ApplyPatch_Version;
+	patch.SetName(L"Show the version number in the main menu");
+	patch.func = &ApplyPatch_Version;
 
 	RegisterPatch(patch);
 }
@@ -55,8 +55,9 @@ BOOL __stdcall Hook_VerQueryValueA(LPCVOID pBlock, LPCSTR lpSubBlock, LPVOID *lp
 	*p = NULL;
 	size_t length = strlen(buffer);
 
-	char newBuffer[64];
-	sprintf(newBuffer, "%s; V-Patch v" VPATCH_VERSION_MENU ",%s", buffer, p + 1);
+	const size_t bufferLength = 64;
+	char newBuffer[bufferLength];
+	sprintf_s(newBuffer, bufferLength, "%s; V-Patch v" VPATCH_VERSION_MENU ",%s", buffer, p + 1);
 
 	*lplpBuffer = newBuffer;
 	*puLen = strlen(newBuffer);

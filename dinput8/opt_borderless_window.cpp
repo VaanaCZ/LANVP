@@ -7,7 +7,6 @@
 #include "opt_borderless_window.h"
 
 #include "patching.h"
-#include "shared.h"
 #include <cassert>
 
 DWORD sigAdjustWindowRect[] =
@@ -34,8 +33,8 @@ void RegisterPatch_BorderlessWindow()
 
 	adjustWindowRectIndex = patch.AddSignature(SIGARG(sigAdjustWindowRect));
 
-	patch.SetName(L"Borderless window option");
-	patch.func = ApplyPatch_BorderlessWindow;
+	patch.SetName(L"Borderless Window option");
+	patch.func = &ApplyPatch_BorderlessWindow;
 
 	RegisterPatch(patch);
 }

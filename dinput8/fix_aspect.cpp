@@ -160,16 +160,16 @@ void RegisterPatch_Aspect()
 	fovIndex					= patch.AddSignature(SIGARG(sigFov));
 	cutsceneCameraVftPtrIndex	= patch.AddSignatureWithAlt(SIGARG(sigCutsceneCameraVftPtr), SIGARG(sigAltCutsceneCameraVftPtr));
 
-	patch.SetName(L"Aspect-ratio fix");
-	patch.func = ApplyPatch_Aspect;
+	patch.SetName(L"Aspect-ratio Fix");
+	patch.func = &ApplyPatch_Aspect;
 
 	RegisterPatch(patch);
 }
 
 static I3DEngine** ppEngine;					// Pointer to engine object
 
-static double uiWidth = 1280.0;
-static double uiHeight = 720.0;
+static double uiWidth = 1280.0;					// Virtual X resolution for UI scaling
+static double uiHeight = 720.0;					// Virtual Y resolution for UI scaling
 
 static void* cutsceneCameraVft;					// CutsceneCamera::__vftptr
 
@@ -248,7 +248,6 @@ bool ApplyPatch_Aspect(Patch* patch)
 
 	void* legalsWidth = (BYTE*)uiLegalsScreen + 2;
 	if (!MemWrite(legalsWidth, &pUiWidth, sizeof(pUiWidth)))			return false;
-
 
 	//
 	// FOV CORRECTION

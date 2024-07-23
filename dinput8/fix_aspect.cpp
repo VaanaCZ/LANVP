@@ -112,29 +112,29 @@ HERE,	0xD9, 0x9E, 0xE0, 0x00, 0x00, 0x00,
 		0x8A, 0x57, 0x64
 };
 
-DWORD sigCutsceneCameraConstructor[] =
+DWORD sigCutsceneCameraVftPtr[] =
 {
 		0x88, 0x99, 0x80, 0x00, 0x00, 0x00,
 		0xF3, 0x0F, 0x11, 0x81, 0x88, 0x00, 0x00, 0x00,
 		0xC7, 0x81, 0x8C, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF,
-		0xC7, 0x01, HERE, MASK, MASK, MASK, MASK,
+HERE,	0xC7, 0x01, MASK, MASK, MASK, MASK,
 		0x88, 0x99, 0x90, 0x00, 0x00, 0x00,
 		0x89, 0x99, 0x84, 0x00, 0x00, 0x00,
 		0xEB, MASK
 };
 
-DWORD sigAltCutsceneCameraConstructor[] =
+DWORD sigAltCutsceneCameraVftPtr[] =
 {
 		0xC6, 0x81, 0x80, 0x00, 0x00, 0x00, 0x00,
 		0xF3, 0x0F, 0x11, 0x81, 0x88, 0x00, 0x00, 0x00,
 		0xC7, 0x81, 0x8C, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF,
-		0xC7, 0x01, HERE, MASK, MASK, MASK, MASK,
+HERE,	0xC7, 0x01, MASK, MASK, MASK, MASK,
 		0xC6, 0x81, 0x90, 0x00, 0x00, 0x00, 0x00,
 		0xC7, 0x81, 0x84, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		0xEB, MASK
 };
 
-static int engineDestructorIndex = -1;
+static int enginePtrIndex = -1;
 static int blackBarsIndex = -1;
 static int blackBarsOnResizeIndex = -1;
 static int uiSizeHookIndex = -1;
@@ -143,22 +143,22 @@ static int uiLayerSize2Index = -1;
 static int uiSubtitleLayerIndex = -1;
 static int uiLegalsScreenIndex = -1;
 static int fovIndex = -1;
-static int fovCutsceneCameraConstructor = -1;
+static int cutsceneCameraVftPtrIndex = -1;
 
 void RegisterPatch_Aspect()
 {
 	Patch patch;
 
-	engineDestructorIndex			= patch.AddSignature(SIGARG(sigEngineDestructor));
-	blackBarsIndex					= patch.AddSignature(SIGARG(sigBlackBars));
-	blackBarsOnResizeIndex			= patch.AddSignature(SIGARG(sigBlackBarsOnResize));
-	uiSizeHookIndex					= patch.AddSignature(SIGARG(sigUiSizeHook));
-	uiLayerSizeIndex				= patch.AddSignatureWithAlt(SIGARG(sigUiLayerSize), SIGARG(sigAltUiLayerSize));
-	uiLayerSize2Index				= patch.AddSignatureWithAlt(SIGARG(sigUiLayerSize2), SIGARG(sigAltUiLayerSize));
-	uiSubtitleLayerIndex			= patch.AddSignature(SIGARG(sigUiSubtitleLayer));
-	uiLegalsScreenIndex				= patch.AddSignature(SIGARG(sigUiLegalsScreen));
-	fovIndex						= patch.AddSignature(SIGARG(sigFov));
-	fovCutsceneCameraConstructor	= patch.AddSignatureWithAlt(SIGARG(sigCutsceneCameraConstructor), SIGARG(sigAltCutsceneCameraConstructor));
+	enginePtrIndex				= patch.AddSignature(SIGARG(sigEnginePtr));
+	blackBarsIndex				= patch.AddSignature(SIGARG(sigBlackBars));
+	blackBarsOnResizeIndex		= patch.AddSignature(SIGARG(sigBlackBarsOnResize));
+	uiSizeHookIndex				= patch.AddSignature(SIGARG(sigUiSizeHook));
+	uiLayerSizeIndex			= patch.AddSignatureWithAlt(SIGARG(sigUiLayerSize), SIGARG(sigAltUiLayerSize));
+	uiLayerSize2Index			= patch.AddSignatureWithAlt(SIGARG(sigUiLayerSize2), SIGARG(sigAltUiLayerSize));
+	uiSubtitleLayerIndex		= patch.AddSignature(SIGARG(sigUiSubtitleLayer));
+	uiLegalsScreenIndex			= patch.AddSignature(SIGARG(sigUiLegalsScreen));
+	fovIndex					= patch.AddSignature(SIGARG(sigFov));
+	cutsceneCameraVftPtrIndex	= patch.AddSignatureWithAlt(SIGARG(sigCutsceneCameraVftPtr), SIGARG(sigAltCutsceneCameraVftPtr));
 
 	patch.SetName(L"Aspect-ratio fix");
 	patch.func = ApplyPatch_Aspect;
@@ -176,17 +176,17 @@ static void* cutsceneCameraVft;					// CutsceneCamera::__vftptr
 bool ApplyPatch_Aspect(Patch* patch)
 {
 	assert(patch->numSignatureIndices == 9);
-	void* enginePtr					= patch->GetSignature(engineDestructorIndex);
+	void* enginePtr					= (BYTE*)patch->GetSignature(enginePtrIndex) + 2;
 	void* blackBars					= patch->GetSignature(blackBarsIndex);
 	void* blackBarsOnResize			= patch->GetSignature(blackBarsOnResizeIndex);
 	void* uiSizeHook				= patch->GetSignature(uiSizeHookIndex);
-	bool isAlternate				= false;
-	void* uiLayerSize				= patch->GetSignature(uiLayerSizeIndex, &isAlternate);
+	bool isUiLayerAlt				= false;
+	void* uiLayerSize				= patch->GetSignature(uiLayerSizeIndex, &isUiLayerAlt);
 	void* uiLayerSize2				= patch->GetSignature(uiLayerSize2Index);
 	void* uiSubtitleLayer			= patch->GetSignature(uiSubtitleLayerIndex);
 	void* uiLegalsScreen			= patch->GetSignature(uiLegalsScreenIndex);
 	void* fov						= patch->GetSignature(fovIndex);
-	void* cutsceneCameraConstructor	= patch->GetSignature(fovCutsceneCameraConstructor);
+	void* cutsceneCameraVftPtr		= (BYTE*)patch->GetSignature(cutsceneCameraVftPtrIndex) + 2;
 
 	// Find the engine object pointer
 	if (!MemRead(enginePtr, &ppEngine, sizeof(ppEngine)))				return false;
@@ -206,7 +206,7 @@ bool ApplyPatch_Aspect(Patch* patch)
 	void* sizeWidth = (BYTE*)uiSizeHook + 35;
 	if (!MemWrite(sizeWidth, &pUiWidth, sizeof(pUiWidth)))				return false;
 
-	if (!isAlternate)
+	if (!isUiLayerAlt)
 	{
 		void* layerWidth = (BYTE*)uiLayerSize + 4;
 		void* layerHeight = (BYTE*)uiLayerSize + 43;
@@ -233,7 +233,9 @@ bool ApplyPatch_Aspect(Patch* patch)
 	if (!MemWrite(legalsWidth, &pUiWidth, sizeof(pUiWidth)))			return false;
 
 	// Correct FoV
-	cutsceneCameraVft = (void*)(*(DWORD*)cutsceneCameraConstructor);
+
+	// Find the addresses of the required virtual tables
+	if (!MemRead(cutsceneCameraVftPtr, &cutsceneCameraVft, sizeof(void*)))	return false;
 
 	BYTE fovHook[] =
 	{

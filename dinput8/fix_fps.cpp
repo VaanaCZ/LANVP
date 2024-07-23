@@ -42,7 +42,7 @@ HERE,	0xC7, 0x46, 0x04, 0x02, 0x00, 0x00, 0x00,
 		0x8B, 0x50, 0x40
 };
 
-DWORD sigWaitAndHook[] =
+DWORD sigWait[] =
 {
 		0x0F, 0x57, 0xC0,
 		0x0F, 0x2F, 0x44, 0x24, 0x0C,
@@ -84,23 +84,23 @@ HERE,	0x8B, 0x4D, 0x04,
 		0x2B, 0xC6
 };
 
-DWORD sigNotebookClueConstructor[] =
+DWORD sigNotebookClueVftPtr[] =
 {
 		0x56,
 		0xE8, MASK, MASK, MASK, MASK,
 		0xB8, 0xFF, 0xFF, 0x00, 0x00,
-		0xC7, 0x06, HERE, MASK, MASK, MASK, MASK,
+HERE,	0xC7, 0x06, MASK, MASK, MASK, MASK,
 		0xC7, 0x46, 0x24, MASK, MASK, MASK, MASK,
 		0x66, 0x89, 0x86, 0xB0, 0x00, 0x00, 0x00,
 		0x64, 0x8B, 0x0D, 0x2C, 0x00, 0x00, 0x00
 };
 
-DWORD sigPairedAnimStageConstructor[] =
+DWORD sigPairedAnimStageVftPtr[] =
 {
 		0x89, 0x48, 0x08,
 		0xC7, 0x40, 0x0C, MASK, MASK, MASK, MASK,
 		0x89, 0x48, 0x10,
-		0xC7, 0x00, HERE, MASK, MASK, MASK, MASK,
+HERE,	0xC7, 0x00, MASK, MASK, MASK, MASK,
 		0xC7, 0x40, 0x0C, MASK, MASK, MASK, MASK,
 		0x89, 0x48, 0x14,
 		0x89, 0x48, 0x18
@@ -119,28 +119,28 @@ HERE,	0xF3, 0x0F, 0x10, 0x0D, MASK, MASK, MASK, MASK,
 		0xF3, 0x0F, 0x10, 0x93, MASK, MASK, MASK, MASK
 };
 
-static int engineDestructorIndex = -1;
+static int enginePtrIndex = -1;
 static int framerateDivisorConstructorIndex = -1;
 static int framerateDivisorGameplayIndex = -1;
-static int waitAndHookIndex = -1;
+static int waitIndex = -1;
 static int brakingIndex = -1;
 static int pencilIndex = -1;
-static int notebookClueConstructorIndex = -1;
-static int pairedAnimStageConstructorIndex = -1;
+static int notebookClueVftPtrIndex = -1;
+static int pairedAnimStageVftPtrIndex = -1;
 static int birdsIndex = -1;
 
 void RegisterPatch_Framerate()
 {
 	Patch patch;
 
-	engineDestructorIndex				= patch.AddSignature(SIGARG(sigEngineDestructor));
+	enginePtrIndex						= patch.AddSignature(SIGARG(sigEnginePtr));
 	framerateDivisorConstructorIndex	= patch.AddSignatureWithAlt(SIGARG(sigFramerateDivisorConstructor), SIGARG(sigAltFramerateDivisorConstructor));
 	framerateDivisorGameplayIndex		= patch.AddSignature(SIGARG(sigFramerateDivisorGameplay));
-	waitAndHookIndex					= patch.AddSignature(SIGARG(sigWaitAndHook));
+	waitIndex							= patch.AddSignature(SIGARG(sigWait));
 	brakingIndex						= patch.AddSignatureWithAlt(SIGARG(sigBraking), SIGARG(sigAltBraking));
 	pencilIndex							= patch.AddSignature(SIGARG(sigPencil));
-	notebookClueConstructorIndex		= patch.AddSignature(SIGARG(sigNotebookClueConstructor));
-	pairedAnimStageConstructorIndex		= patch.AddSignature(SIGARG(sigPairedAnimStageConstructor));
+	notebookClueVftPtrIndex				= patch.AddSignature(SIGARG(sigNotebookClueVftPtr));
+	pairedAnimStageVftPtrIndex			= patch.AddSignature(SIGARG(sigPairedAnimStageVftPtr));
 	birdsIndex							= patch.AddSignature(SIGARG(sigBirds));
 
 	patch.SetName(L"Framerate Unlock");
@@ -163,15 +163,15 @@ static float* defaultBirdMaxSpeed;
 bool ApplyPatch_Framerate(Patch* patch)
 {
 	assert(patch->numSignatureIndices == 9);
-	void* enginePtr						= patch->GetSignature(engineDestructorIndex);
+	void* enginePtr						= (BYTE*)patch->GetSignature(enginePtrIndex) + 2;
 	void* framerateDivisorConstructor	= (BYTE*)patch->GetSignature(framerateDivisorConstructorIndex) + 2;
 	void* framerateDivisorGameplay		= (BYTE*)patch->GetSignature(framerateDivisorGameplayIndex) + 3;
-	void* waitAndHook					= patch->GetSignature(waitAndHookIndex);
+	void* wait							= patch->GetSignature(waitIndex);
 	bool isBrakingAlt					= false;
 	void* braking						= patch->GetSignature(brakingIndex, &isBrakingAlt);
-	void* pencil						= (BYTE*)patch->GetSignature(pencilIndex);
-	void* notebookClueConstructor		= (BYTE*)patch->GetSignature(notebookClueConstructorIndex);
-	void* pairedAnimStageConstructor	= (BYTE*)patch->GetSignature(pairedAnimStageConstructorIndex);
+	void* pencil						= patch->GetSignature(pencilIndex);
+	void* notebookClueVftPtr			= (BYTE*)patch->GetSignature(notebookClueVftPtrIndex) + 2;
+	void* pairedAnimStageVftPtr			= (BYTE*)patch->GetSignature(pairedAnimStageVftPtrIndex) + 2;
 	void* birds							= (BYTE*)patch->GetSignature(birdsIndex) + 4;
 
 	// ========================================================================
@@ -203,12 +203,12 @@ bool ApplyPatch_Framerate(Patch* patch)
 	//
 
 	jmpShort jmp;
-	if (!MemRead(waitAndHook, &jmp, sizeof(jmp)))				return false;
+	if (!MemRead(wait, &jmp, sizeof(jmp)))				return false;
 
-	if (!MemWriteHookCall(waitAndHook, &Hook_Frame))			return false; // replace conditional jump with hook
+	if (!MemWriteHookCall(wait, &Hook_Frame))			return false; // replace conditional jump with hook
 	jmp.opcode = 0xEB;
 	jmp.offset -= 5;
-	if (!MemWrite((BYTE*)waitAndHook + 5, &jmp, sizeof(jmp)))	return false; // append hook with jump to end of branch
+	if (!MemWrite((BYTE*)wait + 5, &jmp, sizeof(jmp)))	return false; // append hook with jump to end of branch
 
 	// ========================================================================
 	// FPS-related fixes
@@ -297,8 +297,9 @@ bool ApplyPatch_Framerate(Patch* patch)
 	// timing fuckery, and I haven't got the slightest fucking clue how to fix it!
 	//
 
-	pairedAnimStageVft	= (void*)(*(DWORD*)pairedAnimStageConstructor);
-	notebookClueVft		= (void*)(*(DWORD*)notebookClueConstructor);
+	// Find the addresses of the required virtual tables
+	if (!MemRead(pairedAnimStageVftPtr, &pairedAnimStageVft,	sizeof(void*)))	return false;
+	if (!MemRead(notebookClueVftPtr,	&notebookClueVft,		sizeof(void*)))	return false;
 
 	BYTE pencilHook[] =
 	{

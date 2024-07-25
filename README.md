@@ -74,7 +74,7 @@ Installing the patch is very simple:
 3. Done. No other special setup is required.
 
 > [!IMPORTANT]
-> Disclaimer: Do not forget to extract all of the files, including the "plugins" directory. If this step is missed, then V-Patch will not be loaded.
+> Do not forget to extract all of the files, including the "plugins" directory. If this step is missed, then V-Patch will not be loaded.
 
 > [!WARNING]
 > Some cases or activities may still be unbeatable when playing with a high frame rate. If you encounter such an issue, disable the FPS unlock in the config file (lanvp.ini in the plugins directory of your game installation), restart the game, pass the current section, re-enable the FPS unlock in the config and restart the game again.

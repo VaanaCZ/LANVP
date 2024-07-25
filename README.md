@@ -1,5 +1,5 @@
 # V-Patch for L.A. Noire: Complete Edition
-*This project is not affiliated with Take-Two or Rockstar Games*
+*This project is not affiliated with Take-Two or Rockstar Games.*
 
 V-Patch is a lightweight, community-made, drop-in patch intended to fix common issues of the game L.A. Noire for PC. It also allows to the user customise certain technical aspects of the game, such as setting a custom FoV or disabling the company logos which show upon starting the game. 
 
@@ -7,12 +7,14 @@ V-Patch is a lightweight, community-made, drop-in patch intended to fix common i
 
 ### Total FPS Uncap (60+ FPS) & Variable Framerate
 
-The main feature of V-Patch is the abillity to completely remove the default 30 FPS limit. Unlike other FPS patches which can only change the limit to 60, V-Patch allows the game to be run completely uncapped by implementing a better FPS cap removal method, which also doesnt suffer from side-effects such as the game simulation running at incorrect speeds.
+The main feature of V-Patch is the abillity to completely remove the default 30 FPS limit. Unlike other FPS patches which can only change the limit to 60, V-Patch allows the game to be run completely uncapped by implementing a better FPS cap removal method, which also doesnt suffer from side-effects such as the game simulation running at incorrect speeds!
 
 In addition, V-Patch implements the following fixes for FPS-related bugs:
 - Cars brake at the correct speed no matter the framerate. (Fixes a problem in the case "The Golden Butterfly")
 - The Pencil in the case "The Set Up" can now be picked up.
 - Pigeons take off at the correct speed.
+
+Here you can see the patch in action:
 
 <table>
     <tr>
@@ -20,15 +22,6 @@ In addition, V-Patch implements the following fixes for FPS-related bugs:
       </tr>
     <tr>
       <td><div style="text-align: center; font-style: italic">Variable framerate showcase [YouTube]</div></td>
-    </tr>
-</table>
-
-<table>
-    <tr>
-      <td><a href="https://www.youtube.com/watch?v=L0e7pzqmdjk"><img src="https://img.youtube.com/vi/L0e7pzqmdjk/maxresdefault.jpg"/></a></td>
-      </tr>
-    <tr>
-      <td><div style="text-align: center; font-style: italic">Car braking speed comparison [YouTube]</div></td>
     </tr>
 </table>
 
@@ -63,6 +56,10 @@ V-Patch implements UI size and FoV correction in order to allow the user to play
       <td colspan="2"><div style="text-align: center; font-style: italic">Comparison of various aspect ratios with FOV correction.</div></td>
     </tr>
 </table>
+
+The menu in different aspect ratios | Driving in different aspect ratios
+:-------------------------:|:-------------------------:
+![https://i.imgur.com/K3rgi4v.png](https://i.imgur.com/K3rgi4v.png) | ![https://i.imgur.com/qEBNAb7.png](https://i.imgur.com/qEBNAb7.png)
 
 ### Other features
 
@@ -110,7 +107,7 @@ If 'dinput8(native, builtin)' is visible in the list, then you've successfully i
 
 ## Configuration
 
-In order to customize the settings of V-Patch, navigate to the game's directory and find the plugins folder. Here you can find a by the name of *lanvp.ini* in which you can enable/disable or change the features mentioned above.
+In order to customize the settings of V-Patch, navigate to the game's directory and find the plugins folder. Here you can find a config file by the name of *lanvp.ini* in which you can enable/disable or change the features mentioned above.
 
 ## Known issues
 
@@ -119,7 +116,7 @@ In order to customize the settings of V-Patch, navigate to the game's directory 
 
 ## Compiling
 
-V-Patch is built with C++14 and the latest version of Visual Studio. It utilizes with the Windows SDK and does not require any external libraries.
+V-Patch is built with C++14 and the latest version of Visual Studio. It utilizes the Windows SDK and does not require any external libraries.
 
 ## Changelog
 

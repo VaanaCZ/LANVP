@@ -1,3 +1,7 @@
+<p align="center">
+  <img width="50%" src="https://i.imgur.com/eNHPN3N.png">
+</p>
+
 # V-Patch for L.A. Noire: Complete Edition
 *This project is not affiliated with Take-Two or Rockstar Games.*
 
@@ -20,7 +24,8 @@ Here you can see a video of the patch in action:
   <a href="https://www.youtube.com/watch?v=VFsFdUMLC8M"><img width="95%" src="https://img.youtube.com/vi/VFsFdUMLC8M/maxresdefault.jpg"></a>
 </p>
 
-> Disclaimer: Some cases or activities may still be unbeatable when playing with a high frame rate. If you encounter such an issue, disable the FPS unlock in the config file (lanvp.ini in the plugins directory of your game installation), restart the game, pass the current section, re-enable the FPS unlock in the config and restart the game again.
+> [!IMPORTANT]
+> Some cases or activities may still be unbeatable when playing with a high frame rate. If you encounter such an issue, disable the FPS unlock in the config file (lanvp.ini in the plugins directory of your game installation), restart the game, pass the current section, re-enable the FPS unlock in the config and restart the game again.
 
 ### Unlocked aspect ratios (16:10, 4:3, 5:4, etc.)
 
@@ -33,7 +38,8 @@ By default, L.A. Noire allows only a limited set of resolutions and aspect ratio
   <i>L.A. Noire running in a 5:4 resolution without black bars and with FOV correction.</i>
 </p>
 
-> Note: In addition, setting any custom resolution using the "-res W H" command-line argument is now possible.
+> [!NOTE]
+> In addition, setting any custom resolution using the "-res W H" command-line argument is now possible.
 
 ### Ultrawide support
 

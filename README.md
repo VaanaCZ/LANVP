@@ -24,9 +24,6 @@ Here you can see a video of the patch in action:
   <a href="https://www.youtube.com/watch?v=VFsFdUMLC8M"><img width="95%" src="https://img.youtube.com/vi/VFsFdUMLC8M/maxresdefault.jpg"></a>
 </p>
 
-> [!IMPORTANT]
-> Some cases or activities may still be unbeatable when playing with a high frame rate. If you encounter such an issue, disable the FPS unlock in the config file (lanvp.ini in the plugins directory of your game installation), restart the game, pass the current section, re-enable the FPS unlock in the config and restart the game again.
-
 ### Unlocked aspect ratios (16:10, 4:3, 5:4, etc.)
 
 By default, L.A. Noire allows only a limited set of resolutions and aspect ratios with ratios smaller than 16:9 appearing to have black bars. V-Patch removes this limitation allowing the user to specify any resolution in the game's menu. V-Patch also removes the black bars and implements UI scaling correction, which ensures the game is fully playable in any resolution.
@@ -76,7 +73,11 @@ Installing the patch is very simple:
 2. Extract the contents of the "L.A.Noire" directory into the root of your L.A. Noire installation (same location as LaNoire.exe).
 3. Done. No other special setup is required.
 
+> [!NOTE]
 > Disclaimer: Do not forget to extract all of the files, including the "plugins" directory. If this step is missed, then V-Patch will not be loaded.
+
+> [!WARNING]
+> Some cases or activities may still be unbeatable when playing with a high frame rate. If you encounter such an issue, disable the FPS unlock in the config file (lanvp.ini in the plugins directory of your game installation), restart the game, pass the current section, re-enable the FPS unlock in the config and restart the game again.
 
 ## Linux (Proton/Wine) Installation
 

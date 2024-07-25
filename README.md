@@ -17,33 +17,14 @@ In addition, V-Patch implements the following fixes for FPS-related bugs:
 Here you can see a video of the patch in action:
 
 <p align="center">
-  <a href="https://www.youtube.com/watch?v=VFsFdUMLC8M"><img width="75%" src="https://img.youtube.com/vi/VFsFdUMLC8M/maxresdefault.jpg"></a>
+  <a href="https://www.youtube.com/watch?v=VFsFdUMLC8M"><img width="95%" src="https://img.youtube.com/vi/VFsFdUMLC8M/maxresdefault.jpg"></a>
 </p>
-
-<!--<table>
-    <tr>
-      <td><a href="https://www.youtube.com/watch?v=VFsFdUMLC8M"><img src="https://img.youtube.com/vi/VFsFdUMLC8M/maxresdefault.jpg"/></a></td>
-      </tr>
-    <tr>
-      <td><div style="text-align: center; font-style: italic">Variable framerate showcase [YouTube]</div></td>
-    </tr>
-</table>-->
 
 > Disclaimer: Some cases or activities may still be unbeatable when playing with a high framerate. If you encounter such an issue, disable the FPS unlock in the config file (lanvp.ini in the plugins directory of your game installation), restart the game, pass the current section, re-enable the FPS unlock in the config and restart the game again.
 
 ### Unlocked aspect ratios (16:10, 4:3, 5:4, etc.)
 
 By default, L.A. Noire allows only a limited set of resolutions and aspect ratios with ratios smaller than 16:9 appearing to have black bars. V-Patch removes this limitation allowing the user to specify any resolution in the game's menu. V-Patch also removes black bars and implements UI scaling correction, which ensures the game is fully playable in any resolution.
-
-<!--<table>
-    <tr>
-      <td><a href="https://i.imgur.com/S9wtcaE.png"><img src="https://i.imgur.com/S9wtcaE.png"/></a></td>
-      <td><a href="https://i.imgur.com/DtCNr4P.png"><img src="https://i.imgur.com/DtCNr4P.png"/></a></td>
-    </tr>
-    <tr>
-      <td colspan="2"><div style="text-align: center; font-style: italic">L.A. Noire running in a 5:4 resolution without black bars and with FOV correction.</div></td>
-    </tr>
-</table>-->
 
 <p align="center">
   <a href="https://i.imgur.com/S9wtcaE.png"><img width="49%" src="https://i.imgur.com/S9wtcaE.png"></a>
@@ -57,16 +38,6 @@ By default, L.A. Noire allows only a limited set of resolutions and aspect ratio
 ### Ultrawide support
 
 V-Patch implements UI size and FoV correction in order to allow the user to play the game in any ultrawide resolution. Unlike other with patches, the FoV correction does not break cutscenes, meaning the cinematic experience remains untouched. 
-
-<!--<table>
-    <tr>
-      <td><a href="https://i.imgur.com/K3rgi4v.png"><img src="https://i.imgur.com/K3rgi4v.png"/></a></td>
-      <td><a href="https://i.imgur.com/qEBNAb7.png"><img src="https://i.imgur.com/qEBNAb7.png"/></a></td>
-    </tr>
-    <tr>
-      <td colspan="2"><div style="text-align: center; font-style: italic">Comparison of various aspect ratios with FOV correction.</div></td>
-    </tr>
-</table>-->
 
 <p align="center">
   <a href="https://i.imgur.com/K3rgi4v.png"><img width="49%" src="https://i.imgur.com/K3rgi4v.png"></a>
@@ -84,17 +55,8 @@ In addition to these fixes, V-Patch also lets you customize technical aspects of
 - **Custom FoV** - Via an option in the config, the user can set a custom FoV multiplier.
 - **Custom FPS limit** - If needs be, the patch allows the user to set a custom FPS cap.
 
-<!--<table>
-    <tr>
-      <td><a href="https://i.imgur.com/rRrbAYq.png"><img src="https://i.imgur.com/rRrbAYq.png"/></a></td>
-      </tr>
-    <tr>
-      <td><div style="text-align: center; font-style: italic">FOV Multiplier 2.0</div></td>
-    </tr>
-</table>-->
-
 <p align="center">
-  <a href="https://i.imgur.com/rRrbAYq.png"><img width="75%" src="https://i.imgur.com/rRrbAYq.png"></a>
+  <a href="https://i.imgur.com/rRrbAYq.png"><img width="95%" src="https://i.imgur.com/rRrbAYq.png"></a>
   <br>
   <i>FOV Multiplier 2.0</i>
 </p>
@@ -110,20 +72,10 @@ Installing the patch is very simple:
 
 > Disclaimer: Do not forget to extract all of the files, including the "plugins" directory. If this step is missed, then V-Patch will not be loaded.
 
-## Linux (Lutris & Steam Proton) Installation
+## Linux (Proton/Wine) Installation
 
-todo: Ultimate-ASI lader
+Use the same steps as above Same as above in addition to [this guide](https://cookieplmonster.github.io/setup-instructions/#proton-wine).
 
-Same as above except requires winecfg to override/accept the dinput8 dll. 
-
-1. Copy the extracted dinput8.dll into your game's folder (same as above, where LaNoire.exe is located).
-2. If you are using Lutris => (I assume you have L.A. Noire setup in Lutris already), click on the Wine icon -> Winetricks. Proceed with Step 5.
-3. If you are using Steam  => Run `protontricks --gui` in a terminal (you may have to install protontricks from your distro's repo. Consult your package manager.
-4. Select 'L.A. Noire 110800' and wait until a window pops-up (As long as the terminal says 'Executing mkdir' wait. It may show an error regarding 64-bit/32-Bit Prefix, but it'll take a while. Just click on 'Ok'. 
-5. Select 'Run winecfg' (if you don't see that option, open 'Install an application' and cancel out. Now winecfg should be visible.
-6. Select the 'Libraries' tab and add 'dinput8.dll' from the 'New override for library' dropdown menu.
-
-If 'dinput8(native, builtin)' is visible in the list, then you've successfully installed the patch on Linux.
 
 ## Configuration
 

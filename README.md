@@ -46,7 +46,7 @@ V-Patch implements UI size and FoV correction in order to allow the user to play
   <a href="https://i.imgur.com/K3rgi4v.png"><img width="49%" src="https://i.imgur.com/K3rgi4v.png"></a>
   <a href="https://i.imgur.com/qEBNAb7.png"><img width="49%" src="https://i.imgur.com/qEBNAb7.png"></a>
   <br>
-  <i>Comparison of various aspect ratios with FOV correction.</i>
+  <i>Comparison of various aspect ratios with FoV correction.</i>
 </p>
 
 ### Other features
@@ -61,7 +61,7 @@ In addition to these fixes, V-Patch also lets you customize technical aspects of
 <p align="center">
   <a href="https://i.imgur.com/rRrbAYq.png"><img width="95%" src="https://i.imgur.com/rRrbAYq.png"></a>
   <br>
-  <i>FOV Multiplier 2.0</i>
+  <i>FoV Multiplier 2.0</i>
 </p>
 
 ## Windows Installation
@@ -73,7 +73,7 @@ Installing the patch is very simple:
 2. Extract the contents of the "L.A.Noire" directory into the root of your L.A. Noire installation (same location as LaNoire.exe).
 3. Done. No other special setup is required.
 
-> [!NOTE]
+> [!IMPORTANT]
 > Disclaimer: Do not forget to extract all of the files, including the "plugins" directory. If this step is missed, then V-Patch will not be loaded.
 
 > [!WARNING]

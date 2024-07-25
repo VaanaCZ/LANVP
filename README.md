@@ -1,24 +1,22 @@
-# V-Patch for L.A Noire Complete Edition
+# V-Patch for L.A. Noire: Complete Edition
 *This project is not affiliated with Take-Two or Rockstar Games*
 
-V-Patch is a lightweight, library-based, drop-in patch intended to fix common issues of the game L.A. Noire on PC. It also allows to the user customise certain technical aspects of the game, such as setting a custom FoV or disabling the company logos which show upon starting the game. 
+V-Patch is a lightweight, community-made, drop-in patch intended to fix common issues of the game L.A. Noire for PC. It also allows to the user customise certain technical aspects of the game, such as setting a custom FoV or disabling the company logos which show upon starting the game. 
 
-## Features
+## What does V-Patch do?
 
 ### Total FPS Uncap (60+ FPS) & Variable Framerate
 
-The main feature of V-Patch is the abillity to completely remove the default 30 FPS limit. Unlike other FPS patches which can only change the limit to 60, V-Patch allows the game to be run completely uncapped by implementing a better FPS cap removal method, which also doesnt suffer from side-effects such as the game simulation occasionally running at incorrect speeds.
+The main feature of V-Patch is the abillity to completely remove the default 30 FPS limit. Unlike other FPS patches which can only change the limit to 60, V-Patch allows the game to be run completely uncapped by implementing a better FPS cap removal method, which also doesnt suffer from side-effects such as the game simulation running at incorrect speeds.
 
-In addition, V-Patch does not suffer from certain FPS-related bugs such as slow braking or the infamous pencil bug.
-
-FPS-related fixes implemented by V-Patch:
-- Fixes car braking force. (The Golden Butterfly)
-- Fixed pencil. (The Set Up)
-- Fixed pigeons.
+In addition, V-Patch implements the following fixes for FPS-related bugs:
+- Cars brake at the correct speed no matter the framerate. (Fixes a problem in the case "The Golden Butterfly")
+- The Pencil in the case "The Set Up" can now be picked up.
+- Pigeons take off at the correct speed.
 
 <table>
     <tr>
-      <td><a href="https://www.youtube.com/watch?v=VFsFdUMLC8M"><img src="https://img.youtube.com/vi/VFsFdUMLC8M/0.jpg"/></a></td>
+      <td><a href="https://www.youtube.com/watch?v=VFsFdUMLC8M"><img src="https://img.youtube.com/vi/VFsFdUMLC8M/maxresdefault.jpg"/></a></td>
       </tr>
     <tr>
       <td><div style="text-align: center; font-style: italic">Variable framerate showcase [YouTube]</div></td>
@@ -27,18 +25,18 @@ FPS-related fixes implemented by V-Patch:
 
 <table>
     <tr>
-      <td><a href="https://www.youtube.com/watch?v=L0e7pzqmdjk"><img src="https://img.youtube.com/vi/L0e7pzqmdjk/0.jpg"/></a></td>
+      <td><a href="https://www.youtube.com/watch?v=L0e7pzqmdjk"><img src="https://img.youtube.com/vi/L0e7pzqmdjk/maxresdefault.jpg"/></a></td>
       </tr>
     <tr>
       <td><div style="text-align: center; font-style: italic">Car braking speed comparison [YouTube]</div></td>
     </tr>
 </table>
 
-**Disclaimer: Some missions or activities may still be unbeatable when playing with a high framerate. If you encounter such an issue, disable the FPS unlock in the config file (lanvp.ini in the game folder), restart the game, pass the current section, re-enable the FPS unlock in the config and restart the game again. Please make sure to report the problem on the Steam forums, ModDB comments, or via GitHub issues so that we can work on a fix.**
+> Disclaimer: Some cases or activities may still be unbeatable when playing with a high framerate. If you encounter such an issue, disable the FPS unlock in the config file (lanvp.ini in the plugins directory of your game installation), restart the game, pass the current section, re-enable the FPS unlock in the config and restart the game again.
 
 ### Unlocked aspect ratios (16:10, 4:3, 5:4, etc.)
 
-By default, the game has a limited set of allowed resolutions and any non 16:9 aspect ratios show up with black bars. V-Patch removes this limitation allowing the user to specify any resolution in the game's menu. V-Patch also removes black bars and implements UI scaling correction, which ensures the game is fully playable in any resolution.
+By default, L.A. Noire allows only a limited set of resolutions and aspect ratios with ratios smaller than 16:9 appearing to have black bars. V-Patch removes this limitation allowing the user to specify any resolution in the game's menu. V-Patch also removes black bars and implements UI scaling correction, which ensures the game is fully playable in any resolution.
 
 <table>
     <tr>
@@ -50,11 +48,11 @@ By default, the game has a limited set of allowed resolutions and any non 16:9 a
     </tr>
 </table>
 
-**Note: In addition, setting any custom resolution using the "-res W H" command-line argument is now possible**
+> Note: In addition, setting any custom resolution using the "-res W H" command-line argument is now possible.
 
 ### Ultrawide support
 
-V-Patch implements correct UI and FoV correction in order to allow the user to play the game in any ultrawide resolution. Unlike other with patches, the FoV correction does not break cutscenes, meaning the cinematic experience remains untouched. 
+V-Patch implements UI size and FoV correction in order to allow the user to play the game in any ultrawide resolution. Unlike other with patches, the FoV correction does not break cutscenes, meaning the cinematic experience remains untouched. 
 
 <table>
     <tr>
@@ -85,14 +83,15 @@ In addition to these fixes, V-Patch also lets you customize technical aspects of
 </table>
 
 ## Windows Installation
+V-Patch works on any licensed version of L.A. Noire (both Steam & R* Launcher) including builds **2617**, **2663** and **2675** (current version).
 
 Installing the patch is very simple:
 
 1. Get the latest release from [GitHub](https://github.com/VaanaCZ/LANVP/releases)
-2. Extract the archive.
-3. Copy the contents into the game's folder (same location as LaNoire.exe). Do not forget to extract the plugins folder!
+2. Extract the contents of the "L.A.Noire" directory into the root of your L.A. Noire installation (same location as LaNoire.exe).
+3. Done. No other special setup is required.
 
-Done. No special setup required.
+> Disclaimer: Do not forget to extract all of the files, including the "plugins" directory. If this step is missed, then V-Patch will not be loaded.
 
 ## Linux (Lutris & Steam Proton) Installation
 
@@ -109,10 +108,6 @@ Same as above except requires winecfg to override/accept the dinput8 dll.
 
 If 'dinput8(native, builtin)' is visible in the list, then you've successfully installed the patch on Linux.
 
-## Supported versions
-
-V-Patch works on any legal version of L.A. Noire (both Steam & R* Launcher) including builds **2617**, **2663** and **2675** (current version).
-
 ## Configuration
 
 In order to customize the settings of V-Patch, navigate to the game's directory and find the plugins folder. Here you can find a by the name of *lanvp.ini* in which you can enable/disable or change the features mentioned above.
@@ -120,13 +115,16 @@ In order to customize the settings of V-Patch, navigate to the game's directory 
 ## Known issues
 
 - Car steering is more sensitive than it should be.
-- On very high FPS (100+), the chandelier in the mission "The Quarter Moon Murders" can break. If you encounter this issue, temporarily disable the patch or lower your FPS limit to below 100.
+- On very high FPS (100+), the chandelier in the case "The Quarter Moon Murders" can break. If you encounter this issue, temporarily disable the patch or lower your FPS limit to below 100.
 
-## Compilation
+## Compiling
 
-Use MSVC 2022 or newer.
+V-Patch is built with C++14 and the latest version of Visual Studio. It utilizes with the Windows SDK and does not require any external libraries.
 
 ## Changelog
+
+### v2.0 (July 25th, 2024)
+- Patch rewritten from scratch.
 
 ### v1.1b (June 30th, 2022)
 - Added support for new L.A Noire version 2675.
@@ -148,7 +146,7 @@ Use MSVC 2022 or newer.
 
 ## Credits
 
-Thanks to ThirteenAG for the Ultimate ASI Loader.
+Thanks to ThirteenAG for the [Ultimate ASI Loader](https://github.com/ThirteenAG/Ultimate-ASI-Loader).
 
 Thanks to the following people for taking the time to help with testing V-Patch:
 - iJuhan

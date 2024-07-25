@@ -24,7 +24,7 @@ Here you can see a video of the patch in action:
 
 ### Unlocked aspect ratios (16:10, 4:3, 5:4, etc.)
 
-By default, L.A. Noire allows only a limited set of resolutions and aspect ratios with ratios smaller than 16:9 appearing to have black bars. V-Patch removes this limitation allowing the user to specify any resolution in the game's menu. V-Patch also removes black bars and implements UI scaling correction, which ensures the game is fully playable in any resolution.
+By default, L.A. Noire allows only a limited set of resolutions and aspect ratios with ratios smaller than 16:9 appearing to have black bars. V-Patch removes this limitation allowing the user to specify any resolution in the game's menu. V-Patch also removes the black bars and implements UI scaling correction, which ensures the game is fully playable in any resolution.
 
 <p align="center">
   <a href="https://i.imgur.com/S9wtcaE.png"><img width="49%" src="https://i.imgur.com/S9wtcaE.png"></a>

@@ -5,12 +5,12 @@ V-Patch is a lightweight, community-made, drop-in patch intended to fix common i
 
 ## What does V-Patch do?
 
-### Total FPS Uncap (60+ FPS) & Variable Framerate
+### Total FPS Uncap (60+ FPS) & Variable Frame rate
 
-The main feature of V-Patch is the abillity to completely remove the default 30 FPS limit. Unlike other FPS patches which can only change the limit to 60, V-Patch allows the game to be run completely uncapped by implementing a better FPS cap removal method, which also doesnt suffer from side-effects such as the game simulation running at incorrect speeds!
+The main feature of V-Patch is the ability to completely remove the default 30 FPS limit. Unlike other FPS patches which can only change the limit to 60, V-Patch allows the game to be run completely uncapped by implementing a better FPS cap removal method, which also doesn't suffer from side-effects such as the game simulation running at incorrect speeds!
 
 In addition, V-Patch implements the following fixes for FPS-related bugs:
-- Cars brake at the correct speed no matter the framerate. (Fixes a problem in the case "The Golden Butterfly")
+- Cars brake at the correct speed no matter the frame rate. (Fixes a problem in the case "The Golden Butterfly")
 - The Pencil in the case "The Set Up" can now be picked up.
 - Pigeons take off at the correct speed.
 
@@ -20,7 +20,7 @@ Here you can see a video of the patch in action:
   <a href="https://www.youtube.com/watch?v=VFsFdUMLC8M"><img width="95%" src="https://img.youtube.com/vi/VFsFdUMLC8M/maxresdefault.jpg"></a>
 </p>
 
-> Disclaimer: Some cases or activities may still be unbeatable when playing with a high framerate. If you encounter such an issue, disable the FPS unlock in the config file (lanvp.ini in the plugins directory of your game installation), restart the game, pass the current section, re-enable the FPS unlock in the config and restart the game again.
+> Disclaimer: Some cases or activities may still be unbeatable when playing with a high frame rate. If you encounter such an issue, disable the FPS unlock in the config file (lanvp.ini in the plugins directory of your game installation), restart the game, pass the current section, re-enable the FPS unlock in the config and restart the game again.
 
 ### Unlocked aspect ratios (16:10, 4:3, 5:4, etc.)
 
@@ -74,8 +74,7 @@ Installing the patch is very simple:
 
 ## Linux (Proton/Wine) Installation
 
-Use the same steps as above Same as above in addition to [this guide](https://cookieplmonster.github.io/setup-instructions/#proton-wine).
-
+Use the same steps as above in addition to [this guide](https://cookieplmonster.github.io/setup-instructions/#proton-wine) by Silent.
 
 ## Configuration
 

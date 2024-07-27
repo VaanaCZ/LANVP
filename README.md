@@ -65,7 +65,7 @@ In addition to these fixes, V-Patch also lets you customize technical aspects of
 </p>
 
 ## Windows Installation
-V-Patch works on any authentic version of L.A. Noire (both Steam & R* Launcher) including builds **2617**, **2663** and **2675** (current version).
+V-Patch works on any licensed copy of L.A. Noire (both Steam & R* Launcher) including builds **2617**, **2663** and **2675** (current version).
 
 Installing the patch is very simple:
 

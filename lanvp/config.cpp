@@ -122,7 +122,7 @@ const char config[] =
 	"; Only works if fps_unlock is also enabled!\n"
 	";\n"
 	"; 0 = disabled (default)\n"
-	"; example: fps_lock=30\n"
+	"; example: fps_limit=30\n"
 	"fps_limit=0\n"
 	"\n"
 	"; Allows to set a custom field of view of multiplier.\n"

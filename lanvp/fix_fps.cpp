@@ -265,7 +265,7 @@ bool ApplyPatch_Framerate(Patch* patch)
 		BYTE* pBrakeHook = (BYTE*)ExecCopy(brakeHook, sizeof(brakeHook));
 		assert(pBrakeHook);
 
-		if (!MemRead((BYTE*)braking + 3, &brakeHook[6], 6))			return false;
+		if (!MemRead((BYTE*)braking + 3, &pBrakeHook[6], 6))			return false;
 
 		DWORD* a1 = (DWORD*)&pBrakeHook[2];
 		*a1 = (DWORD)&fixedFrametime;

@@ -100,6 +100,12 @@ V-Patch is built with C++14 and the latest version of Visual Studio. It utilizes
 
 ### v2.0 (July 25th, 2024)
 - Patch rewritten from scratch.
+- Fixed the infamous pencil FPS bug in the case "The Set Up".
+- Reworked the implementation of the FPS patch. UI elements will now fade in/out at the right speed and have the correct mouse sensitivity.
+- Fixed the speed of pigeons when they take off on high FPS.
+- Fixed problems with changing the resolution of the game when the Aspect ratio fix was enabled. Also, black bars will no longer re-appear.
+- Fixed zooming problems with FoV correction on ultrawide aspect ratios.
+- Fixed the camera being too zoomed in in cutscenes on ultrawide aspect ratios.
 
 ### v1.1b (June 30th, 2022)
 - Added support for new L.A Noire version 2675.

@@ -174,6 +174,8 @@ void HandleError(const wchar_t* title, const wchar_t* text);
 void DoPatches();
 bool FindSignature(Signature& sig, void* regionStart, void* regionEnd);
 
+void CleanUp(); // Technically not necessary
+
 #pragma pack(push, 1)
 struct callNear
 {

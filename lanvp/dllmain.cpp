@@ -76,6 +76,8 @@ void Init()
 
 	// Execute
 	DoPatches();
+
+	CleanUp();
 };
 
 static LONG isInit = 0;

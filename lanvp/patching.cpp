@@ -215,7 +215,7 @@ void DoPatches()
 						{
 							numRemainingSignatures--;
 							remainingSignatureIndices[j] = remainingSignatureIndices[numRemainingSignatures];
-								if (j <= i)
+							if (j <= i)
 								i = j - 1;
 
 							break;
@@ -391,6 +391,17 @@ bool FindSignature(Signature& sig, void* regionStart, void* regionEnd)
 	}
 
 	return (sig.numOccurrences != 0);
+}
+
+void CleanUp()
+{
+	for (size_t i = 0; i < numSignatures; i++)
+	{
+		Signature& signature = signatures[i];
+		
+		if (signature.sigPattern)	delete[] signature.sigPattern;
+		if (signature.sigMask)		delete[] signature.sigMask;
+	}
 }
 
 bool MemWrite(void* ptr, void* data, size_t dataLength)

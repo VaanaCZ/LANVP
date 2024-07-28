@@ -1,6 +1,8 @@
 # V-Patch for L.A Noire Complete Edition
 *This project is not affiliated with Take-Two or Rockstar Games*
 
+For latest changes, please see dev branch: https://github.com/VaanaCZ/LANVP/tree/dev-asi
+
 A while ago I wanted to replay L.A Noire on my new setup, only to find out that the game was locked to 30 FPS and didn't support my monitor's aspect ratio. With this fact in mind, I started to search for fixes, only to learn that most of them sucked. 
 
 After determining that all the available fixes were either unintuitive to use for the average user or lacking in features, I sought out to make my own patch, mainly looking to tackle the 30 FPS cap and the aspect ratio limitations. Later in development it became clear to me that what I had made was worth publishing for others to use... so here we are.

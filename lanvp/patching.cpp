@@ -144,8 +144,7 @@ void DoPatches()
 			return;
 		}
 
-		// Small speedup
-		// Ignore non-execute pages
+		// Ignore non-execute pages (small speedup)
 		if (!(memoryInfo.Protect & PAGE_EXECUTE) &&
 			!(memoryInfo.Protect & PAGE_EXECUTE_READ) &&
 			!(memoryInfo.Protect & PAGE_EXECUTE_READWRITE) &&
@@ -171,49 +170,37 @@ void DoPatches()
 		}
 
 		// Try to match signatures
-		void* regionStart = memoryInfo.BaseAddress;
-		void* regionEnd = (BYTE*)regionStart + memoryInfo.RegionSize;
+		void* regionStart	= memoryInfo.BaseAddress;
+		void* regionEnd		= (BYTE*)regionStart + memoryInfo.RegionSize;
 
-		BYTE* regionPtr = (BYTE*)regionStart;
-
-		while (regionPtr < regionEnd)
+		for (size_t i = 0; i < numRemainingSignatures; i++)
 		{
-			for (size_t i = 0; i < numRemainingSignatures; i++)
+			Signature& signature = signatures[remainingSignatureIndices[i]];
+
+			if (FindSignature(signature, regionStart, regionEnd))
 			{
-				Signature& signature = signatures[remainingSignatureIndices[i]];
-
-				if (FindSignature(signature, false, regionStart, regionEnd, regionPtr))
-				{
 #ifdef NO_CHECK_DUPLICATES
-					numRemainingSignatures--;
-					remainingSignatureIndices[i] = remainingSignatureIndices[numRemainingSignatures];
-					i--;
+				numRemainingSignatures--;
+				remainingSignatureIndices[i] = remainingSignatureIndices[numRemainingSignatures];
+				i--;
 
-					if (signature.associatedIndex != -1)
+				if (signature.associatedIndex != -1)
+				{
+					for (size_t j = 0; j < numRemainingSignatures; j++)
 					{
-						for (size_t j = 0; j < numRemainingSignatures; j++)
+						if (remainingSignatureIndices[j] == signature.associatedIndex)
 						{
-							if (remainingSignatureIndices[j] == signature.associatedIndex)
-							{
-								numRemainingSignatures--;
-								remainingSignatureIndices[j] = remainingSignatureIndices[numRemainingSignatures];
+							numRemainingSignatures--;
+							remainingSignatureIndices[j] = remainingSignatureIndices[numRemainingSignatures];
 								if (j <= i)
-									i = j - 1;
+								i = j - 1;
 
-								break;
-							}
+							break;
 						}
 					}
-#endif
 				}
-			}
-
-			regionPtr++;
-
-#ifdef NO_CHECK_DUPLICATES
-			if (numRemainingSignatures == 0)
-				break;
 #endif
+			}
 		}
 
 		// Restore protection
@@ -334,66 +321,70 @@ void DoPatches()
 	}
 }
 
-bool FindSignature(Signature& sig, bool isAlternate, void* regionStart, void* regionEnd, BYTE* regionPtr)
+bool FindSignature(Signature& sig, void* regionStart, void* regionEnd)
 {
-	bool signatureValid = true;
-
 	DWORD* signature = sig.signature;
 	size_t sigLength = sig.sigLength;
 
-	if (regionPtr + sigLength > regionEnd)
-	{
-		return false; // Signature cannot be located within current region
-	}
+	BYTE* regionPtr = (BYTE*)regionStart;
 
-	// Signature matching
-	size_t sigIndex = 0;
-	size_t sigOffset = 0;
-
-	for (size_t i = 0; i < sigLength; i++)
+	while (regionPtr < regionEnd)
 	{
-		if (signature[i] == HERE)
+		bool signatureValid = true;
+
+		if (regionPtr + sigLength > regionEnd)
 		{
-			sigOffset = sigIndex;
-			continue;
+			break; // Signature is too large for the remainder of the current region
 		}
 
-		if (signature[i] == MASK)
+		// Signature matching
+		size_t sigIndex = 0;
+		size_t sigOffset = 0;
+
+		for (size_t i = 0; i < sigLength; i++)
 		{
+			if (signature[i] == HERE)
+			{
+				sigOffset = sigIndex;
+				continue;
+			}
+
+			if (signature[i] == MASK)
+			{
+				sigIndex++;
+				continue;
+			}
+
+			assert(signature[i] <= 0xFF);
+
+			BYTE l = *(regionPtr + sigIndex);
+			BYTE r = signature[i];
+
+			if (l != r)
+			{
+				signatureValid = false;
+				break;
+			}
+
 			sigIndex++;
-			continue;
 		}
 
-		assert(signature[i] <= 0xFF);
+		void* foundPtr = regionPtr + sigOffset;
 
-		BYTE l = *(regionPtr + sigIndex);
-		BYTE r = signature[i];
-
-		if (l != r)
+		if (signatureValid && (!sig.filterFunc || sig.filterFunc(foundPtr)))
 		{
-			signatureValid = false;
+			sig.numOccurrences++;
+			sig.foundPtr = foundPtr;
+
+#ifdef NO_CHECK_DUPLICATES
 			break;
+#endif
 		}
 
-		sigIndex++;
+		regionPtr++;
 	}
 
-	if (!signatureValid)
-	{
-		return false;
-	}
-
-	void* foundPtr = regionPtr + sigOffset;
-
-	if (sig.filterFunc && !sig.filterFunc(foundPtr))
-	{
-		return false;
-	}
-
-	sig.numOccurrences++;
-	sig.foundPtr = foundPtr;
-
-	return true;
+	return sig.numOccurrences != 0;
 }
 
 bool MemWrite(void* ptr, void* data, size_t dataLength)

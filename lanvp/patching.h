@@ -168,7 +168,7 @@ struct Patch
 void HandleError(const wchar_t* title, const wchar_t* text);
 
 void DoPatches();
-bool FindSignature(Signature& sig, bool isAlternate, void* regionStart, void* regionEnd, BYTE* regionPtr);
+bool FindSignature(Signature& sig, void* regionStart, void* regionEnd);
 
 #pragma pack(push, 1)
 struct callNear

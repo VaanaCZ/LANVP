@@ -25,10 +25,14 @@ typedef bool (*FilterFunc)(void*);
 
 struct Signature
 {
-	DWORD*			signature		= nullptr;	// Byte array used as search signature
-	size_t			sigLength		= 0;		// Length of array
-
+	DWORD*			rawSignature	= nullptr;	// Used just to check duplicates
+	size_t			rawLength		= 0;		// Length of raw signature
 	FilterFunc		filterFunc		= nullptr;	// Optional callback for extra filtering
+
+	BYTE*			sigPattern		= nullptr;	// Byte array used as a search pattern
+	BYTE*			sigMask			= nullptr;	// Byte array used as a mask
+	size_t			sigLength		= 0;		// Length of signature
+	size_t			sigOffset		= 0;		// Offset of foundPtr inside signature
 
 	int				associatedIndex = -1;
 	unsigned int	numOccurrences	= 0;		// Number of occurences
@@ -36,7 +40,7 @@ struct Signature
 
 	bool Equals(Signature& s)
 	{
-		return signature == s.signature && sigLength == s.sigLength && filterFunc == s.filterFunc;
+		return rawSignature == s.rawSignature && rawLength == s.rawLength && filterFunc == s.filterFunc;
 	}
 };
 
@@ -62,7 +66,7 @@ struct Patch
 	unsigned int	numSignatureIndices	= 0;					// Number of signatures
 	ApplyFunc		func				= nullptr;				// Callback to be called if all signatures are found
 
-	int AddSignature(DWORD* signature, size_t sigLength)
+	int AddSignature(DWORD* rawSignature, size_t rawLength)
 	{
 		if (numSignatureIndices >= MAX_SIGNATURE_INDICES)
 		{
@@ -70,8 +74,8 @@ struct Patch
 		}
 
 		Signature sig;
-		sig.signature		= signature;
-		sig.sigLength		= sigLength;
+		sig.rawSignature	= rawSignature;
+		sig.rawLength		= rawLength;
 		sig.associatedIndex	= -1;
 
 		int index = numSignatureIndices;
@@ -83,7 +87,7 @@ struct Patch
 		return index;
 	};
 
-	int AddSignatureWithAlt(DWORD* signature, size_t sigLength, DWORD* altSignature, size_t altSigLength)
+	int AddSignatureWithAlt(DWORD* rawSignature, size_t rawLength, DWORD* altRawSignature, size_t altRawLength)
 	{
 		if (numSignatureIndices >= MAX_SIGNATURE_INDICES)
 		{
@@ -91,12 +95,12 @@ struct Patch
 		}
 
 		Signature sig;
-		sig.signature	= signature;
-		sig.sigLength	= sigLength;
+		sig.rawSignature	= rawSignature;
+		sig.rawLength		= rawLength;
 
 		Signature altSig;
-		altSig.signature	= altSignature;
-		altSig.sigLength	= altSigLength;
+		altSig.rawSignature = altRawSignature;
+		altSig.rawLength	= altRawLength;
 
 		int index = numSignatureIndices;
 
@@ -111,7 +115,7 @@ struct Patch
 		return index;
 	};
 
-	int AddSignatureWithFilter(DWORD* signature, size_t sigLength, FilterFunc filterFunc)
+	int AddSignatureWithFilter(DWORD* rawSignature, size_t rawLength, FilterFunc filterFunc)
 	{
 		if (numSignatureIndices >= MAX_SIGNATURE_INDICES)
 		{
@@ -119,8 +123,8 @@ struct Patch
 		}
 
 		Signature sig;
-		sig.signature		= signature;
-		sig.sigLength		= sigLength;
+		sig.rawSignature	= rawSignature;
+		sig.rawLength		= rawLength;
 		sig.filterFunc		= filterFunc;
 		sig.associatedIndex	= -1;
 

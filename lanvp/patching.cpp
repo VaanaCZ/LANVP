@@ -58,10 +58,33 @@ int RegisterSignature(Signature signature)
 	{
 		if (numSignatures >= MAX_SIGNATURES)
 		{
-			return index;
+			return -1;
 		}
 
 		index = numSignatures;
+
+		signature.sigPattern	= new BYTE[signature.rawLength];
+		signature.sigMask		= new BYTE[signature.rawLength];
+
+		size_t newIndex = 0;
+		size_t newLength = signature.rawLength;
+
+		for (size_t i = 0; i < signature.rawLength; i++)
+		{
+			if (signature.rawSignature[i] == HERE)
+			{
+				newLength--;
+				signature.sigOffset = i;
+				continue;
+			}
+
+			signature.sigPattern[newIndex]	= signature.rawSignature[i];
+			signature.sigMask[newIndex]		= (signature.rawSignature[i] == MASK);
+
+			newIndex++;
+		}
+
+		signature.sigLength = newLength;
 
 		signatures[numSignatures] = signature;
 		numSignatures++;
@@ -323,8 +346,9 @@ void DoPatches()
 
 bool FindSignature(Signature& sig, void* regionStart, void* regionEnd)
 {
-	DWORD* signature = sig.signature;
-	size_t sigLength = sig.sigLength;
+	BYTE* sigPattern	= sig.sigPattern;
+	BYTE* sigMask		= sig.sigMask;
+	size_t sigLength	= sig.sigLength;
 
 	BYTE* regionPtr = (BYTE*)regionStart;
 
@@ -338,38 +362,20 @@ bool FindSignature(Signature& sig, void* regionStart, void* regionEnd)
 		}
 
 		// Signature matching
-		size_t sigIndex = 0;
-		size_t sigOffset = 0;
-
 		for (size_t i = 0; i < sigLength; i++)
 		{
-			if (signature[i] == HERE)
-			{
-				sigOffset = sigIndex;
-				continue;
-			}
+			BYTE l = *(regionPtr + i);
+			BYTE r = sigPattern[i];
+			BYTE m = sigMask[i];
 
-			if (signature[i] == MASK)
-			{
-				sigIndex++;
-				continue;
-			}
-
-			assert(signature[i] <= 0xFF);
-
-			BYTE l = *(regionPtr + sigIndex);
-			BYTE r = signature[i];
-
-			if (l != r)
+			if (l != r && !m)
 			{
 				signatureValid = false;
 				break;
 			}
-
-			sigIndex++;
 		}
 
-		void* foundPtr = regionPtr + sigOffset;
+		void* foundPtr = regionPtr + sig.sigOffset;
 
 		if (signatureValid && (!sig.filterFunc || sig.filterFunc(foundPtr)))
 		{
@@ -384,7 +390,7 @@ bool FindSignature(Signature& sig, void* regionStart, void* regionEnd)
 		regionPtr++;
 	}
 
-	return sig.numOccurrences != 0;
+	return (sig.numOccurrences != 0);
 }
 
 bool MemWrite(void* ptr, void* data, size_t dataLength)

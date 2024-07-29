@@ -373,6 +373,8 @@ void DoPatches()
 	}
 }
 
+// No matter how much I try to optimize this shitty routine it always becomes slower
+// Compiler doing weird things here
 bool FindSignature(Signature& sig, void* regionStart, void* _regionEnd)
 {
 	DWORD* sigPattern = (DWORD*)sig.sigPattern;

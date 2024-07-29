@@ -10,7 +10,7 @@
 #include <cassert>
 #include <wchar.h>
 
-// #define NO_CHECK_DUPLICATES // FIXME: ENABLE FOR FINAL RELEASE
+#define NO_CHECK_DUPLICATES // ENABLE FOR FINAL RELEASE
 
 unsigned int numPatches					= 0;
 Patch patches[MAX_PATCHES]				= { };
@@ -395,7 +395,7 @@ bool FindSignature(Signature& sig, void* regionStart, void* _regionEnd)
 			DWORD r = sigPattern[i];
 			DWORD m = sigMask[i];
 
-			if ((l & m) != (r & m)) // FIXME: For some reason this produces faster assembly than just (l & m) != m
+			if ((l & m) != (r & m)) // FIXME: For some reason this produces faster assembly than just (l & m) != r
 			{
 				signatureValid = false;
 				break;

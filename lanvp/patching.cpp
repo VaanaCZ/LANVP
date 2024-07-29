@@ -63,9 +63,6 @@ int RegisterSignature(Signature signature)
 
 		index = numSignatures;
 
-		signature.sigPattern	= new BYTE[signature.rawLength];
-		signature.sigMask		= new BYTE[signature.rawLength];
-
 		size_t newIndex = 0;
 		size_t newLength = signature.rawLength;
 
@@ -75,11 +72,34 @@ int RegisterSignature(Signature signature)
 			{
 				newLength--;
 				signature.sigOffset = i;
+			}
+		}
+
+		signature.sigLength = newLength;
+
+		if (newLength % SIG_ALIGN)
+		{
+			newLength = ((newLength / SIG_ALIGN) + 1) * SIG_ALIGN; // Align to 4 bytes because we compare DWORDs instead of BYTEs
+		}
+
+		signature.sigPattern	= new BYTE[newLength];
+		signature.sigMask		= new BYTE[newLength];
+
+		memset(signature.sigPattern, 0, newLength);
+		memset(signature.sigMask, 0, newLength);
+
+		for (size_t i = 0; i < signature.rawLength; i++)
+		{
+			if (signature.rawSignature[i] == HERE)
+			{
 				continue;
 			}
 
-			signature.sigPattern[newIndex]	= signature.rawSignature[i];
-			signature.sigMask[newIndex]		= (signature.rawSignature[i] == MASK);
+			if (signature.rawSignature[i] != MASK)
+			{
+				signature.sigPattern[newIndex]	= signature.rawSignature[i];
+				signature.sigMask[newIndex]		= 0xFF;
+			}
 
 			newIndex++;
 		}
@@ -276,6 +296,10 @@ void DoPatches()
 		Patch& patch = patches[i];
 
 		bool allSignaturesFound = true;
+		enum { ERROR_NOTFOUND, ERROR_TOO_MANY_OCCURRENCES, PATCH_CANNOT_APPLY };
+		const wchar_t* errorMsgs[] = { L" (No signatures found)", L" (Too many signatures found)", L" (Could not apply)" };
+		int error = 0;
+
 		for (size_t j = 0; j < patch.numSignatureIndices; j++)
 		{
 			int signatureIndex		= patch.signatureIndices[j];
@@ -289,6 +313,7 @@ void DoPatches()
 
 			if (totalNumOccurences != 1)
 			{
+				error = (totalNumOccurences > 1);
 				allSignaturesFound = false;
 				break;
 			}
@@ -309,6 +334,8 @@ void DoPatches()
 			// Success! Patch can be applied!
 			assert(patch.func);
 			allSignaturesFound = patch.func(&patch);
+
+			error = (!allSignaturesFound) * PATCH_CANNOT_APPLY;
 		}
 
 		if (!allSignaturesFound)
@@ -317,6 +344,8 @@ void DoPatches()
 			wcscpy_s(&message[length], messageLength - length, L"\n    ");
 			length = wcslen(message);
 			wcscpy_s(&message[length], messageLength - length, patch.name);
+			length = wcslen(message);
+			wcscpy_s(&message[length], messageLength - length, errorMsgs[error]);
 		}
 
 		allPatchesApplied &= allSignaturesFound;
@@ -344,31 +373,29 @@ void DoPatches()
 	}
 }
 
-bool FindSignature(Signature& sig, void* regionStart, void* regionEnd)
+bool FindSignature(Signature& sig, void* regionStart, void* _regionEnd)
 {
-	BYTE* sigPattern	= sig.sigPattern;
-	BYTE* sigMask		= sig.sigMask;
-	size_t sigLength	= sig.sigLength;
+	DWORD* sigPattern = (DWORD*)sig.sigPattern;
+	DWORD* sigMask = (DWORD*)sig.sigMask;
+	size_t sigLength = sig.sigLength / sizeof(DWORD);
 
 	BYTE* regionPtr = (BYTE*)regionStart;
+	BYTE* regionEnd = (BYTE*)_regionEnd - sig.sigLength;
 
 	while (regionPtr < regionEnd)
 	{
-		bool signatureValid = true;
+		DWORD* regionPtrLong = (DWORD*)regionPtr;
 
-		if (regionPtr + sigLength > regionEnd)
-		{
-			break; // Signature is too large for the remainder of the current region
-		}
+		bool signatureValid = true;
 
 		// Signature matching
 		for (size_t i = 0; i < sigLength; i++)
 		{
-			BYTE l = *(regionPtr + i);
-			BYTE r = sigPattern[i];
-			BYTE m = sigMask[i];
+			DWORD l = regionPtrLong[i];
+			DWORD r = sigPattern[i];
+			DWORD m = sigMask[i];
 
-			if (l != r && !m)
+			if ((l & m) != (r & m)) // FIXME: For some reason this produces faster assembly than just (l & m) != m
 			{
 				signatureValid = false;
 				break;

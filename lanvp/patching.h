@@ -16,6 +16,8 @@
 #define MASK 0xFFFFFFFF
 #define HERE 0xDDDDDDDD
 
+#define SIG_ALIGN	(sizeof(DWORD))
+
 #define SIGARG(s)	s, sizeof(s) / sizeof(s[0])
 
 struct Patch;

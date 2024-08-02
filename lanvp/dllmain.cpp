@@ -96,9 +96,9 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID reserved)
 {
 	switch (reason)
 	{
-		case DLL_PROCESS_ATTACH:	InitializeASI();	break;
-		case DLL_PROCESS_DETACH:						break;
-		default:										break;
+		case DLL_PROCESS_ATTACH:	if (!IsUltimateASILoader())	InitializeASI();	break;
+		case DLL_PROCESS_DETACH:													break;
+		default:																	break;
 	}
 	return TRUE;
 }

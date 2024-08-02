@@ -171,6 +171,8 @@ struct Patch
 	}
 };
 
+bool IsUltimateASILoader();
+
 void HandleError(const wchar_t* title, const wchar_t* text);
 
 void DoPatches();

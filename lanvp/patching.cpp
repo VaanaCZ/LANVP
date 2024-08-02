@@ -113,6 +113,27 @@ int RegisterSignature(Signature signature)
 	return index;
 }
 
+bool IsUltimateASILoader()
+{
+	const size_t stackSize = 1024;
+	void* stack[stackSize];
+	WORD numFrames = CaptureStackBackTrace(0, stackSize, stack, NULL);
+
+	for (size_t i = 0; i < numFrames; i++)
+	{
+		void* addr = stack[i];
+		HMODULE module = NULL;
+
+		if (GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCTSTR)addr, &module))
+		{
+			if (GetProcAddress(module, "IsUltimateASILoader"))
+				return true;
+		}
+	}
+
+	return false;
+}
+
 void HandleError(const wchar_t* title, const wchar_t* text)
 {
 	const size_t messageLength = 1024;

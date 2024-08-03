@@ -24,7 +24,7 @@ INSTALLATION:
     loaded.
 
 FEATURES:
-    
+
     - V-Patch completely removes the default 30 FPS limit and allows the game
       to be run completely uncapped by implementing a better FPS cap removal
       method, which also doesn't suffer from side-effects such as the game
@@ -96,7 +96,7 @@ REPORTING BUGS AND SUBMITTING SUGGESTIONS:
 
     If you encounter a bug caused by V-Patch during play, please report it via
     the Steam discussion, ModDB comments or via GitHub issues.
-    
+
     If you wish to contact the author directly, use one of the following means:
 
         Email:      vaanacz@gmail.com

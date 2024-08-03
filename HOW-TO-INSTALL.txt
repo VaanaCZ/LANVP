@@ -20,8 +20,8 @@ INSTALLATION:
     2. Done. No other special setup is required.
 
     IMPORTANT: Do not forget to extract all of the files, including the
-	"plugins" directory. If this step is missed, then V-Patch will not be
-	loaded.
+    "plugins" directory. If this step is missed, then V-Patch will not be
+    loaded.
 
 FEATURES:
     
@@ -34,14 +34,14 @@ FEATURES:
       infamous pencil bug in the case "The Set Up".
 
     - Added support for more aspect ratios. The black bars on 16:10, 4:3 or
-	  5:4 have been removed and the game and its UI now uses your whole screen.
+      5:4 have been removed and the game and its UI now uses your whole screen.
 
     - Support for Ultrawide resolutions using built-in FoV and UI correction.
 
     - Borderless window support. The game now runs in a borderless window by
       default, which allows you to alt-tab faster and also has the effect of
       disabling v-sync.
-´
+
     - The addition of a number of customization options like the ability to
       set a custom FoV, a custom FPS cap or disable the intro logos.
 
@@ -61,9 +61,9 @@ KNOWN ISSUES:
 
     - Car steering is more sensitive than it should be.
 
-	- On very high FPS (100+), the chandelier in the case
-	  "The Quarter Moon Murders" can break. If you encounter this issue,
-	  temporarily disable the patch or lower your FPS limit to below 100.
+    - On very high FPS (100+), the chandelier in the case
+      "The Quarter Moon Murders" can break. If you encounter this issue,
+      temporarily disable the patch or lower your FPS limit to below 100.
 
 CHANGELOG:
 

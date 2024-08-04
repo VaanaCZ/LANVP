@@ -68,7 +68,7 @@ In addition to these fixes, V-Patch allows you to customize various technical as
 	<i>FoV Multiplier 2.0</i>
 </p>
 
-## Windows Installation
+## Installation
 V-Patch works with any licensed copy of L.A. Noire (both Steam & R* Launcher), including builds **2617**, **2663** and **2675** (current version).
 
 Installing the patch is very simple:

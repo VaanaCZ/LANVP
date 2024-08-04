@@ -3,7 +3,7 @@
 V-Patch for L.A. Noire: Complete Edition
 Release 2.0
 By VaanaCZ
-July 23rd, 2024
+August 4th, 2024
 
 
 LICENSE:
@@ -23,29 +23,37 @@ INSTALLATION:
     "plugins" directory. If this step is missed, then V-Patch will not be
     loaded.
 
+LINUX INSTALLATION:
+
+    Use the same steps as above in addition to the following guide by Silent:
+    https://cookieplmonster.github.io/setup-instructions/#proton-wine
+
 FEATURES:
 
-    - V-Patch completely removes the default 30 FPS limit and allows the game
-      to be run completely uncapped by implementing a better FPS cap removal
-      method, which also doesn't suffer from side-effects such as the game
-      simulation running at incorrect speeds!
+    - TOTAL FPS UNCAP: V-Patch completely removes the default 30 FPS limit and
+      allows the game to be run completely uncapped by implementing an improved
+      FPS cap removal method, which also doesn't suffer from side effects such
+      as the game simulation running at incorrect speeds!
 
-    - Bug fixes for problem related to high FPS such as car braking or the
-      infamous pencil bug in the case "The Set Up".
+    - FPS-RELATED FIXES: Addresses FPS-related bugs, such as car braking issues
+      or the infamous pencil bug in the case "The Set Up".
 
-    - Added support for more aspect ratios. The black bars on 16:10, 4:3 or
-      5:4 have been removed and the game and its UI now uses your whole screen.
+    - UNLOCKED ASPECT RATIOS: Added support for more aspect ratios. The black
+      bars on 16:10, 4:3 or 5:4 have been removed and the game and its UI now
+      uses your whole screen.
 
-    - Support for Ultrawide resolutions using built-in FoV and UI correction.
+    - ULTRAWIDE SUPPORT: Support for Ultrawide resolutions using built-in FoV
+      and UI correction.
 
-    - Borderless window support. The game now runs in a borderless window by
-      default, which allows you to alt-tab faster and also has the effect of
-      disabling v-sync.
+    - BORDERLESS WINDOW: The game now runs in a borderless window by default,
+      which allows you to alt-tab faster and also has the effect of disabling
+      v-sync.
 
-    - The addition of a number of customization options like the ability to
-      set a custom FoV, a custom FPS cap or disable the intro logos.
+    - CUSTOMIZATION OPTIONS: The addition of a number of customization options
+      like the ability to set a custom FoV, a custom FPS cap or disable the
+      intro logos.
 
-    If you wanna read more about what it does and how it works, check out the 
+    For more details on what V-Patch does and how it works, check out the 
     GitHub page: https://github.com/VaanaCZ/LANVP/
 
 CONFIGURATION:
@@ -103,6 +111,9 @@ REPORTING BUGS AND SUBMITTING SUGGESTIONS:
         Discord:    Vaana#2072 
 
 CREDITS:
+
+    Thanks to ThirteenAG for the Ultimate ASI Loader:
+    https://github.com/ThirteenAG/Ultimate-ASI-Loader
 
     Thanks to the following people for taking the time to help with testing
     V-Patch:

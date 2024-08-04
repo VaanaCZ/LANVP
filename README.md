@@ -13,12 +13,12 @@ V-Patch is a lightweight, community-developed patch designed to address common i
 
 The main feature of V-Patch is the ability to completely remove the default 30 FPS limit. Unlike other FPS patches that can only change the limit to 60, V-Patch allows the game to be run completely uncapped by implementing an improved FPS cap removal method, which also doesn't suffer from side effects such as the game simulation running at incorrect speeds.
 
-In addition, V-Patch addresses the FPS-related bugs:
+In addition, V-Patch addresses the following FPS-related bugs:
 - Cars brake at the correct speed regardless of the frame rate (fixes an issue in the case "The Golden Butterfly").
-- The Pencil in the case "The Set Up" can now be picked up.
+- The pencil in the case "The Set Up" can now be picked up.
 - Pigeons take off at the correct speed.
 
-Here are videos demonstrating of the patch in action:
+Here are videos demonstrating the patch in action:
 
 <p align="center">
 	<a href="https://www.youtube.com/watch?v=VFsFdUMLC8M"><img width="95%" src="https://img.youtube.com/vi/VFsFdUMLC8M/maxresdefault.jpg"></a>

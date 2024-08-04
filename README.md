@@ -1,42 +1,42 @@
 <p align="center">
-  <img width="50%" src="https://i.imgur.com/eNHPN3N.png">
+	<img width="50%" src="https://i.imgur.com/eNHPN3N.png">
 </p>
 
 # V-Patch for L.A. Noire: Complete Edition
 *This project is not affiliated with Take-Two or Rockstar Games.*
 
-V-Patch is a lightweight, community-made, drop-in patch intended to fix common issues of the game L.A. Noire for PC. It also allows to the user customise certain technical aspects of the game, such as setting a custom FoV or disabling the company logos which show upon starting the game. 
+V-Patch is a lightweight, community-developed patch designed to address common issues in the PC version of L.A. Noire. It also enables users to customize various technical aspects of the game, such as setting a custom field of view (FoV) or disabling the company logos that appear when starting the game. 
 
 ## What does V-Patch do?
 
 ### Total FPS Uncap (60+ FPS) & Variable Frame rate
 
-The main feature of V-Patch is the ability to completely remove the default 30 FPS limit. Unlike other FPS patches which can only change the limit to 60, V-Patch allows the game to be run completely uncapped by implementing a better FPS cap removal method, which also doesn't suffer from side-effects such as the game simulation running at incorrect speeds!
+The main feature of V-Patch is the ability to completely remove the default 30 FPS limit. Unlike other FPS patches that can only change the limit to 60, V-Patch allows the game to be run completely uncapped by implementing an improved FPS cap removal method, which also doesn't suffer from side effects such as the game simulation running at incorrect speeds.
 
-In addition, V-Patch implements the following fixes for FPS-related bugs:
-- Cars brake at the correct speed no matter the frame rate. (Fixes a problem in the case "The Golden Butterfly")
+In addition, V-Patch addresses the FPS-related bugs:
+- Cars brake at the correct speed regardless of the frame rate (fixes an issue in the case "The Golden Butterfly").
 - The Pencil in the case "The Set Up" can now be picked up.
 - Pigeons take off at the correct speed.
 
-Here you can see a video of the patch in action:
+Here are videos demonstrating of the patch in action:
 
 <p align="center">
-  <a href="https://www.youtube.com/watch?v=VFsFdUMLC8M"><img width="95%" src="https://img.youtube.com/vi/VFsFdUMLC8M/maxresdefault.jpg"></a>
+	<a href="https://www.youtube.com/watch?v=VFsFdUMLC8M"><img width="95%" src="https://img.youtube.com/vi/VFsFdUMLC8M/maxresdefault.jpg"></a>
 </p>
 
 <p align="center">
-  <a href="https://www.youtube.com/watch?v=lkqgbKQYSio"><img width="95%" src="https://img.youtube.com/vi/lkqgbKQYSio/maxresdefault.jpg"></a>
+	<a href="https://www.youtube.com/watch?v=lkqgbKQYSio"><img width="95%" src="https://img.youtube.com/vi/lkqgbKQYSio/maxresdefault.jpg"></a>
 </p>
 
 ### Unlocked aspect ratios (16:10, 4:3, 5:4, etc.)
 
-By default, L.A. Noire allows only a limited set of resolutions and aspect ratios with ratios smaller than 16:9 appearing to have black bars. V-Patch removes this limitation allowing the user to specify any resolution in the game's menu. V-Patch also removes the black bars and implements UI scaling correction, which ensures the game is fully playable in any resolution.
+By default, L.A. Noire offers only a limited set of resolutions and aspect ratios, with those smaller than 16:9 displaying black bars. V-Patch removes this limitation, allowing users to specify any resolution in the game's menu. V-Patch also removes the black bars and implements UI scaling correction, which ensures the game is fully playable in any resolution.
 
 <p align="center">
-  <a href="https://i.imgur.com/S9wtcaE.png"><img width="49%" src="https://i.imgur.com/S9wtcaE.png"></a>
-  <a href="https://i.imgur.com/DtCNr4P.png"><img width="49%" src="https://i.imgur.com/DtCNr4P.png"></a>
-  <br>
-  <i>L.A. Noire running in a 5:4 resolution without black bars and with FOV correction.</i>
+	<a href="https://i.imgur.com/S9wtcaE.png"><img width="49%" src="https://i.imgur.com/S9wtcaE.png"></a>
+	<a href="https://i.imgur.com/DtCNr4P.png"><img width="49%" src="https://i.imgur.com/DtCNr4P.png"></a>
+	<br>
+	<i>L.A. Noire running in a 5:4 resolution without black bars and with FOV correction.</i>
 </p>
 
 > [!NOTE]
@@ -44,32 +44,32 @@ By default, L.A. Noire allows only a limited set of resolutions and aspect ratio
 
 ### Ultrawide support
 
-V-Patch implements UI size and FoV correction in order to allow the user to play the game in any ultrawide resolution. Unlike other with patches, the FoV correction does not break cutscenes, meaning the cinematic experience remains untouched. 
+V-Patch implements UI size and FoV correction, enabling users to play the game in any ultrawide resolution. Unlike other patches, the FoV correction does not break cutscenes, meaning the intended cinematic experience is preserved. 
 
 <p align="center">
-  <a href="https://i.imgur.com/K3rgi4v.png"><img width="49%" src="https://i.imgur.com/K3rgi4v.png"></a>
-  <a href="https://i.imgur.com/qEBNAb7.png"><img width="49%" src="https://i.imgur.com/qEBNAb7.png"></a>
-  <br>
-  <i>Comparison of various aspect ratios with FoV correction.</i>
+	<a href="https://i.imgur.com/K3rgi4v.png"><img width="49%" src="https://i.imgur.com/K3rgi4v.png"></a>
+	<a href="https://i.imgur.com/qEBNAb7.png"><img width="49%" src="https://i.imgur.com/qEBNAb7.png"></a>
+	<br>
+	<i>Comparison of various aspect ratios with FoV correction.</i>
 </p>
 
 ### Other features
 
-In addition to these fixes, V-Patch also lets you customize technical aspects of the game in the following manner:
+In addition to these fixes, V-Patch allows you to customize various technical aspects of the game:
 
-- **Borderless window** - The patch allows the user to start the game in borderless.
+- **Borderless window** - The patch allows the user to start the game in borderless mode.
 - **Skipping company logos** - For a faster startup, the user can disable the logos and legal information which shows up after starting the game.
 - **Custom FoV** - Via an option in the config, the user can set a custom FoV multiplier.
 - **Custom FPS limit** - If needs be, the patch allows the user to set a custom FPS cap.
 
 <p align="center">
-  <a href="https://i.imgur.com/rRrbAYq.png"><img width="95%" src="https://i.imgur.com/rRrbAYq.png"></a>
-  <br>
-  <i>FoV Multiplier 2.0</i>
+	<a href="https://i.imgur.com/rRrbAYq.png"><img width="95%" src="https://i.imgur.com/rRrbAYq.png"></a>
+	<br>
+	<i>FoV Multiplier 2.0</i>
 </p>
 
 ## Windows Installation
-V-Patch works on any licensed copy of L.A. Noire (both Steam & R* Launcher) including builds **2617**, **2663** and **2675** (current version).
+V-Patch works with any licensed copy of L.A. Noire (both Steam & R* Launcher), including builds **2617**, **2663** and **2675** (current version).
 
 Installing the patch is very simple:
 

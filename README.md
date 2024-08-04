@@ -5,7 +5,7 @@
 # V-Patch for L.A. Noire: Complete Edition
 *This project is not affiliated with Take-Two or Rockstar Games.*
 
-V-Patch is a lightweight, community-developed patch designed to address common issues in the PC version of L.A. Noire. It also enables users to customize various technical aspects of the game, such as setting a custom field of view (FoV) or disabling the company logos that appear when starting the game. 
+V-Patch is a lightweight community-developed patch designed to address common issues in the PC version of L.A. Noire. It also enables users to customize various technical aspects of the game, such as setting a custom field of view (FoV) or disabling the company logos that appear when starting the game. 
 
 ## What does V-Patch do?
 
@@ -80,9 +80,6 @@ Installing the patch is very simple:
 > [!IMPORTANT]
 > Do not forget to extract all of the files, including the "plugins" directory. If this step is missed, then V-Patch will not be loaded.
 
-> [!WARNING]
-> Some cases or activities may still be unbeatable when playing with a high frame rate. If you encounter such an issue, disable the FPS unlock in the config file (lanvp.ini in the plugins directory of your game installation), restart the game, pass the current section, re-enable the FPS unlock in the config and restart the game again.
-
 ## Linux (Proton/Wine) Installation
 
 Use the same steps as above in addition to [this guide](https://cookieplmonster.github.io/setup-instructions/#proton-wine) by Silent.
@@ -95,6 +92,9 @@ In order to customize the settings of V-Patch, navigate to the game's directory 
 
 - Car steering is more sensitive than it should be.
 - On very high FPS (100+), the chandelier in the case "The Quarter Moon Murders" can break. If you encounter this issue, temporarily disable the patch or lower your FPS limit to below 100.
+
+> [!WARNING]
+> Some cases or activities may still be unbeatable when playing with a high frame rate. If you encounter such an issue, disable the FPS unlock in the config file (lanvp.ini in the plugins directory of your game installation), restart the game, pass the current section, re-enable the FPS unlock in the config and restart the game again.
 
 ## Compiling
 

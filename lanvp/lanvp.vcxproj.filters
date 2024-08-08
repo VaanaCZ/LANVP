@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Patch">
+      <UniqueIdentifier>{84aa4b54-575c-4f5c-82bc-2090f53f7e7d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="patching.cpp">
+      <Filter>Patch</Filter>
+    </ClCompile>
+    <ClCompile Include="fix_fps.cpp">
+      <Filter>Patch</Filter>
+    </ClCompile>
+    <ClCompile Include="fix_aspect.cpp">
+      <Filter>Patch</Filter>
+    </ClCompile>
+    <ClCompile Include="fix_resolution.cpp">
+      <Filter>Patch</Filter>
+    </ClCompile>
+    <ClCompile Include="opt_skip_logos_and_legals.cpp">
+      <Filter>Patch</Filter>
+    </ClCompile>
+    <ClCompile Include="config.cpp">
+      <Filter>Patch</Filter>
+    </ClCompile>
+    <ClCompile Include="opt_borderless_window.cpp">
+      <Filter>Patch</Filter>
+    </ClCompile>
+    <ClCompile Include="opt_version.cpp">
+      <Filter>Patch</Filter>
+    </ClCompile>
+    <ClCompile Include="dllmain.cpp">
+      <Filter>Patch</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="patching.h">
+      <Filter>Patch</Filter>
+    </ClInclude>
+    <ClInclude Include="fix_fps.h">
+      <Filter>Patch</Filter>
+    </ClInclude>
+    <ClInclude Include="shared.h">
+      <Filter>Patch</Filter>
+    </ClInclude>
+    <ClInclude Include="fix_aspect.h">
+      <Filter>Patch</Filter>
+    </ClInclude>
+    <ClInclude Include="fix_resolution.h">
+      <Filter>Patch</Filter>
+    </ClInclude>
+    <ClInclude Include="opt_skip_logos_and_legals.h">
+      <Filter>Patch</Filter>
+    </ClInclude>
+    <ClInclude Include="config.h">
+      <Filter>Patch</Filter>
+    </ClInclude>
+    <ClInclude Include="opt_borderless_window.h">
+      <Filter>Patch</Filter>
+    </ClInclude>
+    <ClInclude Include="opt_version.h">
+      <Filter>Patch</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

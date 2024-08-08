@@ -3,7 +3,7 @@
 V-Patch for L.A. Noire: Complete Edition
 Release 2.0
 By VaanaCZ
-August 4th, 2024
+August 8th, 2024
 
 
 LICENSE:
@@ -75,7 +75,7 @@ KNOWN ISSUES:
 
 CHANGELOG:
 
-    v2.0 (August 4th, 2024):
+    v2.0 (August 8th, 2024):
         - Patch rewritten from scratch.
         - Fixed the infamous pencil FPS bug in the case "The Set Up".
         - Reworked the implementation of the FPS patch. UI elements will now

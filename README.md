@@ -102,7 +102,7 @@ V-Patch is built with C++14 and the latest version of Visual Studio. It utilizes
 
 ## Changelog
 
-### v2.0 (August 4th, 2024)
+### v2.0 (August 8th, 2024)
 - Patch rewritten from scratch.
 - Fixed the infamous pencil FPS bug in the case "The Set Up".
 - Reworked the implementation of the FPS patch. UI elements will now fade in/out at the right speed and have the correct mouse sensitivity. Also, the game will now correctly pause if alt-tabbed (unless the -ignorefocus option is specified).

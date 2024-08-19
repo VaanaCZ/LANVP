@@ -160,6 +160,87 @@ static void* notebookClueVft;					// NotebookClue::__vftptr
 static float birdMaxSpeed;
 static float* defaultBirdMaxSpeed;
 
+
+
+
+static float fixedFrametime2 = 1.0f;		// Default frametime => 0.03333333507
+
+
+
+class CarDynamicsInstance
+{
+public:
+	int E576A0(float);
+	int E4A020(float);
+	int E4AFE0(float);
+	void E4C2F0(float);
+	void E490B0(float);
+	int E4F3A0(float);
+	int E524B0(float, char, char);
+	void E49830(float, float*);
+
+	typedef int (CarDynamicsInstance::* sub1_t)(float);
+	typedef void (CarDynamicsInstance::* sub2_t)(float);
+	typedef int (CarDynamicsInstance::* sub3_t)(float, char, char);
+	typedef void (CarDynamicsInstance::* sub4_t)(float, float*);
+};
+
+static CarDynamicsInstance::sub1_t addressE576A0 = &CarDynamicsInstance::E576A0;
+static CarDynamicsInstance::sub1_t addressE4A020 = &CarDynamicsInstance::E4A020;
+static CarDynamicsInstance::sub1_t addressE4AFE0 = &CarDynamicsInstance::E4AFE0;
+static CarDynamicsInstance::sub2_t addressE4C2F0 = &CarDynamicsInstance::E4C2F0;
+static CarDynamicsInstance::sub2_t addressE490B0 = &CarDynamicsInstance::E490B0;
+static CarDynamicsInstance::sub1_t addressE4F3A0 = &CarDynamicsInstance::E4F3A0;
+static CarDynamicsInstance::sub3_t addressE524B0 = &CarDynamicsInstance::E524B0;
+static CarDynamicsInstance::sub4_t addressE49830 = &CarDynamicsInstance::E49830;
+
+
+
+
+/*bool SuspTest(void* ptr)
+{
+	BYTE suspHook[] =
+	{
+		0xD9, 0x05, MASK, MASK, MASK, MASK,	// fld dword ptr [$fixedFrametime]
+		0xDC, 0x0D, MASK, MASK, MASK, MASK,	// fmul dword ptr [$30]
+		0xE9, MASK, MASK, MASK, MASK		// jmp $hook
+	};
+
+	BYTE* pSuspHook = (BYTE*)ExecCopy(suspHook, sizeof(suspHook));
+	assert(pSuspHook);
+
+	if (!MemRead((BYTE*)ptr + 3, &pSuspHook[6], 6))			return false;
+
+	DWORD* a1 = (DWORD*)&pSuspHook[2];
+	*a1 = (DWORD)&fixedFrametime;
+
+	if (!MemWriteHookJmp(&pSuspHook[12], (BYTE*)ptr + 9))	return false;
+
+	if (!MemWriteHookJmp(ptr, pSuspHook))					return false;
+	if (!MemWriteNop((BYTE*)ptr + 5, 4))					return false;
+}
+
+
+bool SuspTest2(void* ptr, BYTE regs)
+{
+	BYTE suspHook[] =
+	{
+		0xF3, 0x0F, 0x5A, regs, MASK, MASK, MASK, MASK,	// cvtss2sd xmm0, [$fixedFrametime]
+		0xE9, MASK, MASK, MASK, MASK					// jmp $hook
+	};
+
+	BYTE* pSuspHook = (BYTE*)ExecCopy(suspHook, sizeof(suspHook));
+	assert(pSuspHook);
+
+	DWORD* a1 = (DWORD*)&pSuspHook[4];
+	*a1 = (DWORD)&fixedFrametime;
+
+	if (!MemWriteHookJmp(&pSuspHook[8], (BYTE*)ptr + 5))	return false;
+
+	if (!MemWriteHookJmp(ptr, pSuspHook))					return false;
+}*/
+
+
 bool ApplyPatch_Framerate(Patch* patch)
 {
 	assert(patch->numSignatureIndices == 9);
@@ -342,8 +423,79 @@ bool ApplyPatch_Framerate(Patch* patch)
 	if (!QueryPerformanceCounter(&lastTime))		{ HandleError(L"[V-PATCH] Patching failed!", L"Could not query performance counter."); return false; }
 	if (!QueryPerformanceFrequency(&timeFrequency)) { HandleError(L"[V-PATCH] Patching failed!", L"Could not query performance frequency."); return false; }
 
+
+
+
+
+
+
+
+
+//	SuspTest((void*)0x00E4C5BB);
+//	SuspTest2((void*)0x00E4C5DB, 0x05);
+//	SuspTest2((void*)0x00E4C698, 0x25);
+//	SuspTest2((void*)0x00E4C6BC, 0x25);
+
+
+
+
+	void* ptr = (void*)0x00E4DF33;
+
+	BYTE suspHook[] =
+	{
+		0xF3, 0x0F, 0x10, 0x0D, MASK, MASK, MASK, MASK,	// movss xmm1, [$fixedFrametime]
+		0xE9, MASK, MASK, MASK, MASK					// jmp $hook
+	};
+
+	BYTE* pSuspHook = (BYTE*)ExecCopy(suspHook, sizeof(suspHook));
+	assert(pSuspHook);
+
+	DWORD* a1 = (DWORD*)&pSuspHook[4];
+	*a1 = (DWORD)&fixedFrametime2;
+
+	if (!MemWriteHookJmp(&pSuspHook[8], (BYTE*)ptr + 6))	return false;
+
+	if (!MemWriteHookJmp(ptr, pSuspHook))					return false;
+	if (!MemWriteNop((BYTE*)ptr + 5, 1))					return false;
+
+
+
+
+
+	void* tempAddr;
+
+#define TEMP_PATCH(addr, func)	\
+		tempAddr = (void*)addr;			\
+		MemReplace(tempAddr, &address##func, sizeof(address##func))
+
+	//TEMP_PATCH(0x01259AB0, E576A0);
+	//TEMP_PATCH(0x01259AB4, E4A020);
+	//TEMP_PATCH(0x01259AC4, E4AFE0); // fixes turning somewhat
+	////TEMP_PATCH(0x01259AC8, E4C2F0); // supsenison
+	//TEMP_PATCH(0x01259ACC, E490B0); // braking
+	//TEMP_PATCH(0x01259AD0, E4F3A0);
+	//TEMP_PATCH(0x01259AD4, E524B0);
+	//TEMP_PATCH(0x01259AE8, E49830);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	return true;
 }
+
+
+static float ftm = 1.0f / 30.0f;
 
 double minFrameTime = 0.0;
 
@@ -373,6 +525,8 @@ void __stdcall Hook_Frame()
 	double fps = timeFrequency.QuadPart / (double)timeDiff;
 	double frameTime = timeDiff / (double)timeFrequency.QuadPart;
 
+	ftm = frameTime;
+
 	float multiplier = frameTime / *(float*)&fixedFrametime;
 
 	if (engine)
@@ -385,6 +539,56 @@ void __stdcall Hook_Frame()
 
 	lastTime = currTime;
 }
+
+
+
+
+const float LAN_FRAMETIME_GAME = 1.0f / 30.0f;
+
+int CarDynamicsInstance::E576A0(float a2)
+{
+	return ((*this).*addressE576A0)(LAN_FRAMETIME_GAME);
+}
+
+int CarDynamicsInstance::E4A020(float a2)
+{
+	return ((*this).*addressE4A020)(LAN_FRAMETIME_GAME);
+}
+
+int CarDynamicsInstance::E4AFE0(float a2)
+{
+	return ((*this).*addressE4AFE0)(1.0f/165.0f);
+//	return ((*this).*addressE4AFE0)(LAN_FRAMETIME_GAME);
+}
+
+void CarDynamicsInstance::E4C2F0(float a2)
+{
+
+	return ((*this).*addressE4C2F0)(LAN_FRAMETIME_GAME);
+}
+
+void CarDynamicsInstance::E490B0(float a2)
+{
+	return ((*this).*addressE490B0)(LAN_FRAMETIME_GAME);
+}
+
+int CarDynamicsInstance::E4F3A0(float a2)
+{
+	return ((*this).*addressE4F3A0)(LAN_FRAMETIME_GAME);
+}
+
+int CarDynamicsInstance::E524B0(float a2, char a3, char a4)
+{
+	return ((*this).*addressE524B0)(LAN_FRAMETIME_GAME, a3, a4);
+}
+
+void CarDynamicsInstance::E49830(float a2, float* a3)
+{
+	return ((*this).*addressE49830)(LAN_FRAMETIME_GAME, a3);
+}
+
+
+
 
 void __stdcall Hook_Pencil(InspectionSystem* inspection)
 {	
